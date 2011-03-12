@@ -311,9 +311,8 @@
       $query .= "FROM bcc_food_client.clients c JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
       $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
       
-      echo $query;
       
-     $result = mysql_query($query);
+      $result = mysql_query($query);
       $clients = array();
       
       while ($row = mysql_fetch_array($result))
@@ -380,4 +379,4 @@
     }
     
   }
-?>
+  ?>
