@@ -1,4 +1,9 @@
-<?php 	include 'bryant_db.php'; ?>
+<?php
+  include_once('./models/sqldb.php');
+  include_once('./models/ethnicity.php');
+  include_once('./models/gender.php');
+  include_once('./models/reason.php');
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -54,11 +59,7 @@
   	  $('#uDate').datepicker({ altFormat: 'yy-mm-dd' });
     });
 
-</script>			
-	<?php 
-             $myDBConnection = new dbHandler();
-             $myDBConnection->db_connect();
-	?>
+</script>	
 <head>
 <title>Bryant Food Distribution Client Data Entry Input Screen</title>
 </head>
@@ -69,7 +70,7 @@
 			<hr/>
 		</div><!-- /header -->
 		<div id="newClient">
-			<form method="post">
+			<form method="post" action = "controllers/addClient.php">
 			<fieldset>
 				<legend>Enter data for a new client</legend>
 				<table>
@@ -163,29 +164,4 @@
 			</p>
 		</div><!-- /newClient -->
 	</body>
-	<!-- DATA ENTRY SUBMISSION HANDLER -->
-	<?php
-		if($_POST['clientSub'] == 'Done'){
-			
-				//Adds the client info to the client table
-				include 'client.php';
-				//include 'house.php';
-				$firstName = $_POST['cfName'];
-				$lastName = $_POST['clName'];
-				$age = $_POST['cAge'];
-				$phoneNumber = $_POST['cPhone'];
-				//$applicationDate = $_POST['date'];
-				//$unemploymentDate = $_POST['uDate'];
-				create();
-				save();
-				
-			
-				//adds the client house info to the house table. 
-				/*$address = $_POST['cAddress'];
-				$city = $_POST['cCity'];
-				$zip = $_POST['cZip'];
-			
-			echo $applicationDate;*/
-		}
-	?>
 </html>

@@ -12,7 +12,7 @@
     //If a visit is retrieved from the database, flag it as such
     private $createdFromDB = true;
     
-    //This flag keeps track of whether or not this object is inconsistent
+    //This flag keeps track of whether or not this object is inconfile://localhost/Users/thecheat/BCC/models/visit.phpsistent
     //with the database and needs to be written back to the database on
     //destruction
     private $dirty = false;
@@ -111,9 +111,9 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $clientIDParam = normalize($this->address);
-      $distTypeIDParam = normalize($this->city);
-      $dateParam = normalize($this->zip);
+      $clientIDParam = mysql_real_escape_string($this->address);
+      $distTypeIDParam = mysql_real_escape_string($this->city);
+      $dateParam = mysql_real_escape_string($this->zip);
       $query = "";
       
       //If this visit already existed in the database, update it
@@ -193,9 +193,9 @@
     {
       SQLDB::connect();
       
-      $distID = normalize($distID);
-      $newDate = normalize($newDate);
-      $newDistTypeID = normalize($newDistTypeID);
+      $distID = mysql_real_escape_string($distID);
+      $newDate = mysql_real_escape_string($newDate);
+      $newDistTypeID = mysql_real_escape_string($newDistTypeID);
       
       $query = "UPDATE bcc_food_client.usage ";
       $query .= "SET type_id = '{$newDistTypeID}', ";
@@ -210,9 +210,9 @@
     public static function deleteVisitByID($distID)
     {
       SQLDB::connect();
-      $distID = normalize($distID);
+      $distID = mysql_real_escape_string($distID);
       $query = "DELETE FROM bcc_food_client.usage WHERE dist_id = '{$distID}'";
-      result = mysql_query($query);
+      $result = mysql_query($query);
       return $result;
     }
     

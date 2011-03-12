@@ -1,7 +1,7 @@
 <?php
   
-  require_once("./visit.php");
-  require_once("../controllers/utility.php");
+  include_once("visit.php");
+  include_once("../controllers/utility.php");
   
   class Client
   {
@@ -194,16 +194,16 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $firstNameParam = normalize($this->firstName);
-      $lastNameParam = normalize($this->lastName);
-      $ageParam = normalize($this->age);
-      $phoneNumberParam = normalize($this->phoneNumber);
-      $houseIDParam = normalize($this->houseID);
-      $ethnicityIDParam = normalize($this->ethnicityID);
-      $genderIDParam = normalize($this->genderID);
-      $reasonIDParam = normalize($this->reasonID);
-      $unempDateParam = normalize($this->unemploymentDate);
-      $appDateParam = normalize($this->applicationDate);
+      $firstNameParam = mysql_real_escape_string($this->firstName);
+      $lastNameParam = mysql_real_escape_string($this->lastName);
+      $ageParam = mysql_real_escape_string($this->age);
+      $phoneNumberParam = mysql_real_escape_string($this->phoneNumber);
+      $houseIDParam = mysql_real_escape_string($this->houseID);
+      $ethnicityIDParam = mysql_real_escape_string($this->ethnicityID);
+      $genderIDParam = mysql_real_escape_string($this->genderID);
+      $reasonIDParam = mysql_real_escape_string($this->reasonID);
+      $unempDateParam = mysql_real_escape_string($this->unemploymentDate);
+      $appDateParam = mysql_real_escape_string($this->applicationDate);
       $query = "";
       
       //If this client already existed in the database, update it
@@ -302,9 +302,9 @@
     {
       SQLDB::connect();
       
-      $firstName = normalize($firstName);
-      $lastName = normalize($lastName);
-      $street = normalize($street);
+      $firstName = mysql_real_escape_string($firstName);
+      $lastName = mysql_real_escape_string($lastName);
+      $street = mysql_real_escape_string($street);
       
       $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
       $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date ";
@@ -379,4 +379,5 @@
     }
     
   }
+
   ?>

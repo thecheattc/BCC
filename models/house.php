@@ -1,5 +1,5 @@
 <?php
-  
+
   class House
   {
     private $houseID;
@@ -100,9 +100,9 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $addressParam = normalize($this->address);
-      $cityParam = normalize($this->city);
-      $zipParam = normalize($this->zip);
+      $addressParam = mysql_real_escape_string($this->address);
+      $cityParam = mysql_real_escape_string($this->city);
+      $zipParam = mysql_real_escape_string($this->zip);
       $query = "";
       
       //If this house already existed in the database, update it
@@ -174,4 +174,31 @@
       return $house;
     }
     
+    //Returns the house that matches the given street, city, and zip.
+    public static function searchByAddress($street = '', $city = '', $zip = '')
+    {
+      SQLDB::connect();
+      
+      $street = mysql_real_escape_string($street);
+      $city = mysql_real_escape_string($city);
+      $zip = mysql_real_escape_string($zip);
+      
+      $query = "SELECT house_id, address, city, zip ";
+      $query .= "FROM bcc_food_client.houses ";
+      $query .= "WHERE address = '{$street}' AND city = '{$city}' AND zip = '{$zip}'";
+      
+      
+      $result = mysql_query($query);
+      $house = NULL;
+      
+      if ($row = mysql_fetch_array($result))
+      {
+        $house = House::createFromSQLRow($row);
+      }
+      
+      return $house;
+    }
+    
   }
+
+?>

@@ -10,10 +10,10 @@
     private function __construct() 
     {
       //connect to database
-      $username = "";
-      $password = "";
-      $hostname = "";
-      $dbname = "";
+      $username = "root";
+      $password = "root";
+      $hostname = "localhost";
+      $dbname = "bcc_food_client";
       
 			self::$sqlConn = mysql_connect($hostname, $username, $password) or die("Unable to connect to MySQL " . mysql_error());
 			mysql_select_db($dbname, self::$sqlConn) or die("Unable to select database: " . mysql_error());

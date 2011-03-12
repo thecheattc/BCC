@@ -87,8 +87,8 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $reasonDescParam = normalize($this->reasonDesc);
-      $explanationParam = normalize($this->explanation);
+      $reasonDescParam = mysql_real_escape_string($this->reasonDesc);
+      $explanationParam = mysql_real_escape_string($this->explanation);
       $query = "";
       
       //If this reason already existed in the database, update it

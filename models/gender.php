@@ -74,7 +74,7 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $genderDescParam = normalize($this->genderDesc);
+      $genderDescParam = mysql_real_escape_string($this->genderDesc);
       $query = "";
       
       //If this gender already existed in the database, update it
