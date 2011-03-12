@@ -1,6 +1,7 @@
 <?php
   
   require_once("./visit.php");
+  require_once("../controllers/utility.php");
   
   class Client
   {
@@ -102,12 +103,12 @@
       return $this->ethnicityID;
     }
     
-    public function getGender()
+    public function getGenderID()
     {
       return $this->genderID;
     }
     
-    public function setGender($val)
+    public function setGenderID($val)
     {
       $this->dirty = true;
       $this->genderID = $val;
@@ -193,16 +194,16 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $firstNameParam = mysql_real_escape_string($this->firstName);
-      $lastNameParam = mysql_real_escape_string($this->lastName);
-      $ageParam = mysql_real_escape_string($this->age);
-      $phoneNumberParam = mysql_real_escape_string($this->phoneNumber);
-      $houseIDParam = mysql_real_escape_string($this->houseID);
-      $ethnicityIDParam = mysql_real_escape_string($this->ethnicityID);
-      $genderIDParam = mysql_real_escape_string($this->genderID);
-      $reasonIDParam = mysql_real_escape_string($this->reasonID);
-      $unempDateParam = mysql_real_escape_string($this->unemploymentDate);
-      $appDateParam = mysql_real_escape_string($this->applicationDate);
+      $firstNameParam = normalize($this->firstName);
+      $lastNameParam = normalize($this->lastName);
+      $ageParam = normalize($this->age);
+      $phoneNumberParam = normalize($this->phoneNumber);
+      $houseIDParam = normalize($this->houseID);
+      $ethnicityIDParam = normalize($this->ethnicityID);
+      $genderIDParam = normalize($this->genderID);
+      $reasonIDParam = normalize($this->reasonID);
+      $unempDateParam = normalize($this->unemploymentDate);
+      $appDateParam = normalize($this->applicationDate);
       $query = "";
       
       //If this client already existed in the database, update it
@@ -297,19 +298,22 @@
     
     
     //Returns an array of clients that match the given first name or last name
-    public static function getClientsByName($firstName = '', $lastName = '')
+    public static function searchByNameAndStreet($firstName = '', $lastName = '', $street = '')
     {
       SQLDB::connect();
       
-      $firstName = mysql_real_escape_string($firstName);
-      $lastName = mysql_real_escape_string($lastName);
+      $firstName = normalize($firstName);
+      $lastName = normalize($lastName);
+      $street = normalize($street);
       
-      $query = "SELECT DISTINCT client_id, first_name, last_name, age, phone_number, ";
-      $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, application_date ";
-      $query .= "FROM bcc_food_client.clients ";
-      $query .= "WHERE first_name = '{$firstName}' OR last_name = '{$lastName}'";
+      $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
+      $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date ";
+      $query .= "FROM bcc_food_client.clients c JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
+      $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
       
-      $result = mysql_query($query);
+      echo $query;
+      
+     $result = mysql_query($query);
       $clients = array();
       
       while ($row = mysql_fetch_array($result))
@@ -376,3 +380,4 @@
     }
     
   }
+?>

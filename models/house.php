@@ -100,9 +100,9 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $addressParam = mysql_real_escape_string($this->address);
-      $cityParam = mysql_real_escape_string($this->city);
-      $zipParam = mysql_real_escape_string($this->zip);
+      $addressParam = normalize($this->address);
+      $cityParam = normalize($this->city);
+      $zipParam = normalize($this->zip);
       $query = "";
       
       //If this house already existed in the database, update it

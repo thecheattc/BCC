@@ -111,9 +111,9 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $clientIDParam = mysql_real_escape_string($this->address);
-      $distTypeIDParam = mysql_real_escape_string($this->city);
-      $dateParam = mysql_real_escape_string($this->zip);
+      $clientIDParam = normalize($this->address);
+      $distTypeIDParam = normalize($this->city);
+      $dateParam = normalize($this->zip);
       $query = "";
       
       //If this visit already existed in the database, update it
@@ -193,9 +193,9 @@
     {
       SQLDB::connect();
       
-      $distID = mysql_real_escape_string($distID);
-      $newDate = mysql_real_escape_string($newDate);
-      $newDistTypeID = mysql_real_escape_string($newDistTypeID);
+      $distID = normalize($distID);
+      $newDate = normalize($newDate);
+      $newDistTypeID = normalize($newDistTypeID);
       
       $query = "UPDATE bcc_food_client.usage ";
       $query .= "SET type_id = '{$newDistTypeID}', ";
@@ -207,6 +207,13 @@
       return $result;
     }
     
-    //Perhaps a delete by ID?
+    public static function deleteVisitByID($distID)
+    {
+      SQLDB::connect();
+      $distID = normalize($distID);
+      $query = "DELETE FROM bcc_food_client.usage WHERE dist_id = '{$distID}'";
+      result = mysql_query($query);
+      return $result;
+    }
     
   }

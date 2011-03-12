@@ -100,9 +100,9 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $guardianParam = mysql_real_escape_string($this->guardianClientID);
-      $ageParam = mysql_real_escape_string($this->age);
-      $genderParam = mysql_real_escape_string($this->genderID);
+      $guardianParam = normalize($this->guardianClientID);
+      $ageParam = normalize($this->age);
+      $genderParam = normalize($this->genderID);
       $query = "";
       
       //If this house already existed in the database, update it

@@ -74,7 +74,7 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $ethnicityDescParam = mysql_real_escape_string($this->ethnicityDesc);
+      $ethnicityDescParam = normalize($this->ethnicityDesc);
       $query = "";
       
       //If this ethnicity already existed in the database, update it
