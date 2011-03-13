@@ -6,6 +6,10 @@
   include ('models/ethnicity.php');
   include ('models/reason.php');
   include ('controllers/utility.php');
+
+  $genders = Gender::getAllGenders();
+  $ethnicities = Ethnicity::getAllEthnicities();
+  $reasons = Reason::getAllReasons();
   
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -14,36 +18,63 @@
 	<head>
 		<meta name="original-source" content="http://commons.wikimedia.org/wiki/File:CampbellsModif.png">
 		<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
-		<link rel="stylesheet" href="bryant.css" type="text/css"/>
-		<link type="text/css" href="js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />	
-		<script type="text/javascript" 
-			src="js/jquery-1.4.4.min.js"></script>
-		<script src="js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8">
-		</script>
-		<script type="text/javascript" src="js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
-<?php
-  $formArray = array(
-                     'appDate'=> $_POST['date'],
-                     'firstName'=> $_POST['cfName'],
-                     'lastName'=> $_POST['clName'],
-                     'address'=> $_POST['cAddress'],
-                     'city'=> $_POST['cCity'],
-                     'zip'=> $_POST['cZip'],
-                     'phone'=> $_POST['cPhone'],
-                     'age'=> $_POST['cAge'],
-                     'gender'=> $_POST['gengroup'],
-                     'ethnic'=> $_POST['ethgroup'],
-                     'reason'=> $_POST['reasongroup'],
-                     'udate'=> $_POST['uDate']
-                     );
-  $serializedForm =  base64_encode(serialize($formArray));
-  $ethnicity = Ethnicity::getEthnicityByID($formArray['ethnic']);
-  $gender = Gender::getGenderByID($formArray['gender']);
-  $reason = Reason::getReasonByID($formArray['reason']);
-  $ethDesc = (!empty($ethnicity))? $ethnicity->getEthnicityDesc() : "";
-  $genDesc = (!empty($gender))? $gender->getGenderDesc() : "";
-  $reasonDesc = (!empty($reason))? $reason->getReasonDesc() : "";
-?>
+    <link rel="stylesheet" href="style/bryant.css" type="text/css"/>
+    <link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />	
+    <script type="text/javascript" src="scripts/js/jquery-1.4.4.min.js"></script>
+    <script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8"> </script>
+    <script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"> </script>
+    <script language="javascript" type="text/javascript">
+      function stopRKey(evt) {
+        var evt  = (evt) ? evt : ((event) ? event : null);
+        var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+        if ((evt.keyCode == 13) && (node.type=="text")) { return false; }
+      }
+      document.onkeypress = stopRKey;
+    </script>
+    <script>
+      $(document).ready(function() {
+          //Makes the date inputs appear if lost job is selected      
+          $("#reasongroup").change(function () {
+            $("#reasongroup option:selected").each(function () {
+              if($(this).text() === "Lost job"){
+                 $(".show").show("slow");
+              }
+               else{
+                 $(".show").hide("slow");
+               }
+             });
+           });
+                  
+          //Gets the value from the number in household Input
+          $("#houseNum").focusout(function(){
+              var val = $("#houseNum").val();
+              if(val != ""){
+                 if (val >0 && val < 16 && !(/\D/).test(val)){
+                     $(".show2").show("slow");
+                  }
+                  else{
+                    window.alert('Please enter a whole number of household members from 1 to 15.');
+                    $(".show2").hide("slow");
+                   }
+              }
+           });
+                  
+           //Limits the household age members to a comma separated list
+           $('#hAge').focusout(function(){
+               var ages = $('#hAge').val();
+               var patt = /^([0-9]*)+(,[0-9]+)+$/;
+               var result = patt.exec(ages);
+               window.alert(result);
+               if(result === null){
+                  window.alert('Please enter a comma separated list of ages');
+               }
+            });
+                  
+            //Popup date pickers for application date and unemployment date
+            $('#date').datepicker({ dateFormat: 'mm-dd-yy' });
+            $('#uDate').datepicker({ dateFormat: 'mm-dd-yy' });  	 
+        });
+    </script>	
 	
 		<title>Bryant Food Distribution Client Data Confirmation page</title>
 	</head>
@@ -54,75 +85,116 @@
 			<h2>Please check that the information you have entered is correct.</h2>
 			<hr/>
 		</div><!-- /header -->
-		<div id="clientCheck">
-			<table >
-				<tr>
-					<td><label>Application Date: </label></td>
-					<td><?php echo $formArray['appDate']; ?></td>
-					<td><button type="button" id="e1">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>First Name: </label></td>
-					<td><?php echo $formArray['firstName']; ?></td>
-					<td><button type="button" id="e2">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Last Name: </label></td>
-					<td><?php echo $formArray['lastName']; ?></td>
-					<td><button type="button" id="e3">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Current Address: </label></td>
-					<td><?php echo $formArray['address']; ?></td>
-					<td><button type="button" id="e4">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Current City: </label></td>
-					<td><?php echo $formArray['city']; ?></td>
-					<td><button type="button" id="e6">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Zip Code: </label></td>
-					<td><?php echo $formArray['zip']; ?></td>
-					<td><button type="button" id="e7">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Phone Number: </label></td>
-					<td><?php echo $formArray['phone']; ?></td>
-					<td><button type="button" id="e8">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Client Age: </label></td>
-					<td><?php echo $formArray['age']; ?></td>
-					<td><button type="button" id="e9">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Client Gender: </label></td>
-					<td><?php echo $genDesc; ?></td>
-					<td><button type="button" id="e10">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Client Ethnicity: </label></td>
-					<td><?php echo $ethDesc; ?></td>
-					<td><button type="button" id="e11">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Reason for Assistance: </label></td>
-					<td><?php echo $reasonDesc; ?></td>
-					<td><button type="button" id="e11">Edit Client Info</button></td>
-				</tr>
-				<tr>
-					<td><label>Unemployment date</label></td>
-					<td><?php echo $formArray['udate']; ?></td>
-					<td></td>
-				</tr>
-				<tr class="noborder">		
-          <form method="POST" action="controllers/addClient.php">
-            <input type="hidden" name="formData" value=<?php echo $serializedForm ?>/>
-            <td><input type="submit" name="subClientConfirm" value = "Add client" /></td>
-          </form>
-				</tr>
-			</table>
-		</div><!-- /confirm -->
-	</body>
+    <div id="newClient">
+      <form method="post" action="controllers/addClient.php">
+      <fieldset>
+        <legend>Enter data for a new client</legend>
+        <table>
+          <tr>
+            <td><label for="appDate">Date of Application:</label></td>
+            <td><input type="text" name="date" id="date" "value=<?php echo $_POST['appDate'] ?>"/></td>
+          </tr>
+          <tr>
+            <td><label for="cfName">First Name: </label></td>
+            <td><input type="text" size="60" name="cfName" "value=<?php echo $_POST['cfName'] ?>" /></td>
+          </tr>
+          <tr>
+            <td><label for="clName">Last Name: </label></td>
+            <td><input name="clName" type="text" size="60" "value=<?php echo $_POST['clName'] ?>" /></td>
+          </tr>
+          <tr>
+            <td><label for="cAddress">Current Address: </label></td>
+            <td><input name="cAddress" type="text" size="80" "value=<?php echo $_POST['cAddress'] ?>" /></td>
+          </tr>
+          <tr>
+            <td><label for="cCity">Current City: </label></td>
+            <td><input name="cCity" type="text" size="50" value="<?php echo $_POST['cCity'] ?>" /></td>
+          </tr>
+          <tr>
+            <td><label for="cZip">Zip Code: </label></td>
+            <td><input name="cZip" type="text" size="11" value="<?php echo $_POST['cZip'] ?>" maxlength="11" /></td>
+          </tr>
+          <tr>
+            <td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
+            <td><input name="cPhone" id="cPhone"type="text" size="16" value="<?php echo $_POST['cPhone'] ?>" maxlength="16" /></td>
+          </tr>
+          <tr>
+            <td><label for="cAge">Client Age: </label></td>
+            <td><input name="cAge" type="text" size="2" value="<?php echo $_POST['cAge'] ?>" maxlength="3" /></td>
+          </tr>
+          <tr>
+            <td><label for="gengroup">Client Gender: </label></td>
+            <td>
+            <?php foreach ($genders as $gender)
+              {
+                echo "\t\t\t\t\t\t";
+                echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'" ';
+                if ($gender->getGenderID() == $_POST['gengroup'])
+                {
+                  echo 'checked ';
+                }
+                echo '/>';
+                echo "\n";
+              }
+              ?>
+            </td>
+          </tr>
+          <tr>
+            <td><label for="ethgroup">Client Ethnicity: </label></td>
+            <td><select id="ethgroup" name="ethgroup">
+              <option value="0">Select an ethnicity</option>
+              <?php foreach ($ethnicities as $ethnicity)
+                {
+                  echo "\t\t\t\t\t\t";
+                  echo '<option value="'.$ethnicity->getEthnicityID().'" ';
+                  if ($ethnicity->getEthnicityID() == $_POST['ethgroup'])
+                  {
+                    echo 'selected ';
+                  }
+                  echo '>'.$ethnicity->getEthnicityDesc().'</option>';
+                  echo "\n";
+                }
+                ?>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><label for="reasongroup">Reason For Assistance: </label></td>
+            <td><select id="reasongroup" name="reasongroup">
+              <option value="0">Select a reason</option>
+              <?php foreach ($reasons as $reason)
+                {
+                  echo "\t\t\t\t\t\t";
+                  echo '<option value="'.$reason->getReasonID().'" ';
+                  if ($reason->getReasonID() == $_POST['reasongroup'])
+                  {
+                    echo 'selected ';
+                  }
+                  echo '>'.$reason->getReasonDesc().'</option>';
+                  echo "\n";
+                }
+                ?>
+              </select>
+            </td>
+          </tr>
+          <tr>
+            <td><div class="show" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
+            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo $_POST['uDate'] ?>" id="uDate" /></td>
+          </tr>
+          <tr>
+            <td><label for="houseNum">Number of People in Household:</label></td>
+            <td><input name="houseNum" id="houseNum" type="text" size="2" maxlength="2" numeric="integer" /></td>
+          </tr>
+          <tr>
+            <td><div class="show2" style="display:none;"><label for="hAge">Household Member Ages:<br/><span class="example">Please enter a comma separated list<br/>Example: 15, 20, 25</span></label></div></td>
+            <td><div class="show2" style="display:none;"><input type="text" id="hAge" name="hAge" size="25" maxlength="45" /></div></td>
+          </tr>
+          <tr>
+            <td><input type="submit" name="clientSub" id="clientSub" value="Confirm" ></td>
+          </tr>
+        </table>
+      </fieldset>
+    </form>
+  </div><!-- /editClient -->
+</body>
 </html>

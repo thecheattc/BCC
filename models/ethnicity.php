@@ -142,4 +142,21 @@
       return $ethnicity;
     }
     
+    public static function getAllEthnicities()
+    {
+      SQLDB::connect();
+      
+      $query = "SELECT ethnicity_id, ethnicity_desc FROM bcc_food_client.ethnicities";
+      
+      $result = mysql_query($query);
+      
+      $ethnicities = array();
+      while ($row = mysql_fetch_array($result))
+      {
+        $ethnicities[] = Ethnicity::createFromSQLRow($row);
+      }
+      
+      return $ethnicities;
+    }
+    
   }

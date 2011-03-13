@@ -127,7 +127,7 @@
       $query = "SELECT gender_id, gender_desc ";
       $query .= "FROM bcc_food_client.genders ";
       
-      $result = mysql_query($result);
+      $result = mysql_query($query);
       
       $genders = array();
       while ($row = mysql_fetch_array($result))

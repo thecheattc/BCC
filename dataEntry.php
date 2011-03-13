@@ -1,3 +1,16 @@
+<?php
+
+  include('models/sqldb.php');
+  include('models/gender.php');
+  include('models/ethnicity.php');
+  include('models/reason.php');
+  
+  $genders = Gender::getAllGenders();
+  $ethnicities = Ethnicity::getAllEthnicities();
+  $reasons = Reason::getAllReasons();
+
+?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -37,7 +50,7 @@
     $("#houseNum").focusout(function(){
         var val = $("#houseNum").val();
         if(val != ""){
-          if (val >0 && val < 16 && !/\D/.test(val)){
+          if (val >0 && val < 16 && !(/\D/).test(val)){
             $(".show2").show("slow");
           }
           else{
@@ -112,18 +125,25 @@
 					<tr>
 						<td><label for="gengroup">Client Gender: </label></td>
 						<td>
-                Male: <input name="gengroup" type="radio" value="1" checked /> 
-                Female: <input name="gengroup" type="radio" value="2" /></td>
+                <?php foreach ($genders as $gender)
+                  {
+                    echo "\t\t\t\t\t\t";
+                    echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'" />';
+                    echo "\n"; 
+                  }
+                  ?>
 					</tr>
 					<tr>
 						<td><label for="ethgroup">Client Ethnicity: </label></td>
 						<td><select id="ethgroup" name="ethgroup">
-								<option value="0" selected>Select an ethnicity</option>
-                <option value="1">White</option>
-								<option value="2">African-American</option>
-								<option value="3">Hispanic</option>
-								<option value="4">Asian or Pacific Islander</option>
-								<option value="5">American Indian</option>
+                <option value="0" selected>Select an ethnicity</option>
+                <?php foreach ($ethnicities as $ethnicity)
+                  {
+                    echo "\t\t\t\t\t\t";
+                    echo '<option value="'.$ethnicity->getEthnicityID().'">'.$ethnicity->getEthnicityDesc().'</option>';
+                    echo "\n";
+                  }
+                  ?>
 							</select>
 						</td>
 					</tr>
@@ -131,19 +151,15 @@
 						<td><label for="reasongroup">Reason For Assistance: </label></td>
 						<td><select id="reasongroup" name="reasongroup">
               <option value="0" selected>Select a reason</option>
-							<option value="1">Lost job</option>
-							<option value="2">Unusual expenses this month</option>
-							<option value="3">To make ends meet</option>
-							<option value="4">Assistance lost/reduced</option>
-							<option value="5">DHS application in progress</option>
-							<option value="6">Homeless</option>
-							<option value="7">Other</option>
-							
+              <?php foreach ($reasons as $reason)
+                {
+                  echo "\t\t\t\t\t\t";
+                  echo '<option value="'.$reason->getReasonID().'">'.$reason->getReasonDesc().'</option>';
+                  echo "\n";
+                }
+                ?>
 						</select></td>
-						
-
-					</tr>
-					
+					</tr>					
 					<tr>
 						<td><div class="show" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
 						<td><input class="show" style="display:none;"type="text" name="uDate" id="uDate" />
@@ -158,8 +174,7 @@
 						<td><div class="show2" style="display:none;"><input type="text" id="hAge" name="hAge" size="25" maxlength="45" /></div></td>
 					</tr>
 					<tr>
-						<td><button type="submit" name="clientSub" id="clientSub" value="Done" >Add New Client</button></td>
-						<td></td>
+						<td><input type="submit" name="clientSub" id="clientSub" value="Add New Client" /></td>
 					</tr>
 				</table>
 			</fieldset>

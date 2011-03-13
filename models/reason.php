@@ -158,4 +158,21 @@
       return $reason;
     }
     
+    public static function getAllReasons()
+    {
+      SQLDB::connect();
+      
+      $query = "SELECT reason_id, reason_desc, explanation FROM bcc_food_client.reasons";
+      
+      $result = mysql_query($query);
+      
+      $reasons = array();
+      while ($row = mysql_fetch_array($result))
+      {
+        $reasons[] = Reason::createFromSQLRow($row);
+      }
+      
+      return $reasons;
+    }
+    
   }
