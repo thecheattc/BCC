@@ -83,7 +83,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   INDEX `client_reason` (`reason_id` ASC) ,
   INDEX `client_gender` (`gender_id` ASC) ,
   INDEX `client_ethnicity` (`ethnicity_id` ASC) ,
-  INDEX `client_UNIQUE` (`first_name` ASC, `last_name` ASC, `age` ASC, `phone_number` ASC, `house_id` ASC, `ethnicity_id` ASC, `gender_id` ASC, `unemployment_date` ASC, `reason_id` ASC) ,
+  UNIQUE INDEX `client_UNIQUE` (`first_name` ASC, `last_name` ASC, `age` ASC, `phone_number` ASC, `house_id` ASC, `ethnicity_id` ASC, `gender_id` ASC, `unemployment_date` ASC, `reason_id` ASC) ,
   CONSTRAINT `client_house_id`
     FOREIGN KEY (`house_id` )
     REFERENCES `bcc_food_client`.`houses` (`house_id` )

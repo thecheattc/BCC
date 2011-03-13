@@ -64,43 +64,52 @@
   echo "UnempDate: "; var_dump($unempDate);
   echo "</PRE>";
   
-  //If any field besides house_id, phone_number, or unemployment date is empty 
-  //(unemployment date has to be present when the reason is "lost job", and
-  //address has to be present when the reason is not "homeless"), redirect with an error
-  if (empty($date) || empty($first) || empty($last) ||
+  //If any part of the address is listed, all parts must be.
+  $badAddr = FALSE;
+  $count = 0;
+  if (isset($address)){ $count++;}
+  if (isset($city)){ $count++;}
+  if (isset($zip)){ $count++;}
+  if ($count > 0 && $count < 3){ $badAddr = TRUE;}
+  
+  //If the address is incomplete or any field besides the phone_number or unemployment date is empty 
+  //(unemployment date has to be present when the reason is "lost job"), redirect with an error
+  if ($badAddr || empty($date) || empty($first) || empty($last) ||
       empty($city) || empty($zip) || empty($age) ||
       empty($genderID) || empty($ethnicityID) || empty($reasonID) ||
-      ($reasonID == UNEMPLOYED_REASON_ID && empty($unempDate)) ||
-      ($reasonID != HOMELESS_REASON_ID && empty($address)))
+      ($reasonID == UNEMPLOYED_REASON_ID && empty($unempDate)))
   {
-    header('Location: ../dataEntry.php&error');
+    echo "Bad input";
+    header('Location: ../dataEntry.php?error');
   }
   else
   {
     $error = false;
-    //If they're not listed as homeless, create an entry in the database for their house.
+    //If the address is given, create an entry in the database for their house.
     $house = NULL;
-    if ($reasonID != HOMELESS_REASON_ID)
+    if ($count === 3)
     {
       $house = House::create();
       $house->setAddress($address);
       $house->setCity($city);
       $house->setZip($zip);
       
-      //If the insert failed, so presumably the house exists already
-      if (!$house->save())
+      //If the insert failed then presumably the house already exists
+      if ($house->save() === FALSE)
       {
+        echo "House save failed";
         $house = House::searchByAddress($address, $city, $zip);
         if ($house === NULL)
         {
           //Couldn't find that house, so the insert failed for some other reason. Raise an error
+          echo "Search by address failed";
           $error = TRUE;
         }
       }
     }
     if ($error)
     {
-      header('Location: ../dataEntry.php&error');
+      header('Location: ../dataEntry.php?error');
     }
     else
     {
@@ -126,7 +135,8 @@
       
       if (!$client->save())
       {
-        header('Location: ../dataEntry.php&error');
+        echo "Client save failed";
+        header('Location: ../dataEntry.php?error');
       }
     }
   }
