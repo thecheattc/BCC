@@ -1,53 +1,48 @@
 <?php
-  include_once('utility.php');
-  include_once('../models/house.php');
-  include_once('../models/client.php');
-  include_once('../models/sqldb.php');
+  include ('utility.php');
+  include ('../models/house.php');
+  include ('../models/client.php');
+  include ('../models/sqldb.php');
   
   define("UNEMPLOYED_REASON_ID", 1);
-  define("HOMELESS_REASON_ID", 6);
   
   /**** Need to be careful with absolute references to IDs! ****/
   /**** Should we allow multiple reasons? How to deal with family members? ****/
-  /**** Some homeless have addresses listed. What? ****/
-  /**** Should the date of application really be listed on the form, or should it just be implicit? ****/
   /**** Can make the error handling nicer once the functionality is there ****/
-  /**** Should they enter a city and zip even if they're homeless, to track where they usually are? ****/
-  /**** Add search by address to house class ****/
-  /**** Need to make the date for unemployment labeled and optional ****/
-  /**** processDate isn't working yet ****/
+  
+  $data = unserialize(base64_decode($_POST['formData']));  
   
   echo "<PRE>";
-  echo "Date: "; var_dump($_POST['date']);
-  echo "First: "; var_dump($_POST['cfName']);
-  echo "Last: "; var_dump($_POST['clName']);
-  echo "Street: "; var_dump($_POST['cAddress']);
-  echo "City: "; var_dump($_POST['cCity']);
-  echo "Zip: "; var_dump($_POST['cZip']);
-  echo "Phone: "; var_dump($_POST['cPhone']);
-  echo "Age: "; var_dump($_POST['cAge']);
-  echo "GenderID: "; var_dump($_POST['gengroup']);
-  echo "EthnicityID: "; var_dump($_POST['ethgroup']);
-  echo "ReasonID: "; var_dump($_POST['reasongroup']);
-  echo "UnempDate: "; var_dump($_POST['uDate']);
+  echo "Date: "; var_dump($data['appDate']);
+  echo "First: "; var_dump($data['firstName']);
+  echo "Last: "; var_dump($data['lastName']);
+  echo "Street: "; var_dump($data['address']);
+  echo "City: "; var_dump($data['city']);
+  echo "Zip: "; var_dump($data['zip']);
+  echo "Phone: "; var_dump($data['phone']);
+  echo "Age: "; var_dump($data['age']);
+  echo "GenderID: "; var_dump($data['gender']);
+  echo "EthnicityID: "; var_dump($data['ethnic']);
+  echo "ReasonID: "; var_dump($data['reason']);
+  echo "UnempDate: "; var_dump($data['udate']);
   echo "<br /> <br />";
   
-  $date = processDate($_POST['date']);
-  $first = processString($_POST['cfName']);
-  $last = processString($_POST['clName']);
-  $address = processString($_POST['cAddress']);
-  $city = processString($_POST['cCity']);
-  $zip = processString($_POST['cZip']);
-  $phone = processString($_POST['cPhone']);
-  $age = processString($_POST['cAge']);
-  $genderID = processString($_POST['gengroup']);
-  $ethnicityID = processString($_POST['ethgroup']);
-  $reasonID = processString($_POST['reasongroup']);
+  $date = processDate($data['appDate']);
+  $first = processString($data['firstName']);
+  $last = processString($data['lastName']);
+  $address = processString($data['address']);
+  $city = processString($data['city']);
+  $zip = processString($data['zip']);
+  $phone = processString($data['phone']);
+  $age = processString($data['age']);
+  $genderID = processString($data['gender']);
+  $ethnicityID = processString($data['ethnic']);
+  $reasonID = processString($data['reason']);
   $unempDate = NULL;
   
   if ($reasonID == UNEMPLOYED_REASON_ID)
   {
-    $unempDate = processDate($_POST['uDate']);
+    $unempDate = processDate($data['udate']);
   }
   
   echo "Date: "; var_dump($date);
@@ -124,13 +119,13 @@
       $client->setReasonID($reasonID);
       $client->setUnemploymentDate($unempDate);
       
-      if ($reasonID != HOMELESS_REASON_ID)
+      if ($house === NULL)
       {
-        $client->setHouseID($house->getHouseID());
+        $client->setHouseID(NULL);
       }
       else
       {
-        $client->setHouseID(NULL);
+        $client->setHouseID($house->getHouseID());
       }
       
       if (!$client->save())

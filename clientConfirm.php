@@ -1,4 +1,13 @@
-<?php 	include 'client.php'; ?>
+<?php
+  
+  include ('models/sqldb.php');
+  include ('models/client.php');
+  include ('models/gender.php');
+  include ('models/ethnicity.php');
+  include ('models/reason.php');
+  include ('controllers/utility.php');
+  
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -12,10 +21,33 @@
 		<script src="js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8">
 		</script>
 		<script type="text/javascript" src="js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
-		
+<?php
+  $formArray = array(
+                     'appDate'=> $_POST['date'],
+                     'firstName'=> $_POST['cfName'],
+                     'lastName'=> $_POST['clName'],
+                     'address'=> $_POST['cAddress'],
+                     'city'=> $_POST['cCity'],
+                     'zip'=> $_POST['cZip'],
+                     'phone'=> $_POST['cPhone'],
+                     'age'=> $_POST['cAge'],
+                     'gender'=> $_POST['gengroup'],
+                     'ethnic'=> $_POST['ethgroup'],
+                     'reason'=> $_POST['reasongroup'],
+                     'udate'=> $_POST['uDate']
+                     );
+  $serializedForm =  base64_encode(serialize($formArray));
+  $ethnicity = Ethnicity::getEthnicityByID($formArray['ethnic']);
+  $gender = Gender::getGenderByID($formArray['gender']);
+  $reason = Reason::getReasonByID($formArray['reason']);
+  $ethDesc = (!empty($ethnicity))? $ethnicity->getEthnicityDesc() : "";
+  $genDesc = (!empty($gender))? $gender->getGenderDesc() : "";
+  $reasonDesc = (!empty($reason))? $reason->getReasonDesc() : "";
+?>
 	
 		<title>Bryant Food Distribution Client Data Confirmation page</title>
 	</head>
+	
 	<body>
 		<div id="header">
 			<h1>Confirm Client Information</h1>
@@ -26,104 +58,71 @@
 			<table >
 				<tr>
 					<td><label>Application Date: </label></td>
-					<td><?php echo $_POST['date']; ?></td>
+					<td><?php echo $formArray['appDate']; ?></td>
 					<td><button type="button" id="e1">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>First Name: </label></td>
-					<td><?php echo $_POST['cfName']; ?></td>
+					<td><?php echo $formArray['firstName']; ?></td>
 					<td><button type="button" id="e2">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Last Name: </label></td>
-					<td><?php echo $_POST['clName']; ?></td>
+					<td><?php echo $formArray['lastName']; ?></td>
 					<td><button type="button" id="e3">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Current Address: </label></td>
-					<td><?php echo $_POST['cAddress']; ?></td>
+					<td><?php echo $formArray['address']; ?></td>
 					<td><button type="button" id="e4">Edit Client Info</button></td>
 				</tr>
 				<tr>
-					<td><label>Second Address: </label></td>
-					<td><?php echo $_POST['cAddress2']; ?></td>
-					<td><button type="button" id="e5">Edit Client Info</button></td>
-				</tr>
-				<tr>
 					<td><label>Current City: </label></td>
-					<td><?php echo $_POST['cCity']; ?></td>
+					<td><?php echo $formArray['city']; ?></td>
 					<td><button type="button" id="e6">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Zip Code: </label></td>
-					<td><?php echo $_POST['cZip']; ?></td>
+					<td><?php echo $formArray['zip']; ?></td>
 					<td><button type="button" id="e7">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Phone Number: </label></td>
-					<td><?php echo $_POST['cPhone']; ?></td>
+					<td><?php echo $formArray['phone']; ?></td>
 					<td><button type="button" id="e8">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Client Age: </label></td>
-					<td><?php echo $_POST['cAge']; ?></td>
+					<td><?php echo $formArray['age']; ?></td>
 					<td><button type="button" id="e9">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Client Gender: </label></td>
-					<td><?php echo $_POST['gengroup']; ?></td>
+					<td><?php echo $genDesc; ?></td>
 					<td><button type="button" id="e10">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Client Ethnicity: </label></td>
-					<td><?php echo $_POST['ethgroup']; ?></td>
+					<td><?php echo $ethDesc; ?></td>
 					<td><button type="button" id="e11">Edit Client Info</button></td>
 				</tr>
 				<tr>
 					<td><label>Reason for Assistance: </label></td>
-					<td><?php echo $_POST['reasongroup']; ?></td>
+					<td><?php echo $reasonDesc; ?></td>
 					<td><button type="button" id="e11">Edit Client Info</button></td>
 				</tr>
-				<?php
-					if($uDate=="Click here to enter a date."){
-						$udate = '';}
-					if($_POST['reasongroup']==1){
-					echo '
-					<tr>
-						<td><label>Unemployment Date: </label></td>
-						<td>'.$uDate.'</td>
-						<td><button type="button" id="e12">Edit Client Info</button></td>
-					</tr>';
-					}
-					$house = $_POST['houseNum'];
-					$ages = $_POST['hAge'];
-					$multAges = explode(",",$ages);
-					//echo $multAges[0];
-					if($house>1){
-						echo '<tr>
-								<td><label>Number in Household<label></td>
-								<td>'.$house.'</td>
-								<td></td>
-							</tr>';
-							
-						for($i=0;$i<$house;$i++){
-							//echo $multAges[$i];
-							$e = $i + 13;
-							echo '<tr><td><label>House Member Age: </label></td>';
-							echo '<td>'.$multiAges[$i].'</td>';
-							echo '<td><button type="button" id="e'.$e.'">Edit Client Info</button></td></tr>';
-						}
-					}
-				?>
-				<tr class="noborder">					
-					<td><button type="submit" name="subClientConfirm">Add the Client</button></td>
+				<tr>
+					<td><label>Unemployment date</label></td>
+					<td><?php echo $formArray['udate']; ?></td>
+					<td></td>
 				</tr>
-	
-				<?php
-					$client=Client::create();
-				?>
+				<tr class="noborder">		
+          <form method="POST" action="controllers/addClient.php">
+            <input type="hidden" name="formData" value=<?php echo $serializedForm ?>/>
+            <td><input type="submit" name="subClientConfirm" value = "Add client" /></td>
+          </form>
+				</tr>
 			</table>
 		</div><!-- /confirm -->
 	</body>
-	
 </html>

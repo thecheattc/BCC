@@ -1,7 +1,6 @@
 <?php
   
   include_once("visit.php");
-  include_once("../controllers/utility.php");
   
   class Client
   {

@@ -131,9 +131,9 @@
       $reason->reasonID = $row["reason_id"];
       $reason->reasonDesc = $row["reason_desc"];
       $reason->explanation = $row["explanation"];
-      $house->createdFromDB = true;
-      $house->dirty = false;
-      return $house;
+      $reason->createdFromDB = true;
+      $reason->dirty = false;
+      return $reason;
     }
     
     //Returns a house object given a house ID, or null if none found
