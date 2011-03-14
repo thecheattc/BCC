@@ -346,11 +346,9 @@
     }
     
     //Returns an array of Visits
-    //Should I include some sort of ability to specify a timeframe, or default to
-    //just the current month?
-    public function getVisitHistory()
+    public function getVisitHistory($since)
     {
-      return Visit::getHistoryByClientID($this->clientID);
+      return Visit::getHistoryByClientID($this->clientID, $since);
     }
     
     //Changes the visit given by distID to the new date and the new type
@@ -358,22 +356,6 @@
     public function changeHistory($distID, $newDate, $newDistTypeID)
     {
       return Visit::changeHistoryByID($distID, $newDate, $newDistTypeID);
-    }
-    
-    //Function to record a user visit
-    //Returns TRUE on success, FALSE on error.
-    public function receivedFood($dist_type_id)
-    {
-      $dist_type_id = mysql_real_escape_string($dist_type_id);
-      
-      SQLDB::connect();
-      
-      $query = "INSERT INTO bcc_food_client.usage (client_id, dist_type_id, date) ";
-      $query .= "VALUES ('{$this->clientID}', '{$dist_type_id}', CURDATE()) ";
-      
-      $result = mysql_query($query);
-      
-      return $result;
     }
     
   }

@@ -6,7 +6,8 @@
 			src="js/jquery-1.4.4.min.js"></script>
 	<?php 
 		session_start();
-		
+    
+    
 		session_register($user);
 	?>
 <head>

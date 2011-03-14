@@ -172,16 +172,17 @@
     }
     
     //Returns an array of visits given a client ID
-    public static function getHistoryByClientID($clientID)
+    public static function getHistoryByClientID($clientID, $since)
     {
       SQLDB::connect();
       
       $clientID = mysql_real_escape_string($clientID);
+      $since = mysql_real_escape_string($since);
       
       $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
       $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
       $query .= "ON type_id = dist_type_id ";
-      $query .= "WHERE client_id = '{$clientID}'";
+      $query .= "WHERE client_id = '{$clientID}' AND date >= '{$since}'";
 
       $result = mysql_query($query);
       

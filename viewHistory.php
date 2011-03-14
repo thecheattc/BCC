@@ -6,9 +6,11 @@
   include('models/gender.php');
   include('controllers/utility.php');
   
+  date_default_timezone_set('America/New_York');
+  
   if (empty($_GET['client']))
   {
-    header('Location: /selectTask.php');
+    //header('Location: /selectTask.php');
   }
   else
   {
@@ -22,13 +24,28 @@
   
   if (empty($client))
   {
-    header('Location: /selectTask.php');
+    //header('Location: /selectTask.php');
   }
   else
   {
+    //Default date to search for is since this month
+    $since = date("Y-m");
+    $since = $since . "-01";
+    if (!empty($_POST['since']))
+    {
+      if($_POST['since'] == 1)//This year
+      {
+        $since = date("Y");
+        $since = $since . "-01-01";
+      }
+      elseif($_POST['since'] == 2)
+      {
+        $since = '';
+      }
+    }
     $firstName = $client->getFirstName();
     $lastName = $client->getLastName();
-    $visits = $client->getVisitHistory();
+    $visits = $client->getVisitHistory($since);
     $pronoun = (Gender::getGenderByID($client->getGenderID())->getGenderDesc() == "Male")? "him" : "her";
     $distTypes = Visit::getAllDistTypes();
   }
@@ -50,6 +67,15 @@
     <h3>Visit history for <?php echo $client->getFirstName() . " " . $client->getLastName() ?></h1>
     <hr />
   </div>
+  <form method="post" action="viewHistory.php?client=<?php echo $_GET['client']; ?>">
+    <label for="since">View visit history for:</label>
+    <select id="since" name="since">
+      <option value="0" selected>This month</option>
+      <option value="1">This year</option>
+      <option value="2">Forever</option>
+    </select>
+    <input type="submit" value="Search visits" />
+  </form>
   <table>
     <tr>
       <td>Date</td>
