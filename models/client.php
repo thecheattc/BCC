@@ -260,7 +260,7 @@
       $client->lastName = $row["last_name"];
       $client->age = $row["age"];
       $client->phoneNumber = $row["phone_number"];
-      $client->houseID = $row["age"];
+      $client->houseID = $row["house_id"];
       $client->ethnicityID = $row["ethnicity_id"];
       $client->genderID = $row["gender_id"];
       $client->reasonID = $row["reason_id"];
@@ -268,7 +268,7 @@
       $client->applicationDate = $row["application_date"];
       $client->createdFromDB = true;
       $client->dirty = false;
-      return $user;
+      return $client;
     }
     
     //Returns an array of clients associated with a houseID
@@ -307,13 +307,12 @@
       
       $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
       $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date ";
-      $query .= "FROM bcc_food_client.clients c JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
+      $query .= "FROM bcc_food_client.clients c LEFT JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
       $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
-      
-      
+            
       $result = mysql_query($query);
-      $clients = array();
       
+      $clients = array();
       while ($row = mysql_fetch_array($result))
       {
         $clients[] = Client::createFromSQLRow($row);

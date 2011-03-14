@@ -24,7 +24,7 @@
   echo "ReasonID: "; var_dump($_POST['reasongroup']);
   echo "UnempDate: "; var_dump($_POST['uDate']);
   
-  $date = processDate($_POST['date']);
+  $date = normalDateToMySQL($_POST['date']);
   $first = processString($_POST['cfName']);
   $last = processString($_POST['clName']);
   $address = processString($_POST['cAddress']);
@@ -39,7 +39,7 @@
   
   if ($reasonID == UNEMPLOYED_REASON_ID)
   {
-    $unempDate = processDate($_POST['uDate']);
+    $unempDate = normalDateToMySQL($_POST['uDate']);
   }
   
   echo "Date: "; var_dump($date);

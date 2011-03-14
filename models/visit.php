@@ -5,14 +5,14 @@
   {
     private $visitID;
     private $clientID;
-    private $distTypeID;
+    private $typeID;
     private $distTypeDesc;
     private $date;
     
     //If a visit is retrieved from the database, flag it as such
     private $createdFromDB = true;
     
-    //This flag keeps track of whether or not this object is inconfile://localhost/Users/thecheat/BCC/models/visit.phpsistent
+    //This flag keeps track of whether or not this object is inconsistent
     //with the database and needs to be written back to the database on
     //destruction
     private $dirty = false;
@@ -35,17 +35,26 @@
       return $this->clientID;
     }
     
-    public function getDistTypeID()
+    public function getTypeID()
     {
-      return $this->distTypeID;
+      return $this->typeID;
     }
     
-    public function setDistTypeID($val)
+    public function setTypeID($val)
     {
-      //SET DIST DESC TOO
       $this->dirty = true;
-      $this->distTypeID = $val;
-      return $this->distTypeID;
+      $this->typeID = $val;
+      SQLDB::connect();
+      $query = "SELECT dist_type_desc FROM bcc_food_client.distribution_type ";
+      $query .= "WHERE dist_type_id = {$val}";
+      
+      $result = mysql_query($query);
+      
+      if ($row = mysql_fetch_array($result))
+      {
+        $this->distTypeDesc = $row['dist_type_desc'];
+      }
+      return $this->typeID;
     }
     
     public function getDistTypeDesc()
@@ -111,9 +120,9 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $clientIDParam = mysql_real_escape_string($this->address);
-      $distTypeIDParam = mysql_real_escape_string($this->city);
-      $dateParam = mysql_real_escape_string($this->zip);
+      $clientIDParam = mysql_real_escape_string($this->clientID);
+      $typeIDParam = mysql_real_escape_string($this->typeID);
+      $dateParam = mysql_real_escape_string($this->date);
       $query = "";
       
       //If this visit already existed in the database, update it
@@ -121,20 +130,18 @@
       {
         $query = "UPDATE bcc_food_client.usage SET ";
         $query .= "client_id='{$clientIDParam}', ";
-        $query .= "dist_type_id='{$distTypeIDParam}', ";
+        $query .= "type_id='{$typeIDParam}', ";
         $query .= "date='{$dateParam}', ";
         $query .= "WHERE dist_id = '{$this->visitID}'";
       }
       //If the visit was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.usage (client_id, dist_type_id, date) ";
-        $query .= "VALUES ('{$clientID}', '{$distTypeID}', '{$date}')";
+        $query = "INSERT INTO bcc_food_client.usage (client_id, type_id, date) ";
+        $query .= "VALUES ('{$clientIDParam}', '{$typeIDParam}', '{$dateParam}')";
       }
-      
-      
+            
       $result = mysql_query($query);
-      
       if ($result !== FALSE)
       {
         //If the update or insert was successful, this object is now consistent with the database
@@ -156,7 +163,7 @@
       $visit = new Visit();
       $visit->visitID = $row["dist_id"];
       $visit->clientID = $row["client_id"];
-      $visit->distTypeID = $row["dist_type_id"];
+      $visit->distTypeID = $row["type_id"];
       $visit->distTypeDesc = $row["dist_type_desc"];
       $visit->date = mySQLDatetoNormal($row["date"]);
       $visit->createdFromDB = true;
@@ -171,7 +178,7 @@
       
       $clientID = mysql_real_escape_string($clientID);
       
-      $query = "SELECT dist_id, client_id, dist_type_id, date, dist_type_desc ";
+      $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
       $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
       $query .= "ON type_id = dist_type_id ";
       $query .= "WHERE client_id = '{$clientID}'";
@@ -214,6 +221,24 @@
       $query = "DELETE FROM bcc_food_client.usage WHERE dist_id = '{$distID}'";
       $result = mysql_query($query);
       return $result;
+    }
+    
+    //Returns an array of distribution type ID - distribution description pairs
+    public static function getAllDistTypes()
+    {
+      SQLDB::connect();
+      
+      $query = "SELECT dist_type_id, dist_type_desc ";
+      $query .= "FROM bcc_food_client.distribution_type ";
+      
+      $result = mysql_query($query);
+      
+      $pairs = array();
+      while ($row = mysql_fetch_array($result))
+      {
+        $pairs[$row['dist_type_id']] = $row['dist_type_desc'];
+      }
+      return $pairs;
     }
     
   }
