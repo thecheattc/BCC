@@ -158,7 +158,7 @@
       $visit->clientID = $row["client_id"];
       $visit->distTypeID = $row["dist_type_id"];
       $visit->distTypeDesc = $row["dist_type_desc"];
-      $visit->date = $row["date"];
+      $visit->date = mySQLDatetoNormal($row["date"]);
       $visit->createdFromDB = true;
       $visit->dirty = false;
       return $visit;
@@ -175,11 +175,11 @@
       $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
       $query .= "ON type_id = dist_type_id ";
       $query .= "WHERE client_id = '{$clientID}'";
-      
+
       $result = mysql_query($query);
       
       $visits = array();
-      if ($row = mysql_fetch_array($result))
+      while ($row = mysql_fetch_array($result))
       {
         $visits[] = Visit::createFromSQLRow($row);
       }

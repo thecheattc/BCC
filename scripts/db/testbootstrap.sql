@@ -216,3 +216,15 @@ VALUES
 ('3', '4', '2'),
 ('3', '5', '1'),
 ('3', '5', '2');
+
+INSERT INTO distribution_type(dist_type_desc) VALUES ('Normal'), ('Emergency'), ('Rejected');
+
+INSERT INTO usage(client_id, type_id, date) VALUES
+(1,1,'2011-03-03'),
+(1,1,'2011-04-03'),
+(1,1,'2010-02-13'),
+(1,1,'2007-12-26'),
+(2,2,'2005-02-01'),
+(3,1,'2007-07-07'),
+(3,1,'2001-01-01'),
+(3,1,'2003-11-17');

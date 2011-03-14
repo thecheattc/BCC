@@ -92,19 +92,19 @@
         <table>
           <tr>
             <td><label for="appDate">Date of Application:</label></td>
-            <td><input type="text" name="date" id="date" "value=<?php echo $_POST['appDate'] ?>"/></td>
+            <td><input type="text" name="date" id="date" value="<?php echo $_POST['date'] ?>"/></td>
           </tr>
           <tr>
             <td><label for="cfName">First Name: </label></td>
-            <td><input type="text" size="60" name="cfName" "value=<?php echo $_POST['cfName'] ?>" /></td>
+            <td><input type="text" size="60" name="cfName" value="<?php echo $_POST['cfName'] ?>" /></td>
           </tr>
           <tr>
             <td><label for="clName">Last Name: </label></td>
-            <td><input name="clName" type="text" size="60" "value=<?php echo $_POST['clName'] ?>" /></td>
+            <td><input name="clName" type="text" size="60" value="<?php echo $_POST['clName'] ?>" /></td>
           </tr>
           <tr>
             <td><label for="cAddress">Current Address: </label></td>
-            <td><input name="cAddress" type="text" size="80" "value=<?php echo $_POST['cAddress'] ?>" /></td>
+            <td><input name="cAddress" type="text" size="80" value="<?php echo $_POST['cAddress'] ?>" /></td>
           </tr>
           <tr>
             <td><label for="cCity">Current City: </label></td>
