@@ -10,7 +10,7 @@
   
   if (empty($_GET['client']))
   {
-    //header('Location: /selectTask.php');
+    header('Location: /selectTask.php');
   }
   else
   {
@@ -24,7 +24,7 @@
   
   if (empty($client))
   {
-    //header('Location: /selectTask.php');
+    header('Location: /selectTask.php');
   }
   else
   {
@@ -88,7 +88,8 @@
     echo "\t<tr>\n";
     echo "\t\t<td>{$visit->getDate()}</td>\n";
     echo "\t\t<td>{$visit->getDistTypeDesc()}</td>\n";
-    echo "\t\t<td><a href='editVisit.php?visit={$visit->getVisitID()}'>Edit</a></td>\n";
+    echo "\t\t<td><a href='editVisit.php?client={$client->getClientID()}&visit={$visit->getVisitID()}'>Edit</a></td>\n";
+    echo "\t\t<td><a href='controllers/deleteVisit.php?client={$client->getClientID()}&visit={$visit->getVisitID()}'>Delete</a></td>\n";
     echo "\t<tr>\n";
   }
   ?>

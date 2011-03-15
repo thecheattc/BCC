@@ -195,6 +195,27 @@
       return $visits;
     }
     
+    public static function getVisitByID($visitID)
+    {
+      SQLDB::connect();
+      
+      $visitID = mysql_real_escape_string($visitID);
+      
+      $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
+      $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
+      $query .= "ON type_id = dist_type_id ";
+      $query .= "WHERE dist_id = '{$visitID}'";
+      
+      $result = mysql_query($query);
+      
+      $visit = NULL;
+      if ($row = mysql_fetch_array($result))
+      {
+        $visit = Visit::createFromSQLRow($row);
+      }
+      return $visit;
+    }
+    
     //Changes the date and distribution type of the specified distribution
     //to the given date and distribution type
     public static function changeHistoryByID($distID, $newDate, $newDistTypeID)
