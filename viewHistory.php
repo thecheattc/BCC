@@ -65,6 +65,7 @@
 <body>
   <div id="header">
     <h3>Visit history for <?php echo $client->getFirstName() . " " . $client->getLastName() ?></h1>
+    <?php if (!empty($_GET['visit'])){ echo "<h4>Visit {$_GET['visit']} has been recorded.</h4>";} ?>
     <hr />
   </div>
   <form method="post" action="viewHistory.php?client=<?php echo $_GET['client']; ?>">
@@ -96,7 +97,7 @@
   </table>
   <p>If <?php echo $firstName;?> tried to receive food today, record the type of distribution, 
 or record that you could not give <?php echo $pronoun; ?> food. </p>
-  <form method="post" action="recordVisit.php">
+  <form method="post" action="controllers/recordVisit.php">
     <select id="distType" name="distType">
     <option value="0" selected>Select a distribution type</option>
 <?php

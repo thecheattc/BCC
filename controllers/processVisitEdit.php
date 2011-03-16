@@ -22,5 +22,8 @@
     {
       header("Location:../editVisit.php?client={$_GET['client']}&visit={$_GET['visit']}&error=1");
     }
-    header("Location:../editVisit.php?client={$_GET['client']}&visit={$_GET['visit']}&success=1");
+    else
+    {
+      header("Location:../editVisit.php?client={$_GET['client']}&visit={$_GET['visit']}&success=1");
+    }
   }
