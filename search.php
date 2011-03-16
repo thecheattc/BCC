@@ -47,6 +47,11 @@
   <div id="header">
     <h1> Search for a Client</h1>
     <h3>Search by first name, last name, and/or street address</h3>
+    <?php if ($_GET['error'] == 1)
+          {
+            echo "<h4>Unfortunately, there was an error processing your request.</h5>";
+          }
+      ?>  
     <hr />
   </div>
   <div id="newClient">

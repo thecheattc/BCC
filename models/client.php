@@ -309,6 +309,7 @@
       $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date ";
       $query .= "FROM bcc_food_client.clients c LEFT JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
       $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
+      
             
       $result = mysql_query($query);
       

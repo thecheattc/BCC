@@ -81,6 +81,7 @@
     {
       if($this->dirty)
       {
+        echo " In destructor ";
         $this->save();
       }
     }
@@ -131,7 +132,7 @@
         $query = "UPDATE bcc_food_client.usage SET ";
         $query .= "client_id='{$clientIDParam}', ";
         $query .= "type_id='{$typeIDParam}', ";
-        $query .= "date='{$dateParam}', ";
+        $query .= "date='{$dateParam}' ";
         $query .= "WHERE dist_id = '{$this->visitID}'";
       }
       //If the visit was freshly created, insert it into the database.
@@ -140,7 +141,7 @@
         $query = "INSERT INTO bcc_food_client.usage (client_id, type_id, date) ";
         $query .= "VALUES ('{$clientIDParam}', '{$typeIDParam}', '{$dateParam}')";
       }
-            
+      
       $result = mysql_query($query);
       if ($result !== FALSE)
       {
@@ -163,7 +164,7 @@
       $visit = new Visit();
       $visit->visitID = $row["dist_id"];
       $visit->clientID = $row["client_id"];
-      $visit->distTypeID = $row["type_id"];
+      $visit->typeID = $row["type_id"];
       $visit->distTypeDesc = $row["dist_type_desc"];
       $visit->date = mySQLDatetoNormal($row["date"]);
       $visit->createdFromDB = true;

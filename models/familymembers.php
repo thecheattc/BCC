@@ -3,7 +3,7 @@
   class FamilyMember
   {
     private $famMemberID;
-    private $guardianClientID;
+    private $houseID;
     private $age;
     private $genderID;
     
@@ -21,16 +21,16 @@
       return $this->famMemberID;
     }
     
-    public function getGuardianClientID()
+    public function getHouseID()
     {
       return $this->guardianClientID;
     }
     
-    public function setGuardianClientID($val)
+    public function setHouseID($val)
     {
       $this->dirty = true;
-      $this->guardianClientID = $val;
-      return $this->guardianClientID;
+      $this->houseID = $val;
+      return $this->houseID;
     }
     
     public function getAge()
@@ -100,7 +100,7 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $guardianParam = mysql_real_escape_string($this->guardianClientID);
+      $houseIDParam = mysql_real_escape_string($this->houseID);
       $ageParam = mysql_real_escape_string($this->age);
       $genderParam = mysql_real_escape_string($this->genderID);
       $query = "";
@@ -109,7 +109,7 @@
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_food_client.family_members SET ";
-        $query .= "guardian_client_id='{$guardianParam}', ";
+        $query .= "member_house_id='{$houseIDParam}', ";
         $query .= "age='{$ageParam}', ";
         $query .= "gender_id='{$genderParam}', ";
         $query .= "WHERE fam_member_id = '{$this->famMemberID}'";
@@ -117,8 +117,8 @@
       //If the house was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.family_members (guardian_client_id, age, gender_id) ";
-        $query .= "VALUES ('{$guardianParam}', '{$ageParam}', '{$genderParam}')";
+        $query = "INSERT INTO bcc_food_client.family_members (member_house_id, age, gender_id) ";
+        $query .= "VALUES ('{$houseIDParam}', '{$ageParam}', '{$genderParam}')";
       }
       
       
@@ -144,7 +144,7 @@
     {
       $member = new FamilyMember();
       $member->famMemberID = $row["family_member_id"];
-      $member->guardianClientID = $row["guardian_client_id"];
+      $member->houseID = $row["member_house_id"];
       $member->age = $row["age"];
       $member->genderID = $row["gender_id"];
       $member->createdFromDB = true;
@@ -159,7 +159,7 @@
       
       $memberID = mysql_real_escape_string($memberID);
       
-      $query = "SELECT family_member_id, guardian_client_id, age, gender_id ";
+      $query = "SELECT family_member_id, member_house_id, age, gender_id ";
       $query .= "FROM bcc_food_client.family_members ";
       $query .= "WHERE family_member_id = '{$memberID}'";
       
@@ -181,7 +181,7 @@
       
       $clientID = mysql_real_escape_string($clientID);
       
-      $query = "SELECT family_member_id, guardian_client_id, age, gender_id ";
+      $query = "SELECT family_member_id, member_house_id, age, gender_id ";
       $query .= "FROM bcc_food_client.family_members ";
       $query .= "WHERE guardian_client_id = '{$clientID}'";
       

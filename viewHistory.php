@@ -38,7 +38,7 @@
         $since = date("Y");
         $since = $since . "-01-01";
       }
-      elseif($_POST['since'] == 2)
+      elseif($_POST['since'] == 2) // Forever
       {
         $since = '';
       }
@@ -88,8 +88,8 @@
     echo "\t<tr>\n";
     echo "\t\t<td>{$visit->getDate()}</td>\n";
     echo "\t\t<td>{$visit->getDistTypeDesc()}</td>\n";
-    echo "\t\t<td><a href='editVisit.php?client={$client->getClientID()}&visit={$visit->getVisitID()}'>Edit</a></td>\n";
-    echo "\t\t<td><a href='controllers/deleteVisit.php?client={$client->getClientID()}&visit={$visit->getVisitID()}'>Delete</a></td>\n";
+    echo "\t\t<td><a href='editVisit.php?visit={$visit->getVisitID()}'>Edit</a></td>\n";
+    echo "\t\t<td><a href='controllers/deleteVisit.php?visit={$visit->getVisitID()}'>Delete</a></td>\n";
     echo "\t<tr>\n";
   }
   ?>
