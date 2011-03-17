@@ -173,6 +173,7 @@
       SQLDB::connect();
       
       $query = "DELETE FROM bcc_food_client.clients WHERE client_id = '{$this->clientID}'";
+
       $result = mysql_query($query);
       $this->discard();
       
@@ -212,11 +213,11 @@
         $query .= "first_name='$firstNameParam', ";
         $query .= "last_name='$lastNameParam', ";
         $query .= "age='$ageParam', ";
-        $query .= "phone_number='$phoneNumberParam' ";
+        $query .= "phone_number='$phoneNumberParam', ";
         $query .= "house_id='$houseIDParam', ";
         $query .= "ethnicity_id='$ethnicityIDParam', ";
         $query .= "gender_id='$genderIDParam', ";
-        $query .= "reason_id='$reasonIDParam' ";
+        $query .= "reason_id='$reasonIDParam', ";
         $query .= "unemployment_date='$unempDateParam', ";
         $query .= "application_date='$appDateParam' ";
         $query .= "WHERE client_id = '{$this->clientID}'";
@@ -232,7 +233,6 @@
         $query .= "'$genderIDParam', '$reasonIDParam', '$unempDateParam', ";
         $query .= "'$appDateParam')";
       }
-      
       
       $result = mysql_query($query);
       

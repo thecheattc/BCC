@@ -1,4 +1,4 @@
-INSERT INTO family_members(guardian_client_id, age, gender_id)
+INSERT INTO family_members(member_house_id, age, gender_id)
 VALUES
 ('1', '14', '1'),
 ('1', '12', '2'),

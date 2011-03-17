@@ -135,7 +135,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`usage` (
   CONSTRAINT `usage_client_id`
     FOREIGN KEY (`client_id` )
     REFERENCES `bcc_food_client`.`clients` (`client_id` )
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `usage_dist_type_id`
     FOREIGN KEY (`type_id` )
@@ -152,21 +152,21 @@ DROP TABLE IF EXISTS `bcc_food_client`.`family_members` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`family_members` (
   `fam_member_id` INT NOT NULL AUTO_INCREMENT ,
-  `guardian_client_id` INT NOT NULL ,
   `age` INT NOT NULL ,
   `gender_id` INT NOT NULL ,
+  `member_house_id` INT NOT NULL ,
   PRIMARY KEY (`fam_member_id`) ,
   INDEX `fam_gender_id` (`gender_id` ASC) ,
-  INDEX `fam_client_id` (`guardian_client_id` ASC) ,
+  INDEX `fam_house_id` (`member_house_id` ASC) ,
   CONSTRAINT `fam_gender_id`
     FOREIGN KEY (`gender_id` )
     REFERENCES `bcc_food_client`.`genders` (`gender_id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fam_client_id`
-    FOREIGN KEY (`guardian_client_id` )
-    REFERENCES `bcc_food_client`.`clients` (`client_id` )
-    ON DELETE NO ACTION
+  CONSTRAINT `fam_house_id`
+    FOREIGN KEY (`member_house_id` )
+    REFERENCES `bcc_food_client`.`houses` (`house_id` )
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 

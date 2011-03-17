@@ -2,14 +2,38 @@
   
   include ('models/sqldb.php');
   include ('models/client.php');
+  include ('models/house.php');
   include ('models/gender.php');
   include ('models/ethnicity.php');
   include ('models/reason.php');
   include ('controllers/utility.php');
 
-  $genders = Gender::getAllGenders();
-  $ethnicities = Ethnicity::getAllEthnicities();
-  $reasons = Reason::getAllReasons();
+  $genders = NULL;
+  $ethnicities = NULL;
+  $reasons = NULL;
+  $client = NULL;
+  
+  if (empty($_GET['client']))
+  {
+    header("Location: search.phperror=1");
+  }
+  else
+  {
+    $genders = Gender::getAllGenders();
+    $ethnicities = Ethnicity::getAllEthnicities();
+    $reasons = Reason::getAllReasons(); 
+    $client = Client::getClientByID($_GET['client']);
+    
+    if($client === NULL)
+    {
+      header("Location: search.php?error=1");
+    }
+    $house = House::getHouseByID($client->getHouseID());
+    if ($house === NULL)
+    {
+      header("Location: search.php?error=1");
+    }
+  }
   
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -83,44 +107,54 @@
 		<div id="header">
 			<h1>Confirm Client Information</h1>
 			<h2>Please check that the information you have entered is correct.</h2>
+      <?php 
+        if (!empty($_GET['error']) && $_GET['error'] == 1)
+        {
+          echo "<h4>There was an error processing the edit.</h4>";
+        }
+        elseif (!empty($_GET['success']) && $_GET['success'] == 1)
+        {
+          echo "<h4>Client edited successfully.</h4>";
+        }
+        ?>
 			<hr/>
 		</div><!-- /header -->
     <div id="newClient">
-      <form method="post" action="controllers/modifyClient.php">
+      <form method="post" action="controllers/modifyClient.php?edit=1&client=<?php echo $client->getClientID(); ?>">
       <fieldset>
         <legend>Enter data for a new client</legend>
         <table>
           <tr>
             <td><label for="appDate">Date of Application:</label></td>
-            <td><input type="text" name="appDate" id="appDate" value="<?php echo $_POST['appDate'] ?>"/></td>
+            <td><input type="text" name="appDate" id="date" value="<?php echo MySQLDateToNormal($client->getApplicationDate()); ?>"/></td>
           </tr>
           <tr>
             <td><label for="firstName">First Name: </label></td>
-            <td><input type="text" size="60" name="firstName" value="<?php echo $_POST['firstName'] ?>" /></td>
+            <td><input type="text" size="60" name="firstName" value="<?php echo $client->getFirstName(); ?>" /></td>
           </tr>
           <tr>
             <td><label for="lastName">Last Name: </label></td>
-            <td><input name="lastName" type="text" size="60" value="<?php echo $_POST['lastName'] ?>" /></td>
+            <td><input name="lastName" type="text" size="60" value="<?php echo $client->getLastName(); ?>" /></td>
           </tr>
           <tr>
             <td><label for="address">Current Address: </label></td>
-            <td><input name="address" type="text" size="80" value="<?php echo $_POST['address'] ?>" /></td>
+            <td><input name="address" type="text" size="80" value="<?php echo $house->getAddress(); ?>" /></td>
           </tr>
           <tr>
             <td><label for="city">Current City: </label></td>
-            <td><input name="city" type="text" size="50" value="<?php echo $_POST['city'] ?>" /></td>
+            <td><input name="city" type="text" size="50" value="<?php echo $house->getCity(); ?>" /></td>
           </tr>
           <tr>
             <td><label for="zip">Zip Code: </label></td>
-            <td><input name="zip" type="text" size="11" value="<?php echo $_POST['zip'] ?>" maxlength="11" /></td>
+            <td><input name="zip" type="text" size="11" value="<?php echo $house->getZip(); ?>" maxlength="11" /></td>
           </tr>
           <tr>
-            <td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
-            <td><input name="number" id="number"type="text" size="16" value="<?php echo $_POST['number'] ?>" maxlength="16" /></td>
+            <td><labe for="number">Phone Number: <span class="example">(111-222-3333)</span></label></td>
+            <td><input name="number" id="number"type="text" size="16" value="<?php echo $client->getPhoneNumber(); ?>" maxlength="16" /></td>
           </tr>
           <tr>
             <td><label for="age">Client Age: </label></td>
-            <td><input name="age" type="text" size="2" value="<?php echo $_POST['age'] ?>" maxlength="3" /></td>
+            <td><input name="age" type="text" size="2" value="<?php echo $client->getAge(); ?>" maxlength="3" /></td>
           </tr>
           <tr>
             <td><label for="gengroup">Client Gender: </label></td>
@@ -129,7 +163,7 @@
               {
                 echo "\t\t\t\t\t\t";
                 echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'" ';
-                if ($gender->getGenderID() == $_POST['gengroup'])
+                if ($gender->getGenderID() === $client->getGenderID())
                 {
                   echo 'checked ';
                 }
@@ -147,7 +181,7 @@
                 {
                   echo "\t\t\t\t\t\t";
                   echo '<option value="'.$ethnicity->getEthnicityID().'" ';
-                  if ($ethnicity->getEthnicityID() == $_POST['ethgroup'])
+                  if ($ethnicity->getEthnicityID() === $client->getEthnicityID())
                   {
                     echo 'selected ';
                   }
@@ -166,7 +200,7 @@
                 {
                   echo "\t\t\t\t\t\t";
                   echo '<option value="'.$reason->getReasonID().'" ';
-                  if ($reason->getReasonID() == $_POST['reasongroup'])
+                  if ($reason->getReasonID() == $client->getReasonID())
                   {
                     echo 'selected ';
                   }
@@ -179,7 +213,7 @@
           </tr>
           <tr>
             <td><div class="show" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
-            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo $_POST['uDate'] ?>" id="uDate" /></td>
+            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo MySQLDateToNormal($client->getUnemploymentDate()); ?>" id="uDate" /></td>
           </tr>
           <tr>
             <td><label for="houseNum">Number of People in Household:</label></td>
@@ -196,5 +230,6 @@
       </fieldset>
     </form>
   </div><!-- /editClient -->
+  <a href="controllers/deleteClient.php?client=<?php echo $client->getClientID(); ?>">Delete this client </a>
 </body>
 </html>

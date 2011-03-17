@@ -72,7 +72,7 @@
   	  		}
   	  });
   	 //Popup date pickers for application date and unemployment date
-  	  $('#date').datepicker({ dateFormat: 'mm-dd-yy' });
+  	  $('#appDate').datepicker({ dateFormat: 'mm-dd-yy' });
   	  $('#uDate').datepicker({ dateFormat: 'mm-dd-yy' });  	 
     });
 	</script>		
@@ -83,6 +83,16 @@
 		<div id="header">
 			<h1>Add a New Client</h1>
 			<h2>Enter the information for a new client</h2>
+      <?php 
+        if (!empty($_GET['error']) && $_GET['error'] == 1)
+        {
+          echo "<h4>There was an error adding the client.</h4>";
+        }
+        elseif (!empty($_GET['success']) && $_GET['success'] == 1)
+        {
+          echo "<h4>Client added successfully.</h4>";
+        }
+        ?>
 			<hr/>
 		</div><!-- /header -->
 		<div id="newClient">
@@ -92,35 +102,35 @@
 				<table>
 					<tr>
 						<td><label for="appDate">Date of Application:</label></td>
-						<td><input type="text" name="date" id="date" /></td>
+						<td><input type="text" name="appDate" id="appDate" /></td>
 					</tr>
 					<tr>
-						<td><label for="cfName">First Name: </label></td>
-						<td><input type="text" size="60" name="cfName"/></td>
+						<td><label for="firstName">First Name: </label></td>
+						<td><input type="text" size="60" name="firstName"/></td>
 					</tr>
 					<tr>
-						<td><label for="clName">Last Name: </label></td>
-						<td><input name="clName" type="text" size="60" /></td>
+						<td><label for="lastName">Last Name: </label></td>
+						<td><input name="lastName" type="text" size="60" /></td>
 					</tr>
 					<tr>
-						<td><label for="cAddress">Current Address: </label></td>
-						<td><input name="cAddress" type="text" size="80" /></td>
+						<td><label for="addres">Current Address: </label></td>
+						<td><input name="address" type="text" size="80" /></td>
 					</tr>
 					<tr>
-						<td><label for="cCity">Current City: </label></td>
-						<td><input name="cCity" type="text" size="50" /></td>
+						<td><label for="city">Current City: </label></td>
+						<td><input name="city" type="text" size="50" /></td>
 					</tr>
 					<tr>
-						<td><label for="cZip">Zip Code: </label></td>
-						<td><input name="cZip" type="text" size="11" maxlength="11" /></td>
+						<td><label for="zip">Zip Code: </label></td>
+						<td><input name="zip" type="text" size="11" maxlength="11" /></td>
 					</tr>
 					<tr>
 						<td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
-						<td><input name="cPhone" id="cPhone"type="text" size="16" maxlength="16" /></td>
+						<td><input name="number" id="number"type="text" size="16" maxlength="16" /></td>
 					</tr>
 					<tr>
-						<td><label for="cAge">Client Age: </label></td>
-						<td><input name="cAge" type="text" size="2" maxlength="3" /></td>
+						<td><label for="age">Client Age: </label></td>
+						<td><input name="age" type="text" size="2" maxlength="3" /></td>
 					</tr>
 					<tr>
 						<td><label for="gengroup">Client Gender: </label></td>

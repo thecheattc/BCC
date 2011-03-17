@@ -65,7 +65,10 @@
 <body>
   <div id="header">
     <h3>Visit history for <?php echo $client->getFirstName() . " " . $client->getLastName() ?></h1>
-    <?php if (!empty($_GET['visit'])){ echo "<h4>Visit {$_GET['visit']} has been recorded.</h4>";} ?>
+    <?php 
+      if (!empty($_GET['visit'])){ echo "<h4>Visit {$_GET['visit']} has been recorded.</h4>";}
+      if (!empty($_GET['error'])){ echo "<h4>There was an error adding the visit. Please try again. </h4>";}
+      ?>
     <hr />
   </div>
   <form method="post" action="viewHistory.php?client=<?php echo $_GET['client']; ?>">

@@ -135,7 +135,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`usage` (
   CONSTRAINT `usage_client_id`
     FOREIGN KEY (`client_id` )
     REFERENCES `bcc_food_client`.`clients` (`client_id` )
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION,
   CONSTRAINT `usage_dist_type_id`
     FOREIGN KEY (`type_id` )
@@ -152,21 +152,21 @@ DROP TABLE IF EXISTS `bcc_food_client`.`family_members` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`family_members` (
   `fam_member_id` INT NOT NULL AUTO_INCREMENT ,
-  `guardian_client_id` INT NOT NULL ,
   `age` INT NOT NULL ,
   `gender_id` INT NOT NULL ,
+  `member_house_id` INT NOT NULL ,
   PRIMARY KEY (`fam_member_id`) ,
   INDEX `fam_gender_id` (`gender_id` ASC) ,
-  INDEX `fam_client_id` (`guardian_client_id` ASC) ,
+  INDEX `fam_house_id` (`member_house_id` ASC) ,
   CONSTRAINT `fam_gender_id`
     FOREIGN KEY (`gender_id` )
     REFERENCES `bcc_food_client`.`genders` (`gender_id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fam_client_id`
-    FOREIGN KEY (`guardian_client_id` )
-    REFERENCES `bcc_food_client`.`clients` (`client_id` )
-    ON DELETE NO ACTION
+  CONSTRAINT `fam_house_id`
+    FOREIGN KEY (`member_house_id` )
+    REFERENCES `bcc_food_client`.`houses` (`house_id` )
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -176,21 +176,20 @@ SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
-
-INSERT INTO genders(gender_desc)
+INSERT INTO bcc_food_client.genders(gender_desc)
 VALUES ('Male'), ('Female');
 
-INSERT INTO ethnicities(ethnicity_desc)
+INSERT INTO bcc_food_client.ethnicities(ethnicity_desc)
 VALUES ('White'), ('Black'), ('Hispanic'),
 ('Asian or Pacific Islander'), ('American Indian');
 
-INSERT INTO reasons(reason_desc)
+INSERT INTO bcc_food_client.reasons(reason_desc)
 VALUES ('Lost job'), ('Unusual expenses this month'),
 ('To make ends meet'), ('Assistance lost/reduced'),
 ('DHS application in progress'), ('Homeless'),
 ('Other');
 
-INSERT INTO houses(address, city, zip)
+INSERT INTO bcc_food_client.houses(address, city, zip)
 VALUES
 ('811 Brookwood Pl', 'Ann Arbor', '48104'),
 ('123 Fake St', 'Ann Arbor', '48109'),
@@ -199,14 +198,14 @@ VALUES
 ('no', NULL, 'city'),
 ('no', 'zip', NULL);
 
-INSERT INTO clients(first_name, last_name, age, phone_number, house_id,
+INSERT INTO bcc_food_client.clients(first_name, last_name, age, phone_number, house_id,
 ethnicity_id, gender_id, reason_id, unemployment_date, application_date)
 VALUES
 ('Evan', 'Lindell', '20', '5178994272', '1', '1', '1', '1', CURDATE(), CURDATE()),
 ('Mike', 'onna Bike', '27', '1800luvcoke', NULL, '1', '1', '6', CURDATE(), CURDATE()),
 ('Trisha', 'Takinawa', '42', '6124952284', '2', '4', '2', '3', CURDATE(), CURDATE());
 
-INSERT INTO family_members(guardian_client_id, age, gender_id)
+INSERT INTO bcc_food_client.family_members(member_house_id, age, gender_id)
 VALUES
 ('1', '14', '1'),
 ('1', '12', '2'),
@@ -217,9 +216,9 @@ VALUES
 ('3', '5', '1'),
 ('3', '5', '2');
 
-INSERT INTO distribution_type(dist_type_desc) VALUES ('Normal'), ('Emergency'), ('Rejected');
+INSERT INTO bcc_food_client.distribution_type(dist_type_desc) VALUES ('Normal'), ('Emergency'), ('Rejected');
 
-INSERT INTO usage(client_id, type_id, date) VALUES
+INSERT INTO bcc_food_client.usage (client_id, type_id, date) VALUES
 (1,1,'2011-03-03'),
 (1,1,'2011-04-03'),
 (1,1,'2010-02-13'),

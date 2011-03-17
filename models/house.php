@@ -111,7 +111,7 @@
         $query = "UPDATE bcc_food_client.houses SET ";
         $query .= "address='{$addressParam}', ";
         $query .= "city='{$cityParam}', ";
-        $query .= "zip='{$zipParam}', ";
+        $query .= "zip='{$zipParam}' ";
         $query .= "WHERE house_id = '{$this->houseID}'";
       }
       //If the house was freshly created, insert it into the database.
@@ -120,8 +120,7 @@
         $query = "INSERT INTO bcc_food_client.houses (address, city, zip) ";
         $query .= "VALUES ('{$addressParam}', '{$cityParam}', '{$zipParam}')";
       }
-      
-      
+            
       $result = mysql_query($query);
       
       if ($result !== FALSE)
