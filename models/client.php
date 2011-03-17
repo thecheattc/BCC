@@ -175,8 +175,18 @@
       $query = "DELETE FROM bcc_food_client.clients WHERE client_id = '{$this->clientID}'";
 
       $result = mysql_query($query);
-      $this->discard();
       
+      if ($result === FALSE)
+      {
+        return $result;
+      }
+      
+      if (Client::deleteHouseIfNotReferenced($this->houseID) === FALSE)
+      {
+        return FALSE;
+      }
+      
+      $this->discard();
       return $result;
     }
     
@@ -197,12 +207,36 @@
       $firstNameParam = mysql_real_escape_string($this->firstName);
       $lastNameParam = mysql_real_escape_string($this->lastName);
       $ageParam = mysql_real_escape_string($this->age);
-      $phoneNumberParam = mysql_real_escape_string($this->phoneNumber);
-      $houseIDParam = mysql_real_escape_string($this->houseID);
+      $phoneNumberParam = NULL;
+      if (mysql_real_escape_string($this->phoneNumber) === '')
+      {
+        $phoneNumberParam = "NULL";
+      }
+      else
+      {
+        $phoneNumberParam = "'" . mysql_real_escape_string($this->phoneNumber)."'";
+      }
+      $houseIDParam = NULL;
+      if (mysql_real_escape_string($this->houseID) === '')
+      {
+        $houseIDParam = "NULL";
+      }
+      else
+      {
+        $houseIDParam = "'" . mysql_real_escape_string($this->houseID)."'";
+      }
       $ethnicityIDParam = mysql_real_escape_string($this->ethnicityID);
       $genderIDParam = mysql_real_escape_string($this->genderID);
       $reasonIDParam = mysql_real_escape_string($this->reasonID);
-      $unempDateParam = mysql_real_escape_string($this->unemploymentDate);
+      $unempDateParam = NULL;
+      if (mysql_real_escape_string($this->unemploymentDate) === '')
+      {
+        $unempDateParam = "NULL";
+      }
+      else
+      {
+        $unempDateParam = "." . mysql_real_escape_string($this->unemploymentDate) . "'";
+      }
       $appDateParam = mysql_real_escape_string($this->applicationDate);
       $query = "";
       
@@ -213,12 +247,12 @@
         $query .= "first_name='$firstNameParam', ";
         $query .= "last_name='$lastNameParam', ";
         $query .= "age='$ageParam', ";
-        $query .= "phone_number='$phoneNumberParam', ";
-        $query .= "house_id='$houseIDParam', ";
+        $query .= "phone_number=" .$phoneNumberParam .", ";
+        $query .= "house_id=" . $houseIDParam . ", ";
         $query .= "ethnicity_id='$ethnicityIDParam', ";
         $query .= "gender_id='$genderIDParam', ";
         $query .= "reason_id='$reasonIDParam', ";
-        $query .= "unemployment_date='$unempDateParam', ";
+        $query .= "unemployment_date=" . $unempDateParam . ", ";
         $query .= "application_date='$appDateParam' ";
         $query .= "WHERE client_id = '{$this->clientID}'";
       }
@@ -229,11 +263,10 @@
         $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
         $query .= "application_date) VALUES ";
         $query .= "('$firstNameParam', '$lastNameParam', '$ageParam', ";
-        $query .= "'$phoneNumberParam', '$houseIDParam', '$ethnicityIDParam', ";
-        $query .= "'$genderIDParam', '$reasonIDParam', '$unempDateParam', ";
+        $query .= $phoneNumberParam .", " . $houseIDParam . ", '$ethnicityIDParam', ";
+        $query .= "'$genderIDParam', '$reasonIDParam', " . $unempDateParam . ", ";
         $query .= "'$appDateParam')";
       }
-      
       $result = mysql_query($query);
       
       if ($result !== FALSE)
@@ -357,6 +390,29 @@
     public function changeHistory($distID, $newDate, $newDistTypeID)
     {
       return Visit::changeHistoryByID($distID, $newDate, $newDistTypeID);
+    }
+    
+    public static function deleteHouseIfNotReferenced($houseID)
+    {
+      //Determine the number of people tied to the deleted client's house
+      $query = "SELECT COUNT(*) FROM bcc_food_client.clients WHERE house_id = '{$houseID}'";
+      $result = mysql_query($query);
+      
+      if ($result === FALSE)
+      {
+        return $result;
+      }
+      
+      $countArr = mysql_fetch_array($result);
+      $count = $countArr[0];
+            
+      if ($count == 0)
+      {
+        $query = "DELETE FROM bcc_food_client.houses WHERE house_id = '{$houseID}'";
+        $result = mysql_query($query);
+      }
+      
+      return $result;
     }
     
   }

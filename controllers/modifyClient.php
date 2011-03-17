@@ -43,7 +43,8 @@
   echo "ReasonID: "; var_dump($_POST['reasongroup']);
   echo "UnempDate: "; var_dump($_POST['uDate']);
   echo "\n";
-  */
+   */
+  
   $date = normalDateToMySQL($_POST['appDate']);
   $first = processString($_POST['firstName']);
   $last = processString($_POST['lastName']);
@@ -75,21 +76,20 @@
   echo "ReasonID: "; var_dump($reasonID);
   echo "UnempDate: "; var_dump($unempDate);
   echo "</PRE>";
-   */
+  */ 
   
   //If any part of the address is listed, all parts must be.
   $badAddr = FALSE;
   $count = 0;
-  if (isset($address)){ $count++;}
-  if (isset($city)){ $count++;}
-  if (isset($zip)){ $count++;}
+  if (isset($address) && !empty($address)){ $count++;}
+  if (isset($city) && !empty($city)){ $count++;}
+  if (isset($zip) && !empty($zip)){ $count++;}
   if ($count > 0 && $count < 3){ $badAddr = TRUE;}
   
   //If the address is incomplete or any field besides the phone_number or unemployment date is empty 
   //(unemployment date has to be present when the reason is "lost job"), redirect with an error
   if ($badAddr || empty($date) || empty($first) || empty($last) ||
-      empty($city) || empty($zip) || empty($age) ||
-      empty($genderID) || empty($ethnicityID) || empty($reasonID) ||
+      empty($age) || empty($genderID) || empty($ethnicityID) || empty($reasonID) ||
       ($reasonID == UNEMPLOYED_REASON_ID && empty($unempDate)))
   {
     //echo "Bad input";
@@ -123,13 +123,26 @@
         }
       }
     }
+    //If it's an edit and no address was given, set the house (and in doing so, the client's house id) to NULL.
+    else if ($edit && $count === 0)
+    {
+      $house = NULL;
+    }
+    //House insertion failed
     if ($error)
     {
       header('Location: ../dataEntry.php?error=1');
     }
     else
     {
-      if (!$edit)
+      //oldHouseID keeps track of the user's previous houseID, if any,
+      //so it's possible to delete it if it's not referenced anymore.
+      $oldHouseID = '';
+      if ($edit)
+      {
+        $oldHouseID = $client->getHouseID();
+      }
+      else
       {
         $client = Client::create();
       }
@@ -151,10 +164,9 @@
       {
         $client->setHouseID($house->getHouseID());
       }
-      
+      //Client save failed
       if (!$client->save())
       {
-        //echo "Client save failed";
         if ($edit)
         {
           header("Location: ../editClient.php?client={$client->getClientID()}&error=1");
@@ -166,6 +178,7 @@
       }
       else
       {
+        Client::deleteHouseIfNotReferenced($oldHouseID);
         if ($edit)
         {
           header("Location: ../editClient.php?client={$client->getClientID()}&success=1");

@@ -28,10 +28,15 @@
     {
       header("Location: search.php?error=1");
     }
-    $house = House::getHouseByID($client->getHouseID());
-    if ($house === NULL)
+    //Only retrieve the house if the person has a house listed
+    $house = NULL;
+    if ($client->getHouseID() !== NULL)
     {
-      header("Location: search.php?error=1");
+      $house = House::getHouseByID($client->getHouseID());
+      if ($house === NULL)
+      {
+        header("Location: search.php?error=1");
+      }
     }
   }
   
@@ -138,15 +143,15 @@
           </tr>
           <tr>
             <td><label for="address">Current Address: </label></td>
-            <td><input name="address" type="text" size="80" value="<?php echo $house->getAddress(); ?>" /></td>
+            <td><input name="address" type="text" size="80" value="<?php if ($house !== NULL){echo $house->getAddress();} ?>" /></td>
           </tr>
           <tr>
             <td><label for="city">Current City: </label></td>
-            <td><input name="city" type="text" size="50" value="<?php echo $house->getCity(); ?>" /></td>
+            <td><input name="city" type="text" size="50" value="<?php if ($house !== NULL){echo $house->getCity();} ?>" /></td>
           </tr>
           <tr>
             <td><label for="zip">Zip Code: </label></td>
-            <td><input name="zip" type="text" size="11" value="<?php echo $house->getZip(); ?>" maxlength="11" /></td>
+            <td><input name="zip" type="text" size="11" value="<?php if ($house !== NULL){echo $house->getZip();} ?>" maxlength="11" /></td>
           </tr>
           <tr>
             <td><labe for="number">Phone Number: <span class="example">(111-222-3333)</span></label></td>

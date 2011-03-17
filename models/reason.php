@@ -88,7 +88,15 @@
       
       //Sanitize user-generated input
       $reasonDescParam = mysql_real_escape_string($this->reasonDesc);
-      $explanationParam = mysql_real_escape_string($this->explanation);
+      $explanationParam = NULL;
+      if (mysql_real_escape_string($this->explanation) === '')
+      {
+        $explanationParam = "NULL";
+      }
+      else
+      {
+        $explanationParam = "'" . mysql_real_escape_string($this->explanation) . "'";
+      }
       $query = "";
       
       //If this reason already existed in the database, update it
@@ -96,14 +104,14 @@
       {
         $query = "UPDATE bcc_food_client.reasons SET ";
         $query .= "reason_desc='{reasonDescParam}', ";
-        $query .= "explanation='{$explanationParam}', ";
+        $query .= "explanation=" . $explanationParam . ", ";
         $query .= "WHERE reason_id = '{$this->reasonID}'";
       }
       //If the reason was freshly created, insert it into the database.
       else
       {
         $query = "INSERT INTO bcc_food_client.reasons (reason_desc, explanation) ";
-        $query .= "VALUES ('{$reasondescParam}', '{$explanationParam}')";
+        $query .= "VALUES ('{$reasondescParam}', " . $explanationParam . ")";
       }
       
       
