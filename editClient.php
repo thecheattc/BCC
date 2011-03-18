@@ -110,8 +110,7 @@
 	
 	<body>
 		<div id="header">
-			<h1>Confirm Client Information</h1>
-			<h2>Please check that the information you have entered is correct.</h2>
+			<h1>Edit Client Information</h1>
       <?php 
         if (!empty($_GET['error']) && $_GET['error'] == 1)
         {
@@ -127,7 +126,7 @@
     <div id="newClient">
       <form method="post" action="controllers/modifyClient.php?edit=1&client=<?php echo $client->getClientID(); ?>">
       <fieldset>
-        <legend>Enter data for a new client</legend>
+      <legend>Edit <?php echo $client->getFirstName(); ?>'s information</legend>
         <table>
           <tr>
             <td><label for="appDate">Date of Application:</label></td>

@@ -183,7 +183,8 @@
       $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
       $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
       $query .= "ON type_id = dist_type_id ";
-      $query .= "WHERE client_id = '{$clientID}' AND date >= '{$since}'";
+      $query .= "WHERE client_id = '{$clientID}' AND date >= '{$since}' ";
+      $query .= "ORDER BY date DESC";
 
       $result = mysql_query($query);
       

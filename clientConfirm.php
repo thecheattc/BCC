@@ -88,7 +88,7 @@
     <div id="newClient">
       <form method="post" action="controllers/modifyClient.php">
       <fieldset>
-        <legend>Enter data for a new client</legend>
+        <legend>Confirm new client information</legend>
         <table>
           <tr>
             <td><label for="appDate">Date of Application:</label></td>

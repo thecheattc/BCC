@@ -23,7 +23,7 @@
 				<p>Click here to add a new client to the database</p></a>
 			</div>
 			<div class="task">
-				<a href="">
+				<a href="search.php">
 				<h3>Manage Food Distribution</h3>
 				<img src="style/images/foodDist.png" alt="Click this area to check the date of a client's last visit" />
 				<p>Click here to check for a client's last distribution.</p></a>

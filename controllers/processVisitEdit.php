@@ -13,17 +13,17 @@
     $visit = Visit::getVisitByID($_GET['visit']);
     if ($visit === NULL)
     {
-      header("Location: ../editVisit.php?client={$_GET['client']}&visit={$_GET['visit']}&error=1");
+      header("Location: ../editVisit.php?visit={$_GET['visit']}&error=1");
     }
     $visit->setDate(normalDateToMySQL($_POST['date']));
     $visit->setTypeID($_POST['type']);
 
     if ($visit->save() === FALSE)
     {
-      header("Location:../editVisit.php?client={$_GET['client']}&visit={$_GET['visit']}&error=1");
+      header("Location:../editVisit.php?visit={$_GET['visit']}&error=1");
     }
     else
     {
-      header("Location:../editVisit.php?client={$_GET['client']}&visit={$_GET['visit']}&success=1");
+      header("Location:../editVisit.php?visit={$_GET['visit']}&success=1");
     }
   }

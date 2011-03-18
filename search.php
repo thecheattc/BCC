@@ -57,7 +57,7 @@
   <div id="newClient">
     <form method="post" action="search.php">
     <fieldset>
-      <legend>Enter data for a new client</legend>
+      <legend>Search for a client</legend>
       <table>
         <tr>
           <td><label for="first">First name:</label></td>

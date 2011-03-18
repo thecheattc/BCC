@@ -1,0 +1,120 @@
+/*======================================Base==================================*/
+body{
+font: 1em Georgia, serif;
+}
+#header{
+text-align: center;
+}
+#header h1{
+color: #383838;
+}
+td{
+padding: .15em;
+vertical-align: bottom;
+}
+/*===============================Login Page===================================*/
+#adLogin{
+margin: 3em auto 0;
+width: 30em;
+}
+#adLogin label, input{
+margin-top: 2em;
+}
+#adLogin p{
+margin-top: 1em;
+text-align: center;
+}
+#adLogin input{
+}
+/*================================Register page===============================*/
+#regform{
+width: 50em;
+margin: 0 auto;
+}
+/*==================================Link Behavior=============================*/
+a:hover{
+text-decoration: none;
+}
+a:visited{
+color: black;
+}
+/*===============================Task Select Page=============================*/
+#taskWrap{
+width: 65em;
+margin: 0 auto;
+}
+.task{
+border: 1px solid black;
+width: 27em;
+float: left;
+margin: 2em 0 2em 2em;
+text-align: center;
+}
+.task p{
+text-decoration: underline;
+}
+.task img{
+border: none;
+}
+.task a:hover{
+color: red;
+text-decoration: none;
+}
+/*=============================New client data entry page=====================*/
+#newClient{
+width: 55em;
+margin: 2em auto;
+}
+#newClient select{
+margin-top: 1em;
+}
+.example{
+font-size: .85em;
+font-style: oblique;
+color: blue;
+}
+/*===========================Client Check page================================*/
+#clientCheck table tr {
+border-bottom: 1px solid black;
+}
+#clientCheck td{
+padding-right: 5em;
+}
+#clientCheck table{
+margin: 0 auto;
+border-collapse:collapse;
+}
+#clientCheck .noborder{
+border-bottom: 0px solid white;
+}
+.conFlag{
+color: red;
+}
+.conFlag tr td label{
+color: red;
+}
+#confH1{
+color: red;
+}
+/*=========================Search page========================================*/
+#noResults{
+text-align: center;
+}
+.search a{
+color: blue;
+}
+
+.search a:hover{
+text-decoration: none;
+color: red;
+}
+.search a:visited{
+color: purple;
+}
+#resTable{
+border-collapse: collapse;
+}
+#resTable td{
+border: 1px solid black;
+padding: .75em;
+}
