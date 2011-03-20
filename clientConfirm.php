@@ -92,35 +92,35 @@
         <table>
           <tr>
             <td><label for="appDate">Date of Application:</label></td>
-            <td><input type="text" name="appDate" id="appDate" value="<?php echo $_POST['appDate'] ?>"/></td>
+            <td><input type="text" name="appDate" id="appDate" value="<?php echo htmlentities($_POST['appDate']); ?>"/></td>
           </tr>
           <tr>
             <td><label for="firstName">First Name: </label></td>
-            <td><input type="text" size="60" name="firstName" value="<?php echo $_POST['firstName'] ?>" /></td>
+            <td><input type="text" size="60" name="firstName" value="<?php echo htmlentities($_POST['firstName']); ?>" /></td>
           </tr>
           <tr>
             <td><label for="lastName">Last Name: </label></td>
-            <td><input name="lastName" type="text" size="60" value="<?php echo $_POST['lastName'] ?>" /></td>
+            <td><input name="lastName" type="text" size="60" value="<?php echo htmlentities($_POST['lastName']); ?>" /></td>
           </tr>
           <tr>
             <td><label for="address">Current Address: </label></td>
-            <td><input name="address" type="text" size="80" value="<?php echo $_POST['address'] ?>" /></td>
+            <td><input name="address" type="text" size="80" value="<?php echo htmlentities($_POST['address']); ?>" /></td>
           </tr>
           <tr>
             <td><label for="city">Current City: </label></td>
-            <td><input name="city" type="text" size="50" value="<?php echo $_POST['city'] ?>" /></td>
+            <td><input name="city" type="text" size="50" value="<?php echo htmlentities($_POST['city']); ?>" /></td>
           </tr>
           <tr>
             <td><label for="zip">Zip Code: </label></td>
-            <td><input name="zip" type="text" size="11" value="<?php echo $_POST['zip'] ?>" maxlength="11" /></td>
+            <td><input name="zip" type="text" size="11" value="<?php echo htmlentities($_POST['zip']); ?>" maxlength="11" /></td>
           </tr>
           <tr>
             <td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
-            <td><input name="number" id="number"type="text" size="16" value="<?php echo $_POST['number'] ?>" maxlength="16" /></td>
+            <td><input name="number" id="number"type="text" size="16" value="<?php echo htmlentities($_POST['number']); ?>" maxlength="16" /></td>
           </tr>
           <tr>
             <td><label for="age">Client Age: </label></td>
-            <td><input name="age" type="text" size="2" value="<?php echo $_POST['age'] ?>" maxlength="3" /></td>
+            <td><input name="age" type="text" size="2" value="<?php echo htmlentities($_POST['age']);  ?>" maxlength="3" /></td>
           </tr>
           <tr>
             <td><label for="gengroup">Client Gender: </label></td>
@@ -179,7 +179,7 @@
           </tr>
           <tr>
             <td><div class="show" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
-            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo $_POST['uDate'] ?>" id="uDate" /></td>
+            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo htmlentities($_POST['uDate']); ?>" id="uDate" /></td>
           </tr>
           <tr>
             <td><label for="houseNum">Number of People in Household:</label></td>

@@ -15,7 +15,7 @@
   
   if (empty($_GET['client']))
   {
-    header("Location: search.phperror=1");
+    header("Location: search.php?error=1");
   }
   else
   {
