@@ -6,11 +6,31 @@
   include ('models/ethnicity.php');
   include ('models/reason.php');
   include ('controllers/utility.php');
-
-  $genders = Gender::getAllGenders();
-  $ethnicities = Ethnicity::getAllEthnicities();
-  $reasons = Reason::getAllReasons();
   
+  //Grab everything from POST, put it in SESSION.
+  $_SESSION['appDate'] = $_POST['appDate'];
+  $_SESSION['firstName'] = $_POST['firstName'];
+  $_SESSION['lastName'] = $_POST['lastName'];
+  $_SESSION['address'] = $_POST['address'];
+  $_SESSION['city'] = $_POST['city'];
+  $_SESSION['zip'] = $_POST['zip'];
+  $_SESSION['number'] = $_POST['number'];
+  $_SESSION['age'] = $_POST['age'];
+  $_SESSION['gengroup'] = $_POST['gengroup'];
+  $_SESSION['ethgroup'] = $_POST['ethgroup'];
+  $_SESSION['reasongroup'] = $_POST['reasongroup'];
+  $_SESSION['uDate'] = $_POST['uDate'];
+  $_SESSION['houseNum'] = isset($_POST['houseNum'])? $_POST['houseNum'] : 0;
+  $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
+  $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
+  for ($i=0; $i< $_SESSION['houseNum']; $i++)
+  {
+    $_SESSION["child{$i}"] = $_POST["child{$i}"];
+  }
+
+  $gender = Gender::getGenderByID($_SESSION['gengroup']);
+  $ethnicity = Ethnicity::getEthnicityByID($_SESSION['ethgroup']);
+  $reason = Reason::getReasonByID($_SESSION['reasongroup']);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -86,115 +106,93 @@
 			<hr/>
 		</div><!-- /header -->
     <div id="newClient">
-      <form method="post" action="controllers/modifyClient.php">
-      <fieldset>
-        <legend>Confirm new client information</legend>
         <table>
           <tr>
-            <td><label for="appDate">Date of Application:</label></td>
-            <td><input type="text" name="appDate" id="appDate" value="<?php echo htmlentities($_POST['appDate']); ?>"/></td>
+            <td><label>Date of Application:</label></td>
+            <td><?php echo htmlentities($_SESSION['appDate']); ?></td>
           </tr>
           <tr>
-            <td><label for="firstName">First Name: </label></td>
-            <td><input type="text" size="60" name="firstName" value="<?php echo htmlentities($_POST['firstName']); ?>" /></td>
+            <td><label>First Name: </label></td>
+            <td><?php echo htmlentities($_SESSION['firstName']); ?></td>
           </tr>
           <tr>
-            <td><label for="lastName">Last Name: </label></td>
-            <td><input name="lastName" type="text" size="60" value="<?php echo htmlentities($_POST['lastName']); ?>" /></td>
+            <td><label>Last Name: </label></td>
+            <td><?php echo htmlentities($_SESSION['lastName']); ?></td>
           </tr>
           <tr>
-            <td><label for="address">Current Address: </label></td>
-            <td><input name="address" type="text" size="80" value="<?php echo htmlentities($_POST['address']); ?>" /></td>
+            <td><label>Current Address: </label></td>
+            <td><?php echo htmlentities($_SESSION['address']); ?></td>
           </tr>
           <tr>
-            <td><label for="city">Current City: </label></td>
-            <td><input name="city" type="text" size="50" value="<?php echo htmlentities($_POST['city']); ?>" /></td>
+            <td><label>Current City: </label></td>
+            <td><?php echo htmlentities($_SESSION['city']); ?></td>
           </tr>
           <tr>
-            <td><label for="zip">Zip Code: </label></td>
-            <td><input name="zip" type="text" size="11" value="<?php echo htmlentities($_POST['zip']); ?>" maxlength="11" /></td>
+            <td><label>Zip Code: </label></td>
+            <td><?php echo htmlentities($_SESSION['zip']); ?></td>
           </tr>
           <tr>
             <td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
-            <td><input name="number" id="number"type="text" size="16" value="<?php echo htmlentities($_POST['number']); ?>" maxlength="16" /></td>
+            <td><?php echo htmlentities($_SESSION['number']); ?></td>
           </tr>
           <tr>
-            <td><label for="age">Client Age: </label></td>
-            <td><input name="age" type="text" size="2" value="<?php echo htmlentities($_POST['age']);  ?>" maxlength="3" /></td>
+            <td><label>Client Age: </label></td>
+            <td><?php echo htmlentities($_SESSION['age']);  ?></td>
           </tr>
           <tr>
-            <td><label for="gengroup">Client Gender: </label></td>
-            <td>
-            <?php foreach ($genders as $gender)
-              {
-                echo "\t\t\t\t\t\t";
-                echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'" ';
-                if ($gender->getGenderID() == $_POST['gengroup'])
-                {
-                  echo 'checked ';
-                }
-                echo '/>';
-                echo "\n";
-              }
-              ?>
-            </td>
+            <td><label>Client Gender: </label></td>
+            <td><?php if (!empty($gender)) {echo $gender->getGenderDesc();} ?></td>
           </tr>
           <tr>
-            <td><label for="ethgroup">Client Ethnicity: </label></td>
-            <td><select id="ethgroup" name="ethgroup">
-              <option value="0">Select an ethnicity</option>
-              <?php foreach ($ethnicities as $ethnicity)
-                {
-                  echo "\t\t\t\t\t\t";
-                  echo '<option value="'.$ethnicity->getEthnicityID().'" ';
-                  if ($ethnicity->getEthnicityID() == $_POST['ethgroup'])
-                  {
-                    echo 'selected ';
+            <td><label>Client Ethnicity: </label></td>
+            <td><?php if (!empty($ethnicity)) {echo $ethnicity->getEthnicityDesc();} ?></td>
+          </tr>
+          <tr>
+            <td><label>Reason For Assistance: </label></td>
+            <td><?php if (!empty($reason)) {echo $reason->getReasonDesc();} ?></td>
+          </tr>
+          <tr>
+            <td><div class="show" style="display:none;"><label>Date of Job Loss: </label></div></td>
+            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo htmlentities($_SESSION['uDate']); ?>" id="uDate" /></td>
+          </tr>
+          <tr>
+            <td><label>Number of other people in household that have not registered with Bryant:</label></td>
+            <td><?php echo $_SESSION['houseNum']; ?></td>
+          </tr>
+          <tr>
+            <td><label>Are you currently receving food stamps?</label></td>
+            <td><?php 
+                  if(isset($_SESSION['receivesStamps']) && $_SESSION['receivesStamps'] == 1)
+                  { 
+                    echo "Yes";
                   }
-                  echo '>'.$ethnicity->getEthnicityDesc().'</option>';
-                  echo "\n";
-                }
-                ?>
-              </select>
-            </td>
-          </tr>
-          <tr>
-            <td><label for="reasongroup">Reason For Assistance: </label></td>
-            <td><select id="reasongroup" name="reasongroup">
-              <option value="0">Select a reason</option>
-              <?php foreach ($reasons as $reason)
-                {
-                  echo "\t\t\t\t\t\t";
-                  echo '<option value="'.$reason->getReasonID().'" ';
-                  if ($reason->getReasonID() == $_POST['reasongroup'])
+                  else
                   {
-                    echo 'selected ';
-                  }
-                  echo '>'.$reason->getReasonDesc().'</option>';
-                  echo "\n";
-                }
+                    echo "No";
+                  } 
                 ?>
-              </select>
             </td>
           </tr>
+          <?php if($_SESSION['receivesStamps'] == 0)
+                {
+                  echo "<tr>\n\t<td><label>If no, are you interested in finding out if you are eligible for food stamps?</label></td>";
+                  echo "\n\t<td>";
+                  if($_SESSION['wantsStamps'] == 1)
+                  {
+                    echo "Yes";
+                  }
+                  else
+                  {
+                    echo "No";
+                  }
+                  echo "</td>\n</tr>";
+                }
+            ?>
           <tr>
-            <td><div class="show" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
-            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo htmlentities($_POST['uDate']); ?>" id="uDate" /></td>
-          </tr>
-          <tr>
-            <td><label for="houseNum">Number of People in Household:</label></td>
-            <td><input name="houseNum" id="houseNum" type="text" size="2" maxlength="2" numeric="integer" /></td>
-          </tr>
-          <tr>
-            <td><div class="show2" style="display:none;"><label for="hAge">Household Member Ages:<br/><span class="example">Please enter a comma separated list<br/>Example: 15, 20, 25</span></label></div></td>
-            <td><div class="show2" style="display:none;"><input type="text" id="hAge" name="hAge" size="25" maxlength="45" /></div></td>
-          </tr>
-          <tr>
-            <td><input type="submit" name="clientSub" id="clientSub" value="Confirm" ></td>
+            <td><form method="post" action="controllers/modifyClient.php"><input type="submit" value="Add client" /></form></td>
           </tr>
         </table>
-      </fieldset>
-    </form>
-  </div><!-- /editClient -->
+  </div><!-- /confirm client -->
+  <a href="dataEntry.php">Go back to change information</a>
 </body>
 </html>

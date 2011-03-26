@@ -5,6 +5,13 @@
   include('models/ethnicity.php');
   include('models/reason.php');
   
+  if (!isset($_SESSION))
+  {
+    session_start();
+  }
+  echo "<PRE>";
+  var_dump($_SESSION);
+  echo "</PRE>";
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
   $reasons = Reason::getAllReasons();
@@ -49,28 +56,30 @@
    	//Gets the value from the number in household Input
     $("#houseNum").focusout(function(){
         var val = $("#houseNum").val();
-        if(val != ""){
-          if (val >0 && val < 16 && !(/\D/).test(val)){
-            $(".show2").show("slow");
-          }
-          else{
-            window.alert('Please enter a whole number of household members from 1 to 15.');
-            $(".show2").hide("slow");
-          }
+       	var msg="Please enter a whole number (example 1)."; 
+       	
+       	if(val !=""){
+       			var result = /\d+(?:\.\d+)?/.exec(val);
+       			if(result != null){
+       				if(result<16){
+       					var $inpHed = '<td>Age of House Member: </td><td>Gender of House Member: </td>';
+       					$('#add').append($inpHed); 
+       					for($i=0;$i<result;$i++){
+       						var $inputs = ('<tr><td class="pad">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" size="2" maxlength="2" name="hAge'+$i+'"/></td><td class="pad"> Male: <input type="radio" name="hGen'+$i+'" value="1"> Female: <input type="radio" name="hGen'+$i+'" value="2"></td></tr>');
+							    
+                  $('#add1').append($inputs);  
+                }
+              }
+              else{
+                window.alert('Only 15 members per house are allowed.');
+              }
+                    }
+       			else{
+        			window.alert(msg);
+        		}
         }
-    });
-                      
-  	 //Limits the household age members to a comma separated list
-  	  $('#hAge').focusout(function(){
-  	  		//window.alert('test');
-  	  		var ages = $('#hAge').val();
-  	  		var patt = /^([0-9]*)+(,[0-9]+)+$/;
-  	  		var result = patt.exec(ages);
-  	  		window.alert(result);
-  	  		if(result === null){
-  	  			window.alert('Please enter a comma separated list of ages');
-  	  		}
   	  });
+                      
   	 //Popup date pickers for application date and unemployment date
   	  $('#appDate').datepicker({ dateFormat: 'mm-dd-yy' });
   	  $('#uDate').datepicker({ dateFormat: 'mm-dd-yy' });  	 
@@ -86,14 +95,18 @@
       <?php 
         if (!empty($_GET['error']) && $_GET['error'] == 1)
         {
-          echo "<h4>There was an error adding the client.</h4>";
+          echo "<h4 style='color:red;'>There was an error adding the client.</h4>";
         }
         elseif (!empty($_GET['success']) && $_GET['success'] == 1)
         {
-          echo "<h4>Client added successfully.</h4>";
+          echo "<h4style='color:green;'>Client added successfully.</h4>";
         }
         ?>
 			<hr/>
+			<ul>
+				<li><a href="selectTask.php">Select a Task</a></li>
+				<li><a href="search.php">Search for a Client</a></li>
+			</ul>
 		</div><!-- /header -->
 		<div id="newClient">
 			<form method="post" action="clientConfirm.php">
@@ -102,35 +115,35 @@
 				<table>
 					<tr>
 						<td><label for="appDate">Date of Application:</label></td>
-						<td><input type="text" name="appDate" id="appDate" /></td>
+						<td><input type="text" name="appDate" id="appDate" value="<?php echo $_SESSION['appDate']; ?>"/></td>
 					</tr>
 					<tr>
 						<td><label for="firstName">First Name: </label></td>
-						<td><input type="text" size="60" name="firstName"/></td>
+						<td><input type="text" size="60" name="firstName" value="<?php echo $_SESSION['firstName']; ?>"/></td>
 					</tr>
 					<tr>
 						<td><label for="lastName">Last Name: </label></td>
-						<td><input name="lastName" type="text" size="60" /></td>
+						<td><input name="lastName" type="text" size="60" value="<?php echo $_SESSION['lastName']; ?>"/></td>
 					</tr>
 					<tr>
-						<td><label for="addres">Current Address: </label></td>
-						<td><input name="address" type="text" size="80" /></td>
+						<td><label for="address">Current Address: </label></td>
+						<td><input name="address" type="text" size="80" value="<?php echo $_SESSION['address']; ?>"/></td>
 					</tr>
 					<tr>
 						<td><label for="city">Current City: </label></td>
-						<td><input name="city" type="text" size="50" /></td>
+						<td><input name="city" type="text" size="50" value="<?php echo $_SESSION['city']; ?>"/></td>
 					</tr>
 					<tr>
 						<td><label for="zip">Zip Code: </label></td>
-						<td><input name="zip" type="text" size="11" maxlength="11" /></td>
+						<td><input name="zip" type="text" size="11" maxlength="11" value="<?php echo $_SESSION['zip']; ?>" /></td>
 					</tr>
 					<tr>
-						<td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
-						<td><input name="number" id="number"type="text" size="16" maxlength="16" /></td>
+						<td><label for="number">Phone Number: <span class="example">(111-222-3333)</span></label></td>
+						<td><input name="number" id="number"type="text" size="16" maxlength="16" value="<?php echo $_SESSION['phone']; ?>" /></td>
 					</tr>
 					<tr>
 						<td><label for="age">Client Age: </label></td>
-						<td><input name="age" type="text" size="2" maxlength="3" /></td>
+						<td><input name="age" type="text" size="2" maxlength="3" value="<?php echo $_SESSION['age']; ?>"/></td>
 					</tr>
 					<tr>
 						<td><label for="gengroup">Client Gender: </label></td>
@@ -138,10 +151,12 @@
                 <?php foreach ($genders as $gender)
                   {
                     echo "\t\t\t\t\t\t";
-                    echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'" />';
-                    echo "\n"; 
+                    echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'"';
+                    if (isset($_SESSION['gengroup']) && $_SESSION['gengroup'] == $gender->getGenderID()){ echo "checked "; }
+                    echo "/>\n";
                   }
                   ?>
+            </td>
 					</tr>
 					<tr>
 						<td><label for="ethgroup">Client Ethnicity: </label></td>
@@ -150,8 +165,9 @@
                 <?php foreach ($ethnicities as $ethnicity)
                   {
                     echo "\t\t\t\t\t\t";
-                    echo '<option value="'.$ethnicity->getEthnicityID().'">'.$ethnicity->getEthnicityDesc().'</option>';
-                    echo "\n";
+                    echo '<option value="'.$ethnicity->getEthnicityID().'">'.$ethnicity->getEthnicityDesc();
+                    if (isset($_SESSION['ethgroup']) && $_SESSION['ethgroup'] == $ethnicity->getEthnicityID()){ echo " selected "; }
+                    echo "</option>\n";
                   }
                   ?>
 							</select>
@@ -164,8 +180,9 @@
               <?php foreach ($reasons as $reason)
                 {
                   echo "\t\t\t\t\t\t";
-                  echo '<option value="'.$reason->getReasonID().'">'.$reason->getReasonDesc().'</option>';
-                  echo "\n";
+                  echo '<option value="'.$reason->getReasonID().'">'.$reason->getReasonDesc();
+                  if (isset($_SESSION['reasongroup']) && $_SESSION['reasongroup'] == $reason->getReasonID()){ echo " selected "; }
+                  echo "</option>\n";
                 }
                 ?>
 						</select></td>
@@ -176,17 +193,41 @@
 						</td>
 					</tr>
 					<tr>
-						<td><label for="houseNum">Number of People in Household:</label></td>
-						<td><input name="houseNum" id="houseNum" type="text" size="2" maxlength="2" numeric="integer" /></td>
+          <?php 
+            for($i=0; $i<$_SESSION['houseNum']; $i++)
+            {
+              $_SESSION["child{$i}"]->print();
+            }
+            ?>
 					</tr>
-					<tr>
-						<td><div class="show2" style="display:none;"><label for="hAge">Household Member Ages:<br/><span class="example">Please enter a comma separated list<br/>Example: 15, 20, 25</span></label></div></td>
-						<td><div class="show2" style="display:none;"><input type="text" id="hAge" name="hAge" size="25" maxlength="45" /></div></td>
-					</tr>
+          <tr>
+            <td><label for="receivesStamps">Are you currently receving food stamps?</label></td>
+            <td>
+              No <input name="receivesStamps" id="receivesStamps" type="radio" value="0" <?php if (isset($_SESSION['receivesStamps']) &&
+                                                                                                   $_SESSION['receivesStamps'] == 0) 
+                                                                                                      {echo "checked";} ?>/>
+              Yes <input name="receivesStamps" id="receivesStamps" type="radio" value="1" <?php if (isset($_SESSION['receivesStamps']) &&
+                                                                                                    $_SESSION['receivesStamps'] == 1) 
+                                                                                                      {echo "checked";} ?>/>
+            </td>
+          </tr>
+          <tr>
+            <td><label for="wantsStamps">If no, are you interested in finding out if you are eligible for food stamps?</label></td>
+            <td>
+              No <input name="wantsStamps" id="wantsStamps" type="radio" value="0" <?php if (isset($_SESSION['wantsStamps']) &&
+                                                                                            $_SESSION['wantsStamps'] == 0) 
+                                                                                              {echo "checked";} ?>/>
+              Yes <input name="wantsStamps" id="wantsStamps" type="radio" value="1" <?php if (isset($_SESSION['wantsStamps']) &&
+                                                                                              $_SESSION['wantsStamps'] == 1) 
+                                                                                                {echo "checked";} ?>/>
+            </td>
+          </tr>
 					<tr>
 						<td><input type="submit" name="clientSub" id="clientSub" value="Add New Client" /></td>
 					</tr>
+					
 				</table>
+				
 			</fieldset>
 			</form>
 		</div><!-- /newClient -->
