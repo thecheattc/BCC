@@ -412,15 +412,42 @@
     {
       SQLDB::connect();
       
-      $firstName = mysql_real_escape_string($firstName);
-      $lastName = mysql_real_escape_string($lastName);
-      $street = mysql_real_escape_string($street);
+      $firstName = mysql_real_escape_string(processString($firstName));
+      $lastName = mysql_real_escape_string(processString($lastName));
+      $street = mysql_real_escape_string(processString($street));
+      $streetOne = '';
+      $streetTwo = '';
+      
+      //Try to be a little smarter than just matching the whole string. The first piece of an address
+      //is generally the street number and the second piece is generally the street name. This isn't always
+      //the case, but I'm just trying to make this search not completely dumb.
+      $streetArr = explode(' ', $street);
+      if (count($streetArr))
+      {
+        $streetOne = $streetArr[0];
+      }
+      if (count($streetArr) > 1)
+      {
+        $streetTwo = $streetArr[1];
+      }
       
       $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
       $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.explanation, ";
       $query .= "c.unemployment_date, c.application_date, c.receives_stamps, c.wants_stamps ";
       $query .= "FROM bcc_food_client.clients c LEFT JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
-      $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
+      $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' ";
+      if ($street !== '')
+      {
+        $query .= "OR address LIKE '%{$street}%' ";
+      }
+      if ($streetOne !== '')
+      {
+        $query .= "OR address LIKE '%{$streetOne}%' ";
+      }
+      if ($streetTwo !== '')
+      {
+        $query .= "OR address LIKE '%{$streetTwo}%' ";
+      }
       
       $result = mysql_query($query);
       
