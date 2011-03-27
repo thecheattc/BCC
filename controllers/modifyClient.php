@@ -1,21 +1,22 @@
 <?php
+  session_start();
   include ('utility.php');
   include ('../models/house.php');
   include ('../models/client.php');
   include ('../models/sqldb.php');
   
   define("UNEMPLOYED_REASON_ID", 1);
-  
-  /**** Need to be careful with absolute references to IDs! ****/
-  /**** Should we allow multiple reasons? How to deal with family members? ****/
-  /**** Can make the error handling nicer once the functionality is there ****/
-  
-  $edit = (!empty($_GET['edit']) && $_GET['edit'] == 1 && !empty($_GET['client']))? TRUE : FALSE;
+  define("NOT_ON_FOODSTAMPS", 0);
+    
+  /**** If two people live at the same house and one changes their address, both people 
+   **** will reflect this change. This is fine since the paperwork is only filled out once a year ****/
+    
+  $edit = (!empty($_SESSION['edit']))? TRUE : FALSE;
   $house = NULL;
   $client = NULL;
   if ($edit)
   {
-    $client = Client::getClientByID($_GET['client']);
+    $client = Client::getClientByID($_SESSION['client']);
     if ($client === NULL)
     {
       header("Location: ../search.php");
@@ -30,40 +31,48 @@
   }
   /*
   echo "<PRE>";
-  echo "Date: "; var_dump($_POST['appDate']);
-  echo "First: "; var_dump($_POST['firstName']);
-  echo "Last: "; var_dump($_POST['lastName']);
-  echo "Street: "; var_dump($_POST['address']); 	
-  echo "City: "; var_dump($_POST['city']);
-  echo "Zip: "; var_dump($_POST['zip']);
-  echo "Phone: "; var_dump($_POST['number']);
-  echo "Age: "; var_dump($_POST['age']);
-  echo "GenderID: "; var_dump($_POST['gengroup']);
-  echo "EthnicityID: "; var_dump($_POST['ethgroup']);
-  echo "ReasonID: "; var_dump($_POST['reasongroup']);
-  echo "UnempDate: "; var_dump($_POST['uDate']);
+  echo "Date: "; var_dump($_SESSION['appDate']);
+  echo "First: "; var_dump($_SESSION['firstName']);
+  echo "Last: "; var_dump($_SESSION['lastName']);
+  echo "Street: "; var_dump($_SESSION['address']); 	
+  echo "City: "; var_dump($_SESSION['city']);
+  echo "Zip: "; var_dump($_SESSION['zip']);
+  echo "Phone: "; var_dump($_SESSION['number']);
+  echo "Age: "; var_dump($_SESSION['age']);
+  echo "GenderID: "; var_dump($_SESSION['gengroup']);
+  echo "EthnicityID: "; var_dump($_SESSION['ethgroup']);
+  echo "ReasonID: "; var_dump($_SESSION['reasongroup']);
+  echo "UnempDate: "; var_dump($_SESSION['uDate']);
+  echo "Receives stamps: "; var_dump($_SESSION['receivesStamps']);
+  echo "Wants stamps: "; var_dump($_SESSION['wantsStamps']);
   echo "\n";
    */
   
-  $date = normalDateToMySQL($_POST['appDate']);
-  $first = processString($_POST['firstName']);
-  $last = processString($_POST['lastName']);
-  $address = processString($_POST['address']);
-  $city = processString($_POST['city']);
-  $zip = processString($_POST['zip']);
-  $phone = processString($_POST['number']);
-  $age = processString($_POST['age']);
-  $genderID = processString($_POST['gengroup']);
-  $ethnicityID = processString($_POST['ethgroup']);
-  $reasonID = processString($_POST['reasongroup']);
+  $appDate = $_SESSION['appDate'];
+  $first = processString($_SESSION['firstName']);
+  $last = processString($_SESSION['lastName']);
+  $address = processString($_SESSION['address']);
+  $city = processString($_SESSION['city']);
+  $zip = processString($_SESSION['zip']);
+  $phone = processString($_SESSION['number']);
+  $age = processString($_SESSION['age']);
+  $genderID = processString($_SESSION['gengroup']);
+  $ethnicityID = processString($_SESSION['ethgroup']);
+  $reasonID = processString($_SESSION['reasongroup']);
+  $receivesStamps = processString($_SESSION['receivesStamps']);
+  $wantsStamps = NULL;
   $unempDate = NULL;
   
   if ($reasonID == UNEMPLOYED_REASON_ID)
   {
-    $unempDate = normalDateToMySQL($_POST['uDate']);
+    $unempDate = $_SESSION['uDate'];
+  }
+  if ($receivesStamps == NOT_ON_FOODSTAMPS)
+  {
+    $wantsStamps = processString($_SESSION['wantsStamps']);
   }
   /*
-  echo "Date: "; var_dump($date);
+  echo "Date: "; var_dump($appDate);
   echo "First: "; var_dump($first);
   echo "Last: "; var_dump($last);
   echo "Street: "; var_dump($address);
@@ -75,29 +84,74 @@
   echo "EthnicityID: "; var_dump($ethnicityID);
   echo "ReasonID: "; var_dump($reasonID);
   echo "UnempDate: "; var_dump($unempDate);
+  echo "Receives stamps: "; var_dump($receivesStamps);
+  echo "Wants stamps: "; var_dump($wantsStamps);
   echo "</PRE>";
-  */ 
+  */
   
   //If any part of the address is listed, all parts must be.
   $badAddr = FALSE;
   $count = 0;
-  if (isset($address) && !empty($address)){ $count++;}
-  if (isset($city) && !empty($city)){ $count++;}
-  if (isset($zip) && !empty($zip)){ $count++;}
+  if (!empty($address)){ $count++;}
+  if (!empty($city)){ $count++;}
+  if (!empty($zip)){ $count++;}
   if ($count > 0 && $count < 3){ $badAddr = TRUE;}
   
-  //If the address is incomplete or any field besides the phone_number or unemployment date is empty 
-  //(unemployment date has to be present when the reason is "lost job"), redirect with an error
-  if ($badAddr || empty($date) || empty($first) || empty($last) ||
-      empty($age) || empty($genderID) || empty($ethnicityID) || empty($reasonID) ||
-      ($reasonID == UNEMPLOYED_REASON_ID && empty($unempDate)))
+  $errors = array();
+  if ($badAddr)
   {
-    //echo "Bad input";
-    header('Location: ../dataEntry.php?error=1');
+    $errors[] = "Address";
+    $errors[] = "City";
+    $errors[] = "Zip";
+  }
+  if (empty($appDate))
+  {
+    $errors[] = "Application date";
+  }
+  if (empty($first))
+  {
+    $errors[] = "First name";
+  }
+  if (empty($last))
+  {
+    $errors[] = "Last name";
+  }
+  if (!isset($age))
+  {
+    $errors[] = "Age";
+  }
+  if (!isset($genderID))
+  {
+    $errors[] = "Gender";
+  }
+  if (!isset($ethnicityID))
+  {
+    $errors[] = "Ethnicity";
+  }
+  if (!isset($reasonID))
+  {
+    $errors[] = "Reason for getting food";
+  }
+  if ($reasonID == UNEMPLOYED_REASON_ID && empty($unempDate))
+  {
+    $errors[] = "Unemployment date";
+  }
+  if (!isset($receivesStamps))
+  {
+    $errors[] = "Current food stamp status";
+  }
+  if ($receivesStamps == NOT_ON_FOODSTAMPS && !isset($wantsStamps))
+  {
+    $errors[] = "Interest in food stamps";
+  }
+  if (!empty($errors))
+  {
+    $_SESSION['errors'] = $errors;
+    header('Location: ../dataEntry.php');
   }
   else
   {
-    $error = false;
+    $houseSaveFail = false;
     //If the address is given, create an entry in the database for their house.
     if ($count === 3)
     {
@@ -113,13 +167,11 @@
       //If the insert failed then presumably the house already exists
       if ($house->save() === FALSE)
       {
-        //echo "House save failed";
         $house = House::searchByAddress($address, $city, $zip);
         if ($house === NULL)
         {
           //Couldn't find that house, so the insert failed for some other reason. Raise an error
-          //echo "Search by address failed";
-          $error = TRUE;
+          $houseSaveFail = TRUE;
         }
       }
     }
@@ -129,9 +181,9 @@
       $house = NULL;
     }
     //House insertion failed
-    if ($error)
+    if ($houseSaveFail)
     {
-      header('Location: ../dataEntry.php?error=1');
+      header('Location: ../dataEntry.php');
     }
     else
     {
@@ -148,13 +200,15 @@
       }
       $client->setFirstName($first);
       $client->setLastName($last);
-      $client->setApplicationDate($date);
+      $client->setApplicationDate($appDate);
       $client->setAge($age);
       $client->setPhoneNumber($phone);
       $client->setEthnicityID($ethnicityID);
       $client->setGenderID($genderID);
       $client->setReasonID($reasonID);
       $client->setUnemploymentDate($unempDate);
+      $client->setReceivesStamps($receivesStamps);
+      $client->setWantsStamps($wantsStamps);
       
       if ($house === NULL)
       {
@@ -167,25 +221,19 @@
       //Client save failed
       if (!$client->save())
       {
-        if ($edit)
-        {
-          header("Location: ../editClient.php?client={$client->getClientID()}&error=1");
-        }
-        else
-        {
-          header("Location: ../dataEntry.php?error=1");
-        }
+        header("Location: ../dataEntry.php");
       }
       else
       {
         Client::deleteHouseIfNotReferenced($oldHouseID);
+        session_destroy();
         if ($edit)
-        {
-          header("Location: ../editClient.php?client={$client->getClientID()}&success=1");
+        {          
+          header("Location: ../dataEntry.php?success=1&edit=1");
         }
         else
         {
-          header("Location: ../dataEntry.php?success=1");
+          header("Location: ../dataEntry.php?success=1&edit=0");
         }
       }
     }

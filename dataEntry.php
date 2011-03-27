@@ -1,21 +1,74 @@
 <?php
-
+  session_start();
   include('models/sqldb.php');
+  include('controllers/utility.php');
+  include('models/visit.php');
   include('models/gender.php');
   include('models/ethnicity.php');
   include('models/reason.php');
+  include('models/client.php');
+  include('models/house.php');
   
-  if (!isset($_SESSION))
-  {
-    session_start();
-  }
-  echo "<PRE>";
-  var_dump($_SESSION);
-  echo "</PRE>";
+    
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
   $reasons = Reason::getAllReasons();
-
+  $changed = "added";
+  $changing = "adding";
+  
+  if (isset($_GET['clean']))
+  {
+    $_SESSION = NULL;
+    session_destroy();
+    
+  }
+  
+  if (!empty($_SESSION['edit']) || !empty($_GET['client']) || (isset($_GET['edit']) && $_GET['edit'] == 1))
+  {
+    $changed = "edited";
+    $changing = "editing";
+  }
+  
+  if (!empty($_GET['client']))
+  {
+    $_SESSION['edit'] = TRUE;
+    $client = Client::getClientByID($_GET['client']);
+    
+    if($client === NULL)
+    {
+      session_destroy();
+      header("Location: search.php?error=1");
+    }
+    else
+    {
+      $house = NULL;
+      if ($client->getHouseID() !== NULL)
+      {
+        $house = House::getHouseByID($client->getHouseID());
+        if ($house === NULL)
+        {
+          session_destroy();
+          header("Location: search.php?error=1");
+        }
+      }
+      $_SESSION['client'] = $client->getClientID();
+      $_SESSION['appDate'] = $client->getApplicationDate();
+      $_SESSION['firstName'] = $client->getFirstName();
+      $_SESSION['lastName'] = $client->getLastName();
+      $_SESSION['address'] = ($house !== NULL)? $house->getAddress() : NULL;
+      $_SESSION['city'] = ($house !== NULL)? $house->getCity() : NULL;
+      $_SESSION['zip'] = ($house !== NULL)? $house->getZip() : NULL;
+      $_SESSION['number'] = $client->getPhoneNumber();
+      $_SESSION['age'] = $client->getAge();
+      $_SESSION['gengroup'] = $client->getGenderID();
+      $_SESSION['ethgroup'] = $client->getEthnicityID();
+      $_SESSION['reasongroup'] = $client->getReasonID();
+      $_SESSION['uDate'] = $client->getUnemploymentDate();
+      $_SESSION['receivesStamps'] = $client->getReceivesStamps();
+      $_SESSION['wantsStamps'] = $client->getWantsStamps();
+    }
+  }
+  
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -52,62 +105,70 @@
           			}
              	 });
             });
-   		
-   	//Gets the value from the number in household Input
-    $("#houseNum").focusout(function(){
-        var val = $("#houseNum").val();
-       	var msg="Please enter a whole number (example 1)."; 
-       	
-       	if(val !=""){
-       			var result = /\d+(?:\.\d+)?/.exec(val);
-       			if(result != null){
-       				if(result<16){
-       					var $inpHed = '<td>Age of House Member: </td><td>Gender of House Member: </td>';
-       					$('#add').append($inpHed); 
-       					for($i=0;$i<result;$i++){
-       						var $inputs = ('<tr><td class="pad">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" size="2" maxlength="2" name="hAge'+$i+'"/></td><td class="pad"> Male: <input type="radio" name="hGen'+$i+'" value="1"> Female: <input type="radio" name="hGen'+$i+'" value="2"></td></tr>');
-							    
-                  $('#add1').append($inputs);  
-                }
-              }
-              else{
-                window.alert('Only 15 members per house are allowed.');
-              }
-                    }
-       			else{
-        			window.alert(msg);
-        		}
-        }
-  	  });
                       
   	 //Popup date pickers for application date and unemployment date
   	  $('#appDate').datepicker({ dateFormat: 'mm-dd-yy' });
   	  $('#uDate').datepicker({ dateFormat: 'mm-dd-yy' });  	 
     });
-	</script>		
+	</script>
 	
-	<title>Bryant Food Distribution Client Data Entry Input Screen</title>
+	<title>Bryant Food Distribution Client Data Entry Screen</title>
 </head>
 	<body>
 		<div id="header">
-			<h1>Add a New Client</h1>
-			<h2>Enter the information for a new client</h2>
-      <?php 
-        if (!empty($_GET['error']) && $_GET['error'] == 1)
-        {
-          echo "<h4 style='color:red;'>There was an error adding the client.</h4>";
-        }
-        elseif (!empty($_GET['success']) && $_GET['success'] == 1)
-        {
-          echo "<h4style='color:green;'>Client added successfully.</h4>";
-        }
-        ?>
+    <?php 
+      if (isset($_SESSION['edit']))
+      {
+        echo "<h1>Edit Client</h1>
+        <h2>Enter the information to change this client</h2>";
+      }
+      else
+      {
+        echo " <h1>Add a New Client</h1>
+        <h2>Enter the information for a new client</h2>";
+      }
+      ?>
 			<hr/>
 			<ul>
 				<li><a href="selectTask.php">Select a Task</a></li>
 				<li><a href="search.php">Search for a Client</a></li>
+        <?php
+          if (isset($_SESSION['edit']))
+          {
+            echo '<li><a href="dataEntry.php?clean=1">Add a new client</a></li>';
+          }
+        ?>
 			</ul>
 		</div><!-- /header -->
+<?php 
+  if (!empty($_SESSION['errors']))
+  {
+    $addressError = FALSE;
+    echo '<div id="error">';
+    echo "\n";
+    echo "<h4 style='color:red;'>There was an error " . $changing . " the client. ";
+    echo "Please make sure the the following fields are present and correct:</h4>\n";
+    echo "\t<ul>\n";
+    foreach ($_SESSION['errors'] as $error)
+    {
+      if ($error === "Address" || $error === "City" || $error === "Zip")
+      {
+        $addressError = TRUE;
+      }
+      echo "\t\t<li>$error</li>\n";
+    }
+    echo "\t</ul></div>\n";
+    if ($addressError)
+    {
+      echo "<h5>For addresses, either list all parts of an address or no parts (if the client is homeless)</h5>\n";
+    }
+
+  }
+  elseif (!empty($_GET['success']) && $_GET['success'] == 1)
+  {
+    echo "<h4 style='color:green;'>Client " . $changed . " successfully.</h4>";
+  }
+  ?>
 		<div id="newClient">
 			<form method="post" action="clientConfirm.php">
 			<fieldset>
@@ -139,7 +200,7 @@
 					</tr>
 					<tr>
 						<td><label for="number">Phone Number: <span class="example">(111-222-3333)</span></label></td>
-						<td><input name="number" id="number"type="text" size="16" maxlength="16" value="<?php echo $_SESSION['phone']; ?>" /></td>
+						<td><input name="number" id="number"type="text" size="16" maxlength="16" value="<?php echo $_SESSION['number']; ?>" /></td>
 					</tr>
 					<tr>
 						<td><label for="age">Client Age: </label></td>
@@ -151,8 +212,8 @@
                 <?php foreach ($genders as $gender)
                   {
                     echo "\t\t\t\t\t\t";
-                    echo $gender->getGenderDesc().': <input name="gengroup" type="radio" value="'.$gender->getGenderID().'"';
-                    if (isset($_SESSION['gengroup']) && $_SESSION['gengroup'] == $gender->getGenderID()){ echo "checked "; }
+                    echo $gender->getGenderDesc() . ': <input name="gengroup" type="radio" value="' . $gender->getGenderID() . '"';
+                    if (isset($_SESSION['gengroup']) && $_SESSION['gengroup'] == $gender->getGenderID()){ echo " checked"; }
                     echo "/>\n";
                   }
                   ?>
@@ -161,12 +222,13 @@
 					<tr>
 						<td><label for="ethgroup">Client Ethnicity: </label></td>
 						<td><select id="ethgroup" name="ethgroup">
-                <option value="0" selected>Select an ethnicity</option>
+                <option value="0" <?php if (!isset($_SESSION['ethgroup'])) echo "selected"; ?>>Select an ethnicity</option>
                 <?php foreach ($ethnicities as $ethnicity)
                   {
                     echo "\t\t\t\t\t\t";
-                    echo '<option value="'.$ethnicity->getEthnicityID().'">'.$ethnicity->getEthnicityDesc();
-                    if (isset($_SESSION['ethgroup']) && $_SESSION['ethgroup'] == $ethnicity->getEthnicityID()){ echo " selected "; }
+                    echo '<option value="' . $ethnicity->getEthnicityID() . '"';
+                    if (isset($_SESSION['ethgroup']) && $_SESSION['ethgroup'] == $ethnicity->getEthnicityID()){ echo " selected"; }
+                    echo '>' . $ethnicity->getEthnicityDesc();
                     echo "</option>\n";
                   }
                   ?>
@@ -180,8 +242,9 @@
               <?php foreach ($reasons as $reason)
                 {
                   echo "\t\t\t\t\t\t";
-                  echo '<option value="'.$reason->getReasonID().'">'.$reason->getReasonDesc();
-                  if (isset($_SESSION['reasongroup']) && $_SESSION['reasongroup'] == $reason->getReasonID()){ echo " selected "; }
+                  echo '<option value="' . $reason->getReasonID() . '"';
+                  if (isset($_SESSION['reasongroup']) && $_SESSION['reasongroup'] == $reason->getReasonID()){ echo " selected"; }
+                  echo  '>' . $reason->getReasonDesc();
                   echo "</option>\n";
                 }
                 ?>
@@ -194,9 +257,9 @@
 					</tr>
 					<tr>
           <?php 
-            for($i=0; $i<$_SESSION['houseNum']; $i++)
+            foreach($_SESSION['familyMembers'] as $familyMember)
             {
-              $_SESSION["child{$i}"]->print();
+              $familyMember->renderSelf();
             }
             ?>
 					</tr>
@@ -223,14 +286,29 @@
             </td>
           </tr>
 					<tr>
-						<td><input type="submit" name="clientSub" id="clientSub" value="Add New Client" /></td>
+						<td><input type="submit" name="clientSub" id="clientSub" value="<?php 
+                                                                                if(!empty($_SESSION['edit']))
+                                                                                  {
+                                                                                    echo 'Edit Client';
+                                                                                  }
+                                                                                  else
+                                                                                  {
+                                                                                    echo 'Add New Client';
+                                                                                  }
+                                                                                ?>"/></td>
 					</tr>
-					
 				</table>
-				
 			</fieldset>
 			</form>
 		</div><!-- /newClient -->
+<?php 
+  if (!empty($_SESSION['client']))
+  {
+    echo "<a href=controllers/deleteClient.php?client=" . $_SESSION['client'] . " ";
+    echo "onClick=" . '"' . "return confirm('Are you sure you want to delete this client? ";
+    echo "Doing so will remove all information related to the client from the database.')" . '">Delete this client</a>';
+  }
+  ?>
 	</body>
 
 </html>

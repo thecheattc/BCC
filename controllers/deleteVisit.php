@@ -6,24 +6,24 @@
   
   if (empty($_GET['visit']))
   {
-    header("Location: ../search.php?error=1");
+    header("Location: ../search.php?deleteVisitError=1");
   }
   else
   {
     $visit = Visit::getVisitByID($_GET['visit']);
     if ($visit !== NULL)
     {
-      if ($visit->delete() !== FALSE)
+      if ($visit->delete())
       {
-        header("Location: ../viewHistory.php?client={$visit->getClientID()}&success=1");
+        header("Location: ../viewHistory.php?client={$visit->getClientID()}&deleteVisitSuccess=1");
       }
       else
       {
-        header("Location: ../viewHistory.php?client={$visit->getClientID()}&error=1");
+        header("Location: ../viewHistory.php?client={$visit->getClientID()}&deleteVisitError=1");
       }
     }
     else
     {
-      header('Location: ../search.php?error=1');
+      header('Location: ../search.php?deleteVisitError=1');
     }
   }

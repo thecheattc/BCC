@@ -15,6 +15,8 @@
     private $reasonID;
     private $unemploymentDate;
     private $applicationDate;
+    private $receivesStamps;
+    private $wantsStamps;
     
     //If a client is retrieved from the database, flag it as such
     private $createdFromDB = true;
@@ -63,12 +65,12 @@
     {
       $this->dirty = true;
       $this->age = $val;
-      return $this->Age;
+      return $this->age;
     }
     
     public function getPhoneNumber()
     {
-      return $this->firstName;
+      return $this->phoneNumber;
     }
     
     public function setPhoneNumber($val)
@@ -150,6 +152,44 @@
       return $this->applicationDate;
     }
     
+    public function getReceivesStamps()
+    {
+      return $this->receivesStamps;
+    }
+    
+    public function setReceivesStamps($val)
+    {
+      $this->dirty = true;
+      if ($val == TRUE)
+      {
+        $this->receivesStamps = 1;
+      }
+      else
+      {
+        $this ->receivesStamps = 0;
+      }
+      return $this->receivesStamps;
+    }
+    
+    public function getWantsStamps()
+    {
+      return $this->wantsStamps;
+    }
+    
+    public function setWantsStamps($val)
+    {
+      $this->dirty = true;
+      if ($val == TRUE)
+      {
+        $this->wantsStamps = 1;
+      }
+      else
+      {
+        $this->wantsStamps = 0;
+      }
+      return $this->wantsStamps;
+    }
+    
     public function __destruct()
     {
       if($this->dirty)
@@ -229,15 +269,25 @@
       $genderIDParam = mysql_real_escape_string($this->genderID);
       $reasonIDParam = mysql_real_escape_string($this->reasonID);
       $unempDateParam = NULL;
-      if (mysql_real_escape_string($this->unemploymentDate) === '')
+      if (mysql_real_escape_string(normalDateToMySQL($this->unemploymentDate)) === '')
       {
         $unempDateParam = "NULL";
       }
       else
       {
-        $unempDateParam = "." . mysql_real_escape_string($this->unemploymentDate) . "'";
+        $unempDateParam = "'" . mysql_real_escape_string(normalDateToMySQL($this->unemploymentDate)) . "'";
       }
-      $appDateParam = mysql_real_escape_string($this->applicationDate);
+      $appDateParam = mysql_real_escape_string(normalDateToMySQL($this->applicationDate));
+      $receivesStampsParam = mysql_real_escape_string($this->receivesStamps);
+      $wantsStampsParam = NULL;
+      if (mysql_real_escape_string($this->wantsStamps === ''))
+      {
+        $wantsStampsParam = "NULL";
+      }
+      else
+      {
+        $wantsStampsParam = "'" . mysql_real_escape_string($this->wantsStamps) . "'";
+      }
       $query = "";
       
       //If this client already existed in the database, update it
@@ -253,7 +303,9 @@
         $query .= "gender_id='$genderIDParam', ";
         $query .= "reason_id='$reasonIDParam', ";
         $query .= "unemployment_date=" . $unempDateParam . ", ";
-        $query .= "application_date='$appDateParam' ";
+        $query .= "application_date='$appDateParam', ";
+        $query .= "receives_stamps = '$receivesStampsParam', ";
+        $query .= "wants_stamps="  . $wantsStampsParam . " ";
         $query .= "WHERE client_id = '{$this->clientID}'";
       }
       //If the client was freshly created, insert it into the database.
@@ -261,12 +313,13 @@
       {
         $query = "INSERT INTO bcc_food_client.clients (first_name, last_name, age, phone_number, ";
         $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
-        $query .= "application_date) VALUES ";
+        $query .= "application_date, receives_stamps, wants_stamps) VALUES ";
         $query .= "('$firstNameParam', '$lastNameParam', '$ageParam', ";
         $query .= $phoneNumberParam .", " . $houseIDParam . ", '$ethnicityIDParam', ";
         $query .= "'$genderIDParam', '$reasonIDParam', " . $unempDateParam . ", ";
-        $query .= "'$appDateParam')";
+        $query .= "'$appDateParam', '$receivesStampsParam', " . $wantsStampsParam . ")";
       }
+      
       $result = mysql_query($query);
       
       if ($result !== FALSE)
@@ -297,8 +350,10 @@
       $client->ethnicityID = $row["ethnicity_id"];
       $client->genderID = $row["gender_id"];
       $client->reasonID = $row["reason_id"];
-      $client->unemploymentDate = $row["unemployment_date"];
-      $client->applicationDate = $row["application_date"];
+      $client->unemploymentDate = mySQLDateToNormal($row["unemployment_date"]);
+      $client->applicationDate = mySQLDateToNormal($row["application_date"]);
+      $client->receivesStamps = $row["receives_stamps"];
+      $client->wantsStamps = $row["wants_stamps"];
       $client->createdFromDB = true;
       $client->dirty = false;
       return $client;
@@ -313,7 +368,7 @@
       
       $query = "SELECT client_id, first_name, last_name, age, phone_number, ";
       $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
-      $query .= "application_date ";
+      $query .= "application_date, receives_stamps, wants_stamps ";
       $query .= "FROM bcc_food_client.clients ";
       $query .= "WHERE house_id = '{$houseID}'";
       
@@ -339,11 +394,11 @@
       $street = mysql_real_escape_string($street);
       
       $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
-      $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date ";
+      $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date, ";
+      $query .= "c.receives_stamps, c.wants_stamps ";
       $query .= "FROM bcc_food_client.clients c LEFT JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
       $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
       
-            
       $result = mysql_query($query);
       
       $clients = array();
@@ -364,7 +419,7 @@
       
       $query = "SELECT client_id, first_name, last_name, age, phone_number, ";
       $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
-      $query .= "application_date ";
+      $query .= "application_date, receives_stamps, wants_stamps ";
       $query .= "FROM bcc_food_client.clients ";
       $query .= "WHERE client_id = '{$id}'";
       

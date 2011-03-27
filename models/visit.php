@@ -1,5 +1,5 @@
 <?php
-  
+    
   //Encapsulates the usage and distribution_type tables
   class Visit
   {
@@ -81,7 +81,6 @@
     {
       if($this->dirty)
       {
-        echo " In destructor ";
         $this->save();
       }
     }
@@ -123,7 +122,7 @@
       //Sanitize user-generated input
       $clientIDParam = mysql_real_escape_string($this->clientID);
       $typeIDParam = mysql_real_escape_string($this->typeID);
-      $dateParam = mysql_real_escape_string($this->date);
+      $dateParam = mysql_real_escape_string(normalDateToMySQL($this->date));
       $query = "";
       
       //If this visit already existed in the database, update it
@@ -158,7 +157,7 @@
     }
     
     
-    //Creates a new house given a row from the bcc_food_client.usage table
+    //Creates a new house given a row from the bcc_food_client.usage joined with the distribution_type table
     private static function createFromSQLRow($row)
     {
       $visit = new Visit();
@@ -225,7 +224,7 @@
       SQLDB::connect();
       
       $distID = mysql_real_escape_string($distID);
-      $newDate = mysql_real_escape_string($newDate);
+      $newDate = mysql_real_escape_string(normalDateToMySQL($newDate));
       $newDistTypeID = mysql_real_escape_string($newDistTypeID);
       
       $query = "UPDATE bcc_food_client.usage ";
@@ -266,3 +265,4 @@
     }
     
   }
+  ?>

@@ -65,11 +65,19 @@
 <body>
   <div id="header">
     <h3>Visit history for <?php echo $client->getFirstName() . " " . $client->getLastName() ?></h1>
-    <?php 
-      if (!empty($_GET['visit'])){ echo "<h4>Visit {$_GET['visit']} has been recorded.</h4>";}
-      if (!empty($_GET['error'])){ echo "<h4>There was an error adding the visit. Please try again. </h4>";}
+    <?php
+      if (!empty($_GET['deleteVisitSuccess'])){ echo "<h4>The visit was successfully deleted.</h4>";}
+      if (!empty($_GET['deleteVisitError'])){ echo "<h4>There was an error deleting the visit.</h4>";}
+      if (!empty($_GET['editVisitSuccess']) && !empty($_GET['visit'])){ echo "Visit {$_GET['visit']} was successfully edited.</h4>";}
+      if (!empty($_GET['editVisitError'])){ echo "<h4>There was an error editing the visit.</h4>";}
+      if (!empty($_GET['recordVisitSuccess']) && !empty($_GET['visit'])){ echo "<h4>Visit {$_GET['visit']} was successfully recorded.</h4>";}
+      if (!empty($_GET['recordVisitError'])){ echo "<h4>There was an error recording the visit.</h4>";}
       ?>
     <hr />
+    <ul>
+			<li><a href="selectTask.php">Select a Task</a></li>
+			<li><a href="dataEntry.php">Add a new Client</a></li>
+		</ul>
   </div>
   <form method="post" action="viewHistory.php?client=<?php echo $_GET['client']; ?>">
     <label for="since">View visit history for:</label>

@@ -6,24 +6,24 @@
   
   if (empty($_GET['client']))
   {
-    header('Location: ../search.php?error=1');
+    header('Location: ../search.php?deleteError=1');
   }
   else
   {
     $client = Client::getClientByID($_GET['client']);
     if ($client === NULL)
     {
-      header('Location: ../search.php?error=1');
+      header('Location: ../search.php?deleteError=1');
     }
     else
     {
       if ($client->delete() === FALSE)
       {
-        header('Location: ../search.php?error=1');
+        header('Location: ../search.php?deleteError=1');
       }
       else
       {
-        header('Location: ../search.php?success=1');
+        header('Location: ../search.php?deleteSuccess=1');
       }
     }
   }

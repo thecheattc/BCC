@@ -10,28 +10,31 @@
   $last = isset($_POST['last'])? $_POST['last'] : '';
   $street = isset($_POST['street'])? $_POST['street'] : '';
   $search = FALSE;
-
- if(!empty($first) || !empty($last) || !empty($street))
+  $clients = NULL;
+  $houses = NULL;
+  
+  if(!empty($first) || !empty($last) || !empty($street))
   {
     $search = TRUE;
   }
   
-  $clients = Client::searchByNameAndStreet(processString($first), processString($last), processString($street));
-  
-  $houses = array();
-   foreach ($clients as $client)
+  if ($search)
   {
-    if ($client->getHouseID() !== NULL)
+    $clients = Client::searchByNameAndStreet(processString($first), processString($last), processString($street));
+    
+    $houses = array();
+    foreach ($clients as $client)
     {
-      $houses[] = House::getHouseByID($client->getHouseID());
-    }
-    else
-    {
-      $houses[] = NULL;
+      if ($client->getHouseID() !== NULL)
+      {
+        $houses[] = House::getHouseByID($client->getHouseID());
+      }
+      else
+      {
+        $houses[] = NULL;
+      }
     }
   }
-  /****** Style sheet is wrong (using the newclient style for the form's div) 
-   but it's just there to give an idea of what it should look like *****/ 
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -46,85 +49,108 @@
 </head>
 <body>
 	<?php
-  	  	if($search == false){
-  	echo '
-  <div id="header">
-    <h1> Search for a Client</h1>
-    <h3>Search by first name, last name, and/or street address</h3>
-    <hr />
-  </div>
-  <div id="newClient" class="search">
-  	
-    <form method="post" action="search.php">
-    <fieldset>
-      <legend>Search for a client</legend>
-      <table>
-        <tr>
-          <td><label for="first">First name:</label></td>
-          <td><input type="text" name="first" value="'.$first.'" /></td>
-        </tr>
-        <tr>
-          <td><label for="last">Last name: </label></td>
-          <td><input type="text" size="60" name="last" value="'.$last.'" /></td>
-        </tr>
-        <tr>
-          <td><label for="street">Street address: </label></td>
-          <td><input name="street" type="text" size="60" value="'.$street.'" /></td>
-        </tr>
-        <tr>
-          <td><input type="submit" name="searchsubmit" id="searchsubmit" value="Search" /></td>
-        </tr>
-        <tr>
-        	<td><br /><a href="dataEntry.php">Add a client</a></td>
-        </tr>
-      </table>
-    </fieldset>
-    </form>
-  </div>';
+    if($search == false){
+      echo '
+        <div id="header">
+          <h1> Search for a Client</h1>
+          <h3>Search by first name, last name, and/or street address</h3>
+          <hr />
+          <ul>
+          <li><a href="selectTask.php">Select a Task</a></li>
+          <li><a href="dataEntry.php">Add a new Client</a></li>
+        </ul>
+      </div>';
+      if (isset($_GET['deleteError']))
+      {
+        echo "<h4>There was an error deleting the client.</h4>";
+      }
+      if (isset($_GET['deleteSuccess']))
+      {
+        echo "<h4>Client deletion successful.</h4>";
+      }
+      if (isset($_GET['deleteVisitError']))
+      {
+        echo "<h4>There was an error deleting the visit.</h4>";  
+      }
+      echo '<div id="newClient" class="search">
+          
+          <form method="post" action="search.php">
+          <fieldset>
+            <legend>Search for a client</legend>
+            <table>
+              <tr>
+                <td><label for="first">First name:</label></td>
+                <td><input type="text" name="first" value="'.$first.'" /></td>
+              </tr>
+              <tr>
+                <td><label for="last">Last name: </label></td>
+                <td><input type="text" size="60" name="last" value="'.$last.'" /></td>
+              </tr>
+              <tr>
+                <td><label for="street">Street address: </label></td>
+                <td><input name="street" type="text" size="60" value="'.$street.'" /></td>
+              </tr>
+              <tr>
+                <td><input type="submit" name="searchsubmit" id="searchsubmit" value="Search" /></td>
+              </tr>
+              <tr>
+                <td><br /><a href="dataEntry.php">Add a client</a></td>
+              </tr>
+            </table>
+          </fieldset>
+          </form>
+        </div>';
   	}
 
-  else if ($search==true&&$clients)
+  else
   {
-    echo '
-    <div id="header">
-    <h1> Search Results</h1>
-    <h2>Record a visit, edit client information, or search again</h2>
-    <hr />
-  </div>
-  <div id="newClient" class="search">
-  <h3>Your results:</h3>';
-  }
-  
-  for ($i=0; $i<count($clients); $i++)
-  {
-    echo "<table id='resTable'>
-        <tr>
-          <td>";
-    echo "\t<span>{$clients[$i]->getFirstName()} {$clients[$i]->getLastName()}</span></td>";
-    if($houses[$i] != NULL)
+    if (!empty($clients))
     {
-      echo "<td><span>{$houses[$i]->getAddress()} {$houses[$i]->getCity()} {$houses[$i]->getZip()}</span></td>";
+      echo '
+        <div id="header">
+          <h1> Search Results</h1>
+          <h2>Record a visit, edit client information, or search again</h2>
+        <hr />
+        <ul>
+          <li><a href="selectTask.php">Select a Task</a></li>
+          <li><a href="dataEntry.php">Add a new Client</a></li>
+        </ul>
+        </div>
+        <div id="newClient" class="search">
+          <h3>Your results:</h3>';
+      
+      echo "<table id='resTable'>\n";
+      for ($i=0; $i<count($clients); $i++)
+      {
+        echo "\t<tr>\n\t\t<td>\n";
+        echo "\t<span>{$clients[$i]->getFirstName()} {$clients[$i]->getLastName()}</span></td>";
+        if($houses[$i] != NULL)
+        {
+          echo "<td><span>{$houses[$i]->getAddress()} {$houses[$i]->getCity()} {$houses[$i]->getZip()}</span></td>";
+        }
+        echo "<td><span>Registered {$clients[$i]->getApplicationDate()} </span></td>";
+        echo "<td><a href='viewHistory.php?client={$clients[$i]->getClientID()}'>View visit history</a></td>";
+        echo "<td><a href='dataEntry.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
+        echo "</tr>";
+      }
+      echo "</table><br/>";
+      echo '<form action="search.php"><input type="submit" name="searchAgain" value="Try another search" / >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="selectTask.php">Return to the task selection page</a>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="dataEntry.php">Add a client</a>
+      </form>';
+      echo '</div>';
     }
-    echo "<td><span>Registered {$clients[$i]->getApplicationDate()}</span></td>";
-    echo "<td><a href='viewHistory.php?client={$clients[$i]->getClientID()}'>View visit history</a></td>";
-    echo "<td><a href='editClient.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
-    echo "</tr>
-      </table><br/>";
-    echo '<form action="search.php"><input type="submit" name="searchAgain" value="Try another search" / >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="selectTask.php">Return to the task selection page</a>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a href="dataEntry.php">Add a client</a>
-    </form>';
-    echo '</div>';
-  }
-  
-  if($search==true&&!$clients)
-  {
-  	$search = true;
+    else
+    {
   	echo '
   	<div id="header">
     	<h1> Search Results</h1>
     	<h2>Record a visit, edit client information, or search again</h2>
    		<hr />
+   		<ul>
+			<li><a href="selectTask.php">Select a Task</a></li>
+			<li><a href="dataEntry.php">Add a new Client</a></li>
+		</ul>
   	</div>
 	<div id="newClient" class="search">  
 	<div id="noResults">
@@ -135,8 +161,7 @@
   	<input type="submit" name="searchAgain" value="Try another search" / ></form>
   	</div>
   	</div>';
-  	
-  	
+    }
   }
 ?>
 </body>

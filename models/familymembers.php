@@ -23,7 +23,7 @@
     
     public function getHouseID()
     {
-      return $this->guardianClientID;
+      return $this->houseID;
     }
     
     public function setHouseID($val)
@@ -174,16 +174,16 @@
       return $member;
     }
     
-    //Returns an array of family member objects given a client ID
-    public static function getFamilyMembersByClientID($clientID)
+    //Returns an array of family member objects given a house ID
+    public static function getFamilyMembersByHouseID($houseID)
     {
       SQLDB::connect();
       
-      $clientID = mysql_real_escape_string($clientID);
+      $houseID = mysql_real_escape_string($houseID);
       
       $query = "SELECT family_member_id, member_house_id, age, gender_id ";
       $query .= "FROM bcc_food_client.family_members ";
-      $query .= "WHERE guardian_client_id = '{$clientID}'";
+      $query .= "WHERE member_house_id = '{$houseID}'";
       
       $result = mysql_query($query);
       

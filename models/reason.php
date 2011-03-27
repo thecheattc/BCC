@@ -104,7 +104,7 @@
       {
         $query = "UPDATE bcc_food_client.reasons SET ";
         $query .= "reason_desc='{reasonDescParam}', ";
-        $query .= "explanation=" . $explanationParam . ", ";
+        $query .= "explanation=" . $explanationParam . " ";
         $query .= "WHERE reason_id = '{$this->reasonID}'";
       }
       //If the reason was freshly created, insert it into the database.
@@ -184,3 +184,4 @@
     }
     
   }
+?>

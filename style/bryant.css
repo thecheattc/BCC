@@ -12,6 +12,23 @@ td{
 padding: .15em;
 vertical-align: bottom;
 }
+/*===============================Global Nav===================================*/
+#header ul{
+list-style: none;
+margin: 0;
+padding: 0;
+}	
+#header hr{
+margin: 0;
+padding: 0;
+}
+#header ul li{
+display: inline-block;
+width: 150px;
+padding: 1em;
+margin-right: 1em;
+background-color: #CCCCCC;
+}
 /*===============================Login Page===================================*/
 #adLogin{
 margin: 3em auto 0;
@@ -72,6 +89,9 @@ margin-top: 1em;
 font-size: .85em;
 font-style: oblique;
 color: blue;
+}
+table .pad{
+
 }
 /*===========================Client Check page================================*/
 #clientCheck table tr {

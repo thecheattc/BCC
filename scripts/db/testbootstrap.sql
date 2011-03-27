@@ -78,6 +78,8 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   `reason_id` INT NOT NULL ,
   `unemployment_date` DATE NULL ,
   `application_date` DATE NOT NULL ,
+  `receives_stamps` TINYINT(1)  NOT NULL ,
+  `wants_stamps` TINYINT(1)  NULL ,
   PRIMARY KEY (`client_id`) ,
   INDEX `client_house_id` (`house_id` ASC) ,
   INDEX `client_reason` (`reason_id` ASC) ,
@@ -193,17 +195,14 @@ INSERT INTO bcc_food_client.houses(address, city, zip)
 VALUES
 ('811 Brookwood Pl', 'Ann Arbor', '48104'),
 ('123 Fake St', 'Ann Arbor', '48109'),
-('Near the Dumpster', 'Ann Arbor', '48107'),
-(NULL, 'no', 'address'),
-('no', NULL, 'city'),
-('no', 'zip', NULL);
+('Near the Dumpster', 'Ann Arbor', '48107');
 
 INSERT INTO bcc_food_client.clients(first_name, last_name, age, phone_number, house_id,
-ethnicity_id, gender_id, reason_id, unemployment_date, application_date)
+ethnicity_id, gender_id, reason_id, unemployment_date, application_date, receives_stamps, wants_stamps)
 VALUES
-('Evan', 'Lindell', '20', '5178994272', '1', '1', '1', '1', CURDATE(), CURDATE()),
-('Mike', 'onna Bike', '27', '1800luvcoke', NULL, '1', '1', '6', CURDATE(), CURDATE()),
-('Trisha', 'Takinawa', '42', '6124952284', '2', '4', '2', '3', CURDATE(), CURDATE());
+('Evan', 'Lindell', '20', '5178994272', '1', '1', '1', '1', CURDATE(), CURDATE(), 1, NULL),
+('Mike', 'onna Bike', '27', '1800luvcoke', NULL, '1', '1', '6', CURDATE(), CURDATE(), 0, 1),
+('Trisha', 'Takinawa', '42', '6124952284', '2', '4', '2', '3', CURDATE(), CURDATE(), 0, 0);
 
 INSERT INTO bcc_food_client.family_members(member_house_id, age, gender_id)
 VALUES

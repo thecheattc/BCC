@@ -5,7 +5,7 @@
   {
     $string = trim($string);
     $string = preg_replace('/[^a-zA-Z0-9\- ]/', '', $string);
-    if (empty($string))
+    if ($string !== "0" && empty($string))
     {
       $string = NULL;
     }

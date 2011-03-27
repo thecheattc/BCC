@@ -6,24 +6,38 @@
   
   if (empty($_GET['visit']) || empty($_POST['date']) || empty($_POST['type']))
   {
-    header("Location: ../search.php?error=1");
+    if (!empty($_GET['client']))
+    {
+      header("Location: ../viewHistory.php?client={$_GET['client']}&editVisitError=1");
+    }
+    else
+    {
+      header("Location: ../search.php?editVisitError=1");
+    }
   }
   else
   {
     $visit = Visit::getVisitByID($_GET['visit']);
     if ($visit === NULL)
     {
-      header("Location: ../editVisit.php?visit={$_GET['visit']}&error=1");
+      if (!empty($_GET['client']))
+      {
+        header("Location: ../viewHistory.php?client={$_GET['client']}&editVisitError=1");
+      }
+      else
+      {
+      header("Location: ../search.php?editVisitError=1");
+      }
     }
-    $visit->setDate(normalDateToMySQL($_POST['date']));
+    $visit->setDate($_POST['date']);
     $visit->setTypeID($_POST['type']);
 
     if ($visit->save() === FALSE)
     {
-      header("Location:../editVisit.php?visit={$_GET['visit']}&error=1");
+      header("Location: ../viewHistory.php?client={$visit->getClientID()}&editVisitError=1");
     }
     else
     {
-      header("Location:../editVisit.php?visit={$_GET['visit']}&success=1");
+      header("Location:../viewHistory.php?client={$visit->getClientID()}&visit={$_GET['visit']}&editVisitSuccess=1");
     }
   }

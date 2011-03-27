@@ -1,11 +1,14 @@
 <?php
-  
+  session_start();
   include ('models/sqldb.php');
+  include ('controllers/utility.php');
   include ('models/client.php');
   include ('models/gender.php');
   include ('models/ethnicity.php');
   include ('models/reason.php');
-  include ('controllers/utility.php');
+  
+  define("LOST_JOB", 1);
+  $_SESSION['errors'] = NULL;
   
   //Grab everything from POST, put it in SESSION.
   $_SESSION['appDate'] = $_POST['appDate'];
@@ -151,10 +154,14 @@
             <td><label>Reason For Assistance: </label></td>
             <td><?php if (!empty($reason)) {echo $reason->getReasonDesc();} ?></td>
           </tr>
-          <tr>
-            <td><div class="show" style="display:none;"><label>Date of Job Loss: </label></div></td>
-            <td><input class="show" style="display:none;"type="text" name="uDate" value="<?php echo htmlentities($_SESSION['uDate']); ?>" id="uDate" /></td>
-          </tr>
+          <?php
+            if (!empty($reason) && $reason->getReasonID() == LOST_JOB)
+            {
+              echo "\t<tr>\n\t\t<td><label>Date of Job Loss: </label></td>\n\t\t<td>";
+              echo htmlentities($_SESSION['uDate']);
+              echo "</td>\n\t</tr>\n";
+            }
+            ?>
           <tr>
             <td><label>Number of other people in household that have not registered with Bryant:</label></td>
             <td><?php echo $_SESSION['houseNum']; ?></td>
@@ -173,23 +180,36 @@
                 ?>
             </td>
           </tr>
-          <?php if($_SESSION['receivesStamps'] == 0)
+          <?php 
+            if($_SESSION['receivesStamps'] == 0)
+            {
+              echo "<tr>\n\t<td><label>If no, are you interested in finding out if you are eligible for food stamps?</label></td>";
+              echo "\n\t<td>";
+              if(isset($_SESSION['wantsStamps']))
+              {
+                if ($_SESSION['wantsStamps'] == 1)
                 {
-                  echo "<tr>\n\t<td><label>If no, are you interested in finding out if you are eligible for food stamps?</label></td>";
-                  echo "\n\t<td>";
-                  if($_SESSION['wantsStamps'] == 1)
-                  {
-                    echo "Yes";
-                  }
-                  else
-                  {
-                    echo "No";
-                  }
-                  echo "</td>\n</tr>";
+                  echo "Yes";
                 }
+                else
+                {
+                  echo "No";
+                }
+                echo "</td>\n</tr>";
+              }
+            }
             ?>
           <tr>
-            <td><form method="post" action="controllers/modifyClient.php"><input type="submit" value="Add client" /></form></td>
+<td><form method="post" action="controllers/modifyClient.php"><input type="submit" value="<?php 
+                                                                                            if(!empty($_SESSION['client']))
+                                                                                            {
+                                                                                              echo 'Edit Client';
+                                                                                            }
+                                                                                            else
+                                                                                            {
+                                                                                              echo 'Add New Client';
+                                                                                            }
+                                                                                            ?>"/></form>
           </tr>
         </table>
   </div><!-- /confirm client -->

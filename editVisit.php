@@ -6,7 +6,7 @@
   
   if (empty($_GET['visit']))
   {
-    header("Location: search.php?error=1");
+    header("Location: search.php?editVisitError=1");
   }
   else
   {
@@ -18,7 +18,7 @@
     }
     if ($visit === NULL || $client === NULL)
     {
-      header("Location: search.php?error=1");
+      header("Location: search.php?editVisitError=1");
     }
     $types = Visit::getAllDistTypes();
   }
@@ -35,20 +35,10 @@
 </head>
 <body>
   <div id="header">
-    <h3>Edit <?php echo $client->getFirstName() . " " . $client->getLastName() ?>'s visit</h1>
-    <?php 
-      if ($_GET['success'] == 1)
-      { 
-        echo "<h4>Visit {$visit->getVisitID()} has been edited.</h4>";
-      } 
-      else if ($_GET['error'] == 1)
-      {
-        echo "<h4>Unfortunately, there was an error processing your request.</h4>";
-      }
-    ?>
+    <h3>Edit <?php echo $client->getFirstName() . " " . $client->getLastName() ?>&rsquo;s visit</h1>
     <hr />
   </div>
-<form method="post" action="controllers/processVisitEdit.php?visit=<?php echo $_GET['visit']; ?>">
+<form method="post" action="controllers/processVisitEdit.php?visit=<?php echo $_GET['visit']; ?>&client=<?php echo $visit->getClientID(); ?>">
     <label for="date">Date: </label>
     <input name="date" id="date" value="<?php echo $visit->getDate(); ?>" />
     <label for="type">Type: </label>
