@@ -4,7 +4,6 @@
   {
     private $reasonID;
     private $reasonDesc;
-    private $explanation;
     
     //If a reason is retrieved from the database, flag it as such
     private $createdFromDB = true;
@@ -30,18 +29,6 @@
       $this->dirty = true;
       $this->reasonDesc = $val;
       return $this->reasonDesc;
-    }
-    
-    public function getExplanation()
-    {
-      return $this->explanation;
-    }
-    
-    public function setExplanation($val)
-    {
-      $this->dirty = true;
-      $this->explanation = $val;
-      return $this->explanation;
     }
         
     public function __destruct()
@@ -88,30 +75,20 @@
       
       //Sanitize user-generated input
       $reasonDescParam = mysql_real_escape_string($this->reasonDesc);
-      $explanationParam = NULL;
-      if (mysql_real_escape_string($this->explanation) === '')
-      {
-        $explanationParam = "NULL";
-      }
-      else
-      {
-        $explanationParam = "'" . mysql_real_escape_string($this->explanation) . "'";
-      }
       $query = "";
       
       //If this reason already existed in the database, update it
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_food_client.reasons SET ";
-        $query .= "reason_desc='{reasonDescParam}', ";
-        $query .= "explanation=" . $explanationParam . " ";
+        $query .= "reason_desc='{reasonDescParam}' ";
         $query .= "WHERE reason_id = '{$this->reasonID}'";
       }
       //If the reason was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.reasons (reason_desc, explanation) ";
-        $query .= "VALUES ('{$reasondescParam}', " . $explanationParam . ")";
+        $query = "INSERT INTO bcc_food_client.reasons (reason_desc) ";
+        $query .= "VALUES ('{$reasondescParam}')";
       }
       
       
@@ -138,7 +115,6 @@
       $reason = new Reason();
       $reason->reasonID = $row["reason_id"];
       $reason->reasonDesc = $row["reason_desc"];
-      $reason->explanation = $row["explanation"];
       $reason->createdFromDB = true;
       $reason->dirty = false;
       return $reason;
@@ -151,7 +127,7 @@
       
       $reasonID = mysql_real_escape_string($reasonID);
       
-      $query = "SELECT reason_id, reason_desc, explanation ";
+      $query = "SELECT reason_id, reason_desc ";
       $query .= "FROM bcc_food_client.reasons ";
       $query .= "WHERE reason_id = '{$reasonID}'";
       
@@ -170,7 +146,7 @@
     {
       SQLDB::connect();
       
-      $query = "SELECT reason_id, reason_desc, explanation FROM bcc_food_client.reasons";
+      $query = "SELECT reason_id, reason_desc FROM bcc_food_client.reasons";
       
       $result = mysql_query($query);
       

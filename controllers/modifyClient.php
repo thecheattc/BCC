@@ -10,7 +10,7 @@
     
   /**** If two people live at the same house and one changes their address, both people 
    **** will reflect this change. This is fine since the paperwork is only filled out once a year ****/
-    
+      
   $edit = (!empty($_SESSION['edit']))? TRUE : FALSE;
   $house = NULL;
   $client = NULL;
@@ -42,6 +42,7 @@
   echo "GenderID: "; var_dump($_SESSION['gengroup']);
   echo "EthnicityID: "; var_dump($_SESSION['ethgroup']);
   echo "ReasonID: "; var_dump($_SESSION['reasongroup']);
+  echo "Reason explanation: "; var_dump($_SESSION['explanation']);
   echo "UnempDate: "; var_dump($_SESSION['uDate']);
   echo "Receives stamps: "; var_dump($_SESSION['receivesStamps']);
   echo "Wants stamps: "; var_dump($_SESSION['wantsStamps']);
@@ -59,6 +60,7 @@
   $genderID = processString($_SESSION['gengroup']);
   $ethnicityID = processString($_SESSION['ethgroup']);
   $reasonID = processString($_SESSION['reasongroup']);
+  $explanation = processString($_SESSION['explanation']);
   $receivesStamps = processString($_SESSION['receivesStamps']);
   $wantsStamps = NULL;
   $unempDate = NULL;
@@ -206,6 +208,7 @@
       $client->setEthnicityID($ethnicityID);
       $client->setGenderID($genderID);
       $client->setReasonID($reasonID);
+      $client->setExplanation($explanation);
       $client->setUnemploymentDate($unempDate);
       $client->setReceivesStamps($receivesStamps);
       $client->setWantsStamps($wantsStamps);
@@ -221,6 +224,7 @@
       //Client save failed
       if (!$client->save())
       {
+        
         header("Location: ../dataEntry.php");
       }
       else

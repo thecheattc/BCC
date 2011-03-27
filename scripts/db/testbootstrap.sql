@@ -29,9 +29,8 @@ DROP TABLE IF EXISTS `bcc_food_client`.`reasons` ;
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`reasons` (
   `reason_id` INT NOT NULL AUTO_INCREMENT ,
   `reason_desc` VARCHAR(45) NOT NULL ,
-  `explanation` VARCHAR(100) NULL ,
   PRIMARY KEY (`reason_id`) ,
-  UNIQUE INDEX `reason_expl_UNIQUE` (`reason_desc` ASC, `explanation` ASC) )
+  UNIQUE INDEX `reason_expl_UNIQUE` (`reason_desc` ASC) )
 ENGINE = InnoDB;
 
 
@@ -76,6 +75,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   `ethnicity_id` INT NOT NULL ,
   `gender_id` INT NOT NULL ,
   `reason_id` INT NOT NULL ,
+  `explanation` VARCHAR(150) NULL ,
   `unemployment_date` DATE NULL ,
   `application_date` DATE NOT NULL ,
   `receives_stamps` TINYINT(1)  NOT NULL ,
@@ -177,6 +177,7 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
 
 INSERT INTO bcc_food_client.genders(gender_desc)
 VALUES ('Male'), ('Female');

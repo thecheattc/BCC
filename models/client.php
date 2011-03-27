@@ -13,6 +13,7 @@
     private $ethnicityID;
     private $genderID;
     private $reasonID;
+    private $explanation;
     private $unemploymentDate;
     private $applicationDate;
     private $receivesStamps;
@@ -126,6 +127,18 @@
       $this->dirty = true;
       $this->reasonID = $val;
       return $this->reasonID;
+    }
+    
+    public function getExplanation()
+    {
+      return $this->explanation;
+    }
+    
+    public function setExplanation($val)
+    {
+      $this->dirty = true;
+      $this->explanation = $val;
+      return $this->explanation;
     }
     
     public function getUnemploymentDate()
@@ -268,6 +281,15 @@
       $ethnicityIDParam = mysql_real_escape_string($this->ethnicityID);
       $genderIDParam = mysql_real_escape_string($this->genderID);
       $reasonIDParam = mysql_real_escape_string($this->reasonID);
+      $explanationParam = NULL;
+      if (mysql_real_escape_string($this->explanation) === '')
+      {
+        $explanationParam = "NULL";
+      }
+      else
+      {
+        $explanationParam = "'" . mysql_real_escape_string($this->explanation) . "'";
+      }
       $unempDateParam = NULL;
       if (mysql_real_escape_string(normalDateToMySQL($this->unemploymentDate)) === '')
       {
@@ -302,6 +324,7 @@
         $query .= "ethnicity_id='$ethnicityIDParam', ";
         $query .= "gender_id='$genderIDParam', ";
         $query .= "reason_id='$reasonIDParam', ";
+        $query .= "explanation=" . $explanationParam . ", ";
         $query .= "unemployment_date=" . $unempDateParam . ", ";
         $query .= "application_date='$appDateParam', ";
         $query .= "receives_stamps = '$receivesStampsParam', ";
@@ -312,14 +335,13 @@
       else
       {
         $query = "INSERT INTO bcc_food_client.clients (first_name, last_name, age, phone_number, ";
-        $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
+        $query .= "house_id, ethnicity_id, gender_id, reason_id, explanation, unemployment_date, ";
         $query .= "application_date, receives_stamps, wants_stamps) VALUES ";
         $query .= "('$firstNameParam', '$lastNameParam', '$ageParam', ";
-        $query .= $phoneNumberParam .", " . $houseIDParam . ", '$ethnicityIDParam', ";
-        $query .= "'$genderIDParam', '$reasonIDParam', " . $unempDateParam . ", ";
-        $query .= "'$appDateParam', '$receivesStampsParam', " . $wantsStampsParam . ")";
+        $query .= $phoneNumberParam . ", " . $houseIDParam . ", '$ethnicityIDParam', ";
+        $query .= "'$genderIDParam', '$reasonIDParam', " . $explanationParam . ", ";
+        $query .= $unempDateParam . ", '$appDateParam', '$receivesStampsParam', " . $wantsStampsParam . ")";
       }
-      
       $result = mysql_query($query);
       
       if ($result !== FALSE)
@@ -350,6 +372,7 @@
       $client->ethnicityID = $row["ethnicity_id"];
       $client->genderID = $row["gender_id"];
       $client->reasonID = $row["reason_id"];
+      $client->explanation = $row["explanation"];
       $client->unemploymentDate = mySQLDateToNormal($row["unemployment_date"]);
       $client->applicationDate = mySQLDateToNormal($row["application_date"]);
       $client->receivesStamps = $row["receives_stamps"];
@@ -367,7 +390,7 @@
       $houseID = mysql_real_escape_string($houseID);
       
       $query = "SELECT client_id, first_name, last_name, age, phone_number, ";
-      $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
+      $query .= "house_id, ethnicity_id, gender_id, reason_id, explanation, unemployment_date, ";
       $query .= "application_date, receives_stamps, wants_stamps ";
       $query .= "FROM bcc_food_client.clients ";
       $query .= "WHERE house_id = '{$houseID}'";
@@ -394,8 +417,8 @@
       $street = mysql_real_escape_string($street);
       
       $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
-      $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.unemployment_date, c.application_date, ";
-      $query .= "c.receives_stamps, c.wants_stamps ";
+      $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.explanation, ";
+      $query .= "c.unemployment_date, c.application_date, c.receives_stamps, c.wants_stamps ";
       $query .= "FROM bcc_food_client.clients c LEFT JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
       $query .= "WHERE first_name LIKE '{$firstName}' OR last_name LIKE '{$lastName}' OR address LIKE '{$street}'";
       
@@ -418,7 +441,7 @@
       $id = mysql_real_escape_string($id);
       
       $query = "SELECT client_id, first_name, last_name, age, phone_number, ";
-      $query .= "house_id, ethnicity_id, gender_id, reason_id, unemployment_date, ";
+      $query .= "house_id, ethnicity_id, gender_id, reason_id, explanation, unemployment_date, ";
       $query .= "application_date, receives_stamps, wants_stamps ";
       $query .= "FROM bcc_food_client.clients ";
       $query .= "WHERE client_id = '{$id}'";

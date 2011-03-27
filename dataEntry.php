@@ -9,7 +9,8 @@
   include('models/client.php');
   include('models/house.php');
   
-    
+  define("LOST_JOB", 1);  
+  
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
   $reasons = Reason::getAllReasons();
@@ -63,6 +64,7 @@
       $_SESSION['gengroup'] = $client->getGenderID();
       $_SESSION['ethgroup'] = $client->getEthnicityID();
       $_SESSION['reasongroup'] = $client->getReasonID();
+      $_SESSION['explanation'] = $client->getExplanation();
       $_SESSION['uDate'] = $client->getUnemploymentDate();
       $_SESSION['receivesStamps'] = $client->getReceivesStamps();
       $_SESSION['wantsStamps'] = $client->getWantsStamps();
@@ -94,16 +96,24 @@
 	</script>
 	<script>
 		$(document).ready(function() {
+      $("#reasongroup option:selected").each(function () {
+          if($(this).text() === "Lost job"){
+              $(".showUDate").show("slow");
+           }
+          else{
+              $(".showUDate").hide("slow");
+          }
+      });
   		 //Makes the date inputs appear if lost job is selected      
-   		 $("#reasongroup").change(function () {
-       		   $("#reasongroup option:selected").each(function () {
-         		 	if($(this).text() === "Lost job"){
-          		 		$(".show").show("slow");
-          			}
-          			else{
-          				$(".show").hide("slow");
-          			}
-             	 });
+      $("#reasongroup").change(function() {
+          $("#reasongroup option:selected").each(function () {
+              if($(this).text() === "Lost job"){
+                 $(".showUDate").show("slow");
+              }
+              else{
+                 $(".showUDate").hide("slow");
+              }
+             });
             });
                       
   	 //Popup date pickers for application date and unemployment date
@@ -249,19 +259,15 @@
                 }
                 ?>
 						</select></td>
-					</tr>					
+					</tr>	
+          <tr>
+            <td><label for="explanation">Explanation (if necessary): </label></div></td>
+            <td><input type="text" name="explanation" id="explanation" value="<?php echo $_SESSION['explanation']; ?>"/></td>
+          </tr>
 					<tr>
-						<td><div class="show" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
-						<td><input class="show" style="display:none;"type="text" name="uDate" id="uDate" />
-						</td>
-					</tr>
-					<tr>
-          <?php 
-            foreach($_SESSION['familyMembers'] as $familyMember)
-            {
-              $familyMember->renderSelf();
-            }
-            ?>
+						<td><div class="showUDate" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
+						<td><input class="showUDate" style="display:none;"type="text" name="uDate" id="uDate" 
+                  value="<?php echo $_SESSION['uDate']; ?>"/></td>
 					</tr>
           <tr>
             <td><label for="receivesStamps">Are you currently receving food stamps?</label></td>

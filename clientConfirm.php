@@ -8,6 +8,7 @@
   include ('models/reason.php');
   
   define("LOST_JOB", 1);
+  define("OTHER", 7);
   $_SESSION['errors'] = NULL;
   
   //Grab everything from POST, put it in SESSION.
@@ -22,14 +23,10 @@
   $_SESSION['gengroup'] = $_POST['gengroup'];
   $_SESSION['ethgroup'] = $_POST['ethgroup'];
   $_SESSION['reasongroup'] = $_POST['reasongroup'];
+  $_SESSION['explanation'] = $_POST['explanation'];
   $_SESSION['uDate'] = $_POST['uDate'];
-  $_SESSION['houseNum'] = isset($_POST['houseNum'])? $_POST['houseNum'] : 0;
   $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
   $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
-  for ($i=0; $i< $_SESSION['houseNum']; $i++)
-  {
-    $_SESSION["child{$i}"] = $_POST["child{$i}"];
-  }
 
   $gender = Gender::getGenderByID($_SESSION['gengroup']);
   $ethnicity = Ethnicity::getEthnicityByID($_SESSION['ethgroup']);
@@ -43,62 +40,6 @@
 		<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
     <link rel="stylesheet" href="style/bryant.css" type="text/css"/>
     <link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />	
-    <script type="text/javascript" src="scripts/js/jquery-1.4.4.min.js"></script>
-    <script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8"> </script>
-    <script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"> </script>
-    <script language="javascript" type="text/javascript">
-      function stopRKey(evt) {
-        var evt  = (evt) ? evt : ((event) ? event : null);
-        var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
-        if ((evt.keyCode == 13) && (node.type=="text")) { return false; }
-      }
-      document.onkeypress = stopRKey;
-    </script>
-    <script>
-      $(document).ready(function() {
-          //Makes the date inputs appear if lost job is selected      
-          $("#reasongroup").change(function () {
-            $("#reasongroup option:selected").each(function () {
-              if($(this).text() === "Lost job"){
-                 $(".show").show("slow");
-              }
-               else{
-                 $(".show").hide("slow");
-               }
-             });
-           });
-                  
-          //Gets the value from the number in household Input
-          $("#houseNum").focusout(function(){
-              var val = $("#houseNum").val();
-              if(val != ""){
-                 if (val >0 && val < 16 && !(/\D/).test(val)){
-                     $(".show2").show("slow");
-                  }
-                  else{
-                    window.alert('Please enter a whole number of household members from 1 to 15.');
-                    $(".show2").hide("slow");
-                   }
-              }
-           });
-                  
-           //Limits the household age members to a comma separated list
-           $('#hAge').focusout(function(){
-               var ages = $('#hAge').val();
-               var patt = /^([0-9]*)+(,[0-9]+)+$/;
-               var result = patt.exec(ages);
-               window.alert(result);
-               if(result === null){
-                  window.alert('Please enter a comma separated list of ages');
-               }
-            });
-                  
-            //Popup date pickers for application date and unemployment date
-            $('#date').datepicker({ dateFormat: 'mm-dd-yy' });
-            $('#uDate').datepicker({ dateFormat: 'mm-dd-yy' });  	 
-        });
-    </script>	
-	
 		<title>Bryant Food Distribution Client Data Confirmation page</title>
 	</head>
 	
@@ -154,7 +95,11 @@
             <td><label>Reason For Assistance: </label></td>
             <td><?php if (!empty($reason)) {echo $reason->getReasonDesc();} ?></td>
           </tr>
-          <?php
+          <tr>
+            <td><label>Explanation (if necessary): </label></td>
+            <td><?php echo htmlentities($_SESSION['explanation']); ?></td>
+          </tr>
+                    <?php
             if (!empty($reason) && $reason->getReasonID() == LOST_JOB)
             {
               echo "\t<tr>\n\t\t<td><label>Date of Job Loss: </label></td>\n\t\t<td>";
@@ -162,10 +107,6 @@
               echo "</td>\n\t</tr>\n";
             }
             ?>
-          <tr>
-            <td><label>Number of other people in household that have not registered with Bryant:</label></td>
-            <td><?php echo $_SESSION['houseNum']; ?></td>
-          </tr>
           <tr>
             <td><label>Are you currently receving food stamps?</label></td>
             <td><?php 
