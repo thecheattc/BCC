@@ -208,6 +208,18 @@
 						<td><label for="zip">Zip Code: </label></td>
 						<td><input name="zip" type="text" size="11" maxlength="11" value="<?php echo $_SESSION['zip']; ?>" /></td>
 					</tr>
+          <?php          
+            if($_SESSION['edit'])
+            {
+              echo "\n\t<tr>\n\t\t<td><label for='oldAddressValid'>If your address has changed, ";
+              echo "are there still people registered with Bryant at the old address?</label></td>\n";
+              echo "\t\t<td>No <input name='oldAddressValid' id='oldAddressValid' type='radio' value='0' ";
+              if (isset($_SESSION['oldAddressValid']) && $_SESSION['oldAddressValid'] == 0){ echo "checked"; }
+              echo "/> Yes <input name='oldAddressValid' id='oldAddressValid' type='radio' value='1' ";
+              if (isset($_SESSION['oldAddressValid']) && $_SESSION['oldAddressValid'] == 1){ echo "checked"; }
+              echo "/></td>\n\t</tr>";
+            }
+            ?>
 					<tr>
 						<td><label for="number">Phone Number: <span class="example">(111-222-3333)</span></label></td>
 						<td><input name="number" id="number"type="text" size="16" maxlength="16" value="<?php echo $_SESSION['number']; ?>" /></td>

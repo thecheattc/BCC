@@ -57,7 +57,7 @@
           <hr />
           <ul>
           <li><a href="selectTask.php">Select a Task</a></li>
-          <li><a href="dataEntry.php">Add a new Client</a></li>
+          <li><a href="dataEntry.php?clean=1">Add a new Client</a></li>
         </ul>
       </div>';
       if (isset($_GET['deleteError']))

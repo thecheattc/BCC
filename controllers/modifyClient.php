@@ -55,6 +55,7 @@
   $address = processString($_SESSION['address']);
   $city = processString($_SESSION['city']);
   $zip = processString($_SESSION['zip']);
+  $oldAddressValid = processString($_SESSION['oldAddressValid']);
   $phone = processString($_SESSION['number']);
   $age = processString($_SESSION['age']);
   $genderID = processString($_SESSION['gengroup']);
@@ -105,6 +106,10 @@
     $errors[] = "Address";
     $errors[] = "City";
     $errors[] = "Zip";
+  }
+  if (isset($_SESSION['edit']) && !isset($oldAddressValid))
+  {
+    $errors[] = "Validity of old address";
   }
   if (empty($appDate))
   {
@@ -157,8 +162,10 @@
     //If the address is given, create an entry in the database for their house.
     if ($count === 3)
     {
-      //If it's a new client or the client previously had no address, create a house
-      if (!$edit || $client->getHouseID() === NULL)
+      //If it's a new client, the client previously had no address, or 
+      //they moved to a new house but the old house still has people registered with BCC in it,
+      //create a house
+      if (!$edit || $client->getHouseID() === NULL || $oldAddressValid)
       {
         $house = House::create();
       }

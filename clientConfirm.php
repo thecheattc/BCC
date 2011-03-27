@@ -18,6 +18,7 @@
   $_SESSION['address'] = $_POST['address'];
   $_SESSION['city'] = $_POST['city'];
   $_SESSION['zip'] = $_POST['zip'];
+  $_SESSION['oldAddressValid'] = $_POST['oldAddressValid'];
   $_SESSION['number'] = $_POST['number'];
   $_SESSION['age'] = $_POST['age'];
   $_SESSION['gengroup'] = $_POST['gengroup'];
@@ -75,6 +76,17 @@
             <td><label>Zip Code: </label></td>
             <td><?php echo htmlentities($_SESSION['zip']); ?></td>
           </tr>
+          <?php          
+            if($_SESSION['edit'])
+            {
+              echo "\n\t<tr>\n\t\t<td><label >If your address has changed, ";
+              echo "are there still people registered with Bryant at the old address?</label></td>\n";
+              echo "\t\t<td>";
+              if (isset($_SESSION['oldAddressValid']) && $_SESSION['oldAddressValid'] == 0){ echo "No"; }
+              if (isset($_SESSION['oldAddressValid']) && $_SESSION['oldAddressValid'] == 1){ echo "Yes"; }
+              echo "</td>\n\t</tr>";
+            }
+            ?>
           <tr>
             <td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
             <td><?php echo htmlentities($_SESSION['number']); ?></td>
