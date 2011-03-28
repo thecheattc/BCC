@@ -12,7 +12,7 @@ USE `bcc_food_client` ;
 DROP TABLE IF EXISTS `bcc_food_client`.`houses` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`houses` (
-  `house_id` INT NOT NULL AUTO_INCREMENT ,
+  `house_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `address` VARCHAR(45) NOT NULL ,
   `city` VARCHAR(45) NOT NULL ,
   `zip` VARCHAR(45) NOT NULL ,
@@ -27,7 +27,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`reasons` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`reasons` (
-  `reason_id` INT NOT NULL AUTO_INCREMENT ,
+  `reason_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `reason_desc` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`reason_id`) ,
   UNIQUE INDEX `reason_expl_UNIQUE` (`reason_desc` ASC) )
@@ -40,7 +40,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`genders` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`genders` (
-  `gender_id` INT NOT NULL AUTO_INCREMENT ,
+  `gender_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `gender_desc` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`gender_id`) ,
   UNIQUE INDEX `gender_desc_UNIQUE` (`gender_desc` ASC) )
@@ -53,7 +53,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`ethnicities` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`ethnicities` (
-  `ethnicity_id` INT NOT NULL AUTO_INCREMENT ,
+  `ethnicity_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `ethnicity_desc` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`ethnicity_id`) ,
   UNIQUE INDEX `ethnicity_desc_UNIQUE` (`ethnicity_desc` ASC) )
@@ -66,15 +66,15 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`clients` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
-  `client_id` INT NOT NULL AUTO_INCREMENT ,
+  `client_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `first_name` VARCHAR(45) NOT NULL ,
   `last_name` VARCHAR(45) NOT NULL ,
   `age` INT NOT NULL ,
   `phone_number` VARCHAR(45) NULL ,
-  `house_id` INT NULL ,
-  `ethnicity_id` INT NOT NULL ,
-  `gender_id` INT NOT NULL ,
-  `reason_id` INT NOT NULL ,
+  `house_id` INT UNSIGNED NULL ,
+  `ethnicity_id` INT UNSIGNED NOT NULL ,
+  `gender_id` INT UNSIGNED NOT NULL ,
+  `reason_id` INT UNSIGNED NOT NULL ,
   `explanation` VARCHAR(150) NULL ,
   `unemployment_date` DATE NULL ,
   `application_date` DATE NOT NULL ,
@@ -115,7 +115,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`distribution_type` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`distribution_type` (
-  `dist_type_id` INT NOT NULL AUTO_INCREMENT ,
+  `dist_type_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `dist_type_desc` VARCHAR(15) NOT NULL ,
   PRIMARY KEY (`dist_type_id`) )
 ENGINE = InnoDB;
@@ -127,9 +127,9 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`usage` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`usage` (
-  `dist_id` INT NOT NULL AUTO_INCREMENT ,
-  `client_id` INT NOT NULL ,
-  `type_id` INT NOT NULL ,
+  `dist_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `client_id` INT UNSIGNED NOT NULL ,
+  `type_id` INT UNSIGNED NOT NULL ,
   `date` DATE NOT NULL ,
   INDEX `usage_client_id` (`client_id` ASC) ,
   INDEX `usage_dist_type_id` (`type_id` ASC) ,
@@ -153,13 +153,17 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `bcc_food_client`.`family_members` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`family_members` (
-  `fam_member_id` INT NOT NULL AUTO_INCREMENT ,
+  `fam_member_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `age` INT NOT NULL ,
-  `gender_id` INT NOT NULL ,
-  `member_house_id` INT NOT NULL ,
+  `gender_id` INT UNSIGNED NOT NULL ,
+  `ethnicity_id` INT UNSIGNED NOT NULL ,
+  `member_house_id` INT UNSIGNED NULL ,
+  `guardian_id` INT UNSIGNED NULL ,
   PRIMARY KEY (`fam_member_id`) ,
   INDEX `fam_gender_id` (`gender_id` ASC) ,
   INDEX `fam_house_id` (`member_house_id` ASC) ,
+  INDEX `guardian_id` (`guardian_id` ASC) ,
+  INDEX `fam_eth_id` (`ethnicity_id` ASC) ,
   CONSTRAINT `fam_gender_id`
     FOREIGN KEY (`gender_id` )
     REFERENCES `bcc_food_client`.`genders` (`gender_id` )
@@ -169,6 +173,16 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`family_members` (
     FOREIGN KEY (`member_house_id` )
     REFERENCES `bcc_food_client`.`houses` (`house_id` )
     ON DELETE CASCADE
+    ON UPDATE NO ACTION,
+  CONSTRAINT `guardian_id`
+    FOREIGN KEY (`guardian_id` )
+    REFERENCES `bcc_food_client`.`clients` (`client_id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fam_eth_id`
+    FOREIGN KEY (`ethnicity_id` )
+    REFERENCES `bcc_food_client`.`ethnicities` (`ethnicity_id` )
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -177,7 +191,6 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 
 INSERT INTO bcc_food_client.genders(gender_desc)
 VALUES ('Male'), ('Female');
@@ -204,17 +217,6 @@ VALUES
 ('Evan', 'Lindell', '20', '5178994272', '1', '1', '1', '1', CURDATE(), CURDATE(), 1, NULL),
 ('Mike', 'onna Bike', '27', '1800luvcoke', NULL, '1', '1', '6', CURDATE(), CURDATE(), 0, 1),
 ('Trisha', 'Takinawa', '42', '6124952284', '2', '4', '2', '3', CURDATE(), CURDATE(), 0, 0);
-
-INSERT INTO bcc_food_client.family_members(member_house_id, age, gender_id)
-VALUES
-('1', '14', '1'),
-('1', '12', '2'),
-('2', '20', '2'),
-('3', '2', '1'),
-('3', '3', '2'),
-('3', '4', '2'),
-('3', '5', '1'),
-('3', '5', '2');
 
 INSERT INTO bcc_food_client.distribution_type(dist_type_desc) VALUES ('Normal'), ('Emergency'), ('Rejected');
 

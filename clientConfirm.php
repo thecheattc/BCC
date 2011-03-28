@@ -9,6 +9,11 @@
   
   define("LOST_JOB", 1);
   define("OTHER", 7);
+  /*
+  echo "<PRE>";
+  var_dump($_SESSION);
+  echo "</PRE>";*/
+  
   $_SESSION['errors'] = NULL;
   
   //Grab everything from POST, put it in SESSION.
@@ -28,6 +33,27 @@
   $_SESSION['uDate'] = $_POST['uDate'];
   $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
   $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
+  
+  for ($i=0; $i<$_SESSION['memberCount']; $i++)
+  {
+    $_SESSION['familyMembers'][$i]["age"] = $_POST["memberAge{$i}"];
+    $_SESSION['familyMembers'][$i]["gender"] = $_POST["memberGender{$i}"];
+    $_SESSION['familyMembers'][$i]["ethnicity"] = $_POST["memberEthnicity{$i}"];
+  }
+  
+  if ($_POST['toDo'] == "addMember")
+  {
+    $_SESSION['memberCount']++;
+    $familyMember = array("age" => '', "gender" => '', "ethnicity" => '');
+    $_SESSION['familyMembers'][] = $familyMember;
+    header("Location: dataEntry.php");
+  }
+  if ($_POST['toDo'] == "deleteMember")
+  {
+    $_SESSION['memberCount']--;
+    $_SESSION['familyMembers'][$_SESSION['memberCount']] = NULL;
+    header("Location: dataEntry.php");
+  }
 
   $gender = Gender::getGenderByID($_SESSION['gengroup']);
   $ethnicity = Ethnicity::getEthnicityByID($_SESSION['ethgroup']);
@@ -107,6 +133,27 @@
             <td><label>Reason For Assistance: </label></td>
             <td><?php if (!empty($reason)) {echo $reason->getReasonDesc();} ?></td>
           </tr>
+          <?php
+            for ($i=0; $i<$_SESSION['memberCount']; $i++)
+            {
+              $familyMember = $_SESSION['familyMembers'][$i];
+              $j = $i+1;
+              $childGender = Gender::getGenderByID($_POST["memberGender{$i}"]);
+              $childEthnicity = Ethnicity::getEthnicityByID($_POST["memberEthnicity{$i}"]);
+              echo "\n\t<tr>\n\t\t<td><label>Child {$j} age:</label></td>\n";
+              echo "<td> ";
+              if (!empty($familyMember['age'])){ echo $familyMember['age']; }
+              echo "</td>\n\t</tr>\n";
+              echo "\t<tr>\n\t\t<td><label>Child {$j} gender:</label></td>\n";
+              echo "<td> ";
+              if (!empty($childGender)){ echo $childGender->getGenderDesc(); }
+              echo "</td>\n\t</tr>\n";
+              echo "\t<tr>\n\t\t<td><label>Child {$j} ethnicity:</label></td>\n";
+              echo "<td> ";
+              if (!empty($childEthnicity)){ echo $childEthnicity->getEthnicityDesc(); }
+              echo "</td>\n\t</tr>\n";
+            }
+            ?>
           <tr>
             <td><label>Explanation (if necessary): </label></td>
             <td><?php echo htmlentities($_SESSION['explanation']); ?></td>

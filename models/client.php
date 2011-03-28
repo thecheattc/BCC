@@ -1,6 +1,7 @@
 <?php
   
   include_once("visit.php");
+  include_once("familyMember.php");
   
   class Client
   {
@@ -518,6 +519,19 @@
       }
       
       return $result;
+    }
+    
+    //Returns an array of all family members associated with this client
+    public function getAllFamilyMembers()
+    {
+      if ($this->houseID)
+      {
+        return FamilyMember::getAllFamilyMembersForClient($this->houseID, TRUE);
+      }
+      else
+      {
+        return FamilyMember::getAllFamilyMembersForClient($this->clientID, FALSE);
+      }
     }
     
   }

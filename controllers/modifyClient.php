@@ -1,19 +1,28 @@
 <?php
   session_start();
-  include ('utility.php');
-  include ('../models/house.php');
-  include ('../models/client.php');
-  include ('../models/sqldb.php');
+  include_once('utility.php');
+  include_once('../models/house.php');
+  include_once('../models/client.php');
+  include_once('../models/sqldb.php');
+  include_once('../models/familyMember.php');
   
   define("UNEMPLOYED_REASON_ID", 1);
   define("NOT_ON_FOODSTAMPS", 0);
     
   /**** If two people live at the same house and one changes their address, both people 
    **** will reflect this change. This is fine since the paperwork is only filled out once a year ****/
+  
+  //Grab all the kids related to a client.
+  //If a house is given, tie the array of kids in session to the house
+  //Else tie the array of kids in session to the client
+  //Insert all the new kids
+  //Run through and delete all the old
       
   $edit = (!empty($_SESSION['edit']))? TRUE : FALSE;
   $house = NULL;
   $client = NULL;
+  $newFamilyMembers = array();
+  $oldFamilyMembers = array();
   if ($edit)
   {
     $client = Client::getClientByID($_SESSION['client']);
@@ -23,6 +32,7 @@
     }
     else
     {
+      $oldFamilyMembers = $client->getAllFamilyMembers();
       if ($client->getHouseID() !== NULL)
       {
         $house = House::getHouseByID($client->getHouseID());
@@ -63,6 +73,14 @@
   $reasonID = processString($_SESSION['reasongroup']);
   $explanation = processString($_SESSION['explanation']);
   $receivesStamps = processString($_SESSION['receivesStamps']);
+  
+  for ($i=0; $i<$_SESSION['memberCount']; $i++)
+  {
+    $_SESSION['familyMembers'][$i]["age"] = processString($_SESSION['familyMembers'][$i]["age"]);
+    $_SESSION['familyMembers'][$i]["gender"] = processString($_SESSION['familyMembers'][$i]["gender"]);
+    $_SESSION['familyMembers'][$i]["ethnicity"] = processString($_SESSION['familyMembers'][$i]["ethnicity"]);
+  }
+  
   $wantsStamps = NULL;
   $unempDate = NULL;
   
@@ -151,6 +169,22 @@
   {
     $errors[] = "Interest in food stamps";
   }
+  for ($i=0; $i<$_SESSION['memberCount']; $i++)
+  {
+    $j = $i+1;
+    if (empty($_SESSION['familyMembers'][$i]["age"]))
+    {
+      $errors[] = "Child {$j} age";
+    }
+    if (empty($_SESSION['familyMembers'][$i]["gender"]))
+    {
+      $errors[] = "Child {$j} gender";
+    }
+    if (empty($_SESSION['familyMembers'][$i]["ethnicity"]))
+    {
+      $errors[] = "Child {$j} ethnicity";
+    }
+  }
   if (!empty($errors))
   {
     $_SESSION['errors'] = $errors;
@@ -231,13 +265,49 @@
       //Client save failed
       if (!$client->save())
       {
-        
+        $client->discard();
         header("Location: ../dataEntry.php");
       }
       else
       {
+        //Now that we can build proper family member objects, convert the session variables to
+        //family member objects and stick it in the new family members array
+        for ($i=0; $i<$_SESSION['memberCount']; $i++)
+        {
+          $familyMember = FamilyMember::create();
+          if($house !== NULL)
+          {
+            $familyMember->setHouseID($house->getHouseID());
+            $familyMember->setGuardianID(NULL);
+          }
+          else
+          {
+            $familyMember->setHouseID(NULL);
+            $familyMember->setGuardianID($client->getClientID());
+          }
+          $familyMember->setAge($_SESSION['familyMembers'][$i]["age"]);
+          $familyMember->setGenderID($_SESSION['familyMembers'][$i]["gender"]);
+          $familyMember->setEthnicityID($_SESSION['familyMembers'][$i]["ethnicity"]);
+          $newFamilyMembers[] = $familyMember;
+        }
+        /*
+         echo "<PRE>";
+         var_dump($newFamilyMembers);
+         echo "</PRE>";
+         */
         Client::deleteHouseIfNotReferenced($oldHouseID);
         session_destroy();
+        foreach($newFamilyMembers as $familyMember)
+        {
+          $familyMember->save();
+        }
+        foreach($oldFamilyMembers as $familyMember)
+        {
+          if (!$familyMember->delete())
+          {
+            echo "wut wut in the butt";
+          }
+        }
         if ($edit)
         {          
           header("Location: ../dataEntry.php?success=1&edit=1");

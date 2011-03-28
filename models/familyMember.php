@@ -2,8 +2,14 @@
   
   class FamilyMember
   {
+    //Ordinarily, a family member is tied to a house.
+    //In the case that the person registered with Bryant is homeless,
+    //the family member is tied to the person. Therefore, the
+    //houseID or the guardianID can be null, but not both.
     private $famMemberID;
+    private $guardianID;
     private $houseID;
+    private $ethnicityID;
     private $age;
     private $genderID;
     
@@ -21,6 +27,18 @@
       return $this->famMemberID;
     }
     
+    public function getGuardianID()
+    {
+      return $this->guardianID;
+    }
+    
+    public function setGuardianID($val)
+    {
+      $this->dirty = true;
+      $this->guardianID = $val;
+      return $this->guardianID;
+    }
+    
     public function getHouseID()
     {
       return $this->houseID;
@@ -31,6 +49,18 @@
       $this->dirty = true;
       $this->houseID = $val;
       return $this->houseID;
+    }
+    
+    public function getEthnicityID()
+    {
+      return $this->ethnicityID;
+    }
+    
+    public function setEthnicityID($val)
+    {
+      $this->dirty = true;
+      $this->ethnicityID = $val;
+      return $this->ethnicityID;
     }
     
     public function getAge()
@@ -100,8 +130,26 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $houseIDParam = mysql_real_escape_string($this->houseID);
-      $ageParam = mysql_real_escape_string($this->age);
+      $houseIDParam = NULL;
+      if (mysql_real_escape_string($this->houseID) === '')
+      {
+        $houseIDParam = "NULL";
+      }
+      else
+      {
+        $houseIDParam = "'" . mysql_real_escape_string($this->houseID) . "'";
+      }
+      $guardianIDParam = NULL;
+      if (mysql_real_escape_string($this->guardianID) === '')
+      {
+        $guardianIDParam = "NULL";
+      }
+      else
+      {
+        $guardianIDParam = "'" . mysql_real_escape_string($this->guardianID) . "'";
+      }
+      $ethnicityIDParam = mysql_real_escape_string($this->ethnicityID);
+      $ageParam = mysql_real_escape_string(processString($this->age));
       $genderParam = mysql_real_escape_string($this->genderID);
       $query = "";
       
@@ -109,7 +157,9 @@
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_food_client.family_members SET ";
-        $query .= "member_house_id='{$houseIDParam}', ";
+        $query .= "member_house_id=" . $houseIDParam . ", ";
+        $query .= "guardian_id=" . $guardianIDParam . ", ";
+        $query .= "ethnicity_id='{$ethnicityIDParam}', ";
         $query .= "age='{$ageParam}', ";
         $query .= "gender_id='{$genderParam}', ";
         $query .= "WHERE fam_member_id = '{$this->famMemberID}'";
@@ -117,10 +167,9 @@
       //If the house was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.family_members (member_house_id, age, gender_id) ";
-        $query .= "VALUES ('{$houseIDParam}', '{$ageParam}', '{$genderParam}')";
+        $query = "INSERT INTO bcc_food_client.family_members (member_house_id, guardian_id, ethnicity_id, age, gender_id) ";
+        $query .= "VALUES (" . $houseIDParam . ", " .$guardianIDParam . ", '{$ethnicityIDParam}', '{$ageParam}', '{$genderParam}')";
       }
-      
       
       $result = mysql_query($query);
       
@@ -143,8 +192,10 @@
     private static function createFromSQLRow($row)
     {
       $member = new FamilyMember();
-      $member->famMemberID = $row["family_member_id"];
+      $member->famMemberID = $row["fam_member_id"];
       $member->houseID = $row["member_house_id"];
+      $member->guardianID = $row["guardian_id"];
+      $member->ethnicityID = $row["ethnicity_id"];
       $member->age = $row["age"];
       $member->genderID = $row["gender_id"];
       $member->createdFromDB = true;
@@ -159,7 +210,7 @@
       
       $memberID = mysql_real_escape_string($memberID);
       
-      $query = "SELECT family_member_id, member_house_id, age, gender_id ";
+      $query = "SELECT fam_member_id, member_house_id, guardian_id, ethnicity_id, age, gender_id ";
       $query .= "FROM bcc_food_client.family_members ";
       $query .= "WHERE family_member_id = '{$memberID}'";
       
@@ -174,21 +225,29 @@
       return $member;
     }
     
-    //Returns an array of family member objects given a house ID
-    public static function getFamilyMembersByHouseID($houseID)
+    //Returns an array of family member objects given an ID - if the $byHouse flag is set,
+    //the family members are retrieved if their member_house_id matches the given id, otherwise
+    //they're retrieved if their guardian_id matches the given id.
+    public static function getAllFamilyMembersForClient($ID, $byHouse)
     {
       SQLDB::connect();
       
-      $houseID = mysql_real_escape_string($houseID);
+      $ID = mysql_real_escape_string($ID);
       
-      $query = "SELECT family_member_id, member_house_id, age, gender_id ";
+      $query = "SELECT fam_member_id, member_house_id, guardian_id, ethnicity_id, age, gender_id ";
       $query .= "FROM bcc_food_client.family_members ";
-      $query .= "WHERE member_house_id = '{$houseID}'";
-      
+      if ($byHouse)
+      {
+        $query .= "WHERE member_house_id = '{$ID}'";
+      }
+      else
+      {
+        $query .= "WHERE guardian_id = '{$ID}'";
+      }
       $result = mysql_query($query);
       
       $members = array();
-      if ($row = mysql_fetch_array($result))
+      while ($row = mysql_fetch_array($result))
       {
         $members[] = FamilyMember::createFromSQLRow($row);
       }

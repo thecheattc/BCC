@@ -9,7 +9,8 @@
   include('models/client.php');
   include('models/house.php');
   
-  define("LOST_JOB", 1);  
+  define("LOST_JOB", 1);
+  define("MAX_FAMILY_MEMBERS", 20);
   
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
@@ -68,6 +69,20 @@
       $_SESSION['uDate'] = $client->getUnemploymentDate();
       $_SESSION['receivesStamps'] = $client->getReceivesStamps();
       $_SESSION['wantsStamps'] = $client->getWantsStamps();
+      
+      //Populate session with client children
+      $familyMembers = $client->getAllFamilyMembers();
+      $sessionFamilyMembers = array();
+      foreach($familyMembers as $familyMember)
+      {
+        $sessionFamilyMember = array();
+        $sessionFamilyMember["age"] = $familyMember->getAge();
+        $sessionFamilyMember["gender"] = $familyMember->getGenderID();
+        $sessionFamilyMember["ethnicity"] = $familyMember->getEthnicityID();
+        $sessionFamilyMembers[] = $sessionFamilyMember;
+      }
+      $_SESSION['memberCount'] = count($sessionFamilyMembers);
+      $_SESSION['familyMembers'] = $sessionFamilyMembers;
     }
   }
   
@@ -104,6 +119,7 @@
               $(".showUDate").hide("slow");
           }
       });
+                      
   		 //Makes the date inputs appear if lost job is selected      
       $("#reasongroup").change(function() {
           $("#reasongroup option:selected").each(function () {
@@ -121,6 +137,11 @@
   	  $('#uDate').datepicker({ dateFormat: 'mm-dd-yy' });  	 
     });
 	</script>
+  <script>
+    function changeToDo(toDo) {
+      $("#toDo").val(toDo);
+    }
+  </script>
 	
 	<title>Bryant Food Distribution Client Data Entry Screen</title>
 </head>
@@ -181,6 +202,7 @@
   ?>
 		<div id="newClient">
 			<form method="post" action="clientConfirm.php">
+      <input name="toDo" id="toDo" type="hidden" value="submit" />
 			<fieldset>
 				<legend>Enter data for a new client</legend>
 				<table>
@@ -231,7 +253,8 @@
 					<tr>
 						<td><label for="gengroup">Client Gender: </label></td>
 						<td>
-                <?php foreach ($genders as $gender)
+                <?php 
+                  foreach ($genders as $gender)
                   {
                     echo "\t\t\t\t\t\t";
                     echo $gender->getGenderDesc() . ': <input name="gengroup" type="radio" value="' . $gender->getGenderID() . '"';
@@ -245,7 +268,8 @@
 						<td><label for="ethgroup">Client Ethnicity: </label></td>
 						<td><select id="ethgroup" name="ethgroup">
                 <option value="0" <?php if (!isset($_SESSION['ethgroup'])) echo "selected"; ?>>Select an ethnicity</option>
-                <?php foreach ($ethnicities as $ethnicity)
+                <?php 
+                  foreach ($ethnicities as $ethnicity)
                   {
                     echo "\t\t\t\t\t\t";
                     echo '<option value="' . $ethnicity->getEthnicityID() . '"';
@@ -272,6 +296,50 @@
                 ?>
 						</select></td>
 					</tr>	
+          <?php
+            $_SESSION['memberCount'] = (!isset($_SESSION['memberCount']))? 0: $_SESSION['memberCount'];
+            for($i = 0; $i<$_SESSION['memberCount']; $i++)
+            {
+              //Echo out family member values
+              $familyMember = $_SESSION['familyMembers'][$i];
+              $j = $i+1;
+              echo "\t<tr>\n\t\t<td>" . '<label for="' . "memberAge{$i}" . '">Family member ' . $j . ' age: ' . "</label></td>\n";
+              echo "\t\t<td>" . '<input type="text" name="' . "memberAge{$i}" . '" value="' . $familyMember["age"] . '" /></td>' . "\n\t</tr>\n";
+              echo "\t<tr>\n\t\t<td><label for=" . '"' . "memberGender{$i}" . '">Family member ' . $j . ' gender: ' . "</label></td>\n";
+              echo "\t\t<td>"; 
+              foreach ($genders as $gender)
+              {
+                echo $gender->getGenderDesc() . ': <input name="' . "memberGender{$i}" . '" type="radio" value="' . $gender->getGenderID() . '"';
+                if ($familyMember["gender"] == $gender->getGenderID()){ echo " checked"; }
+                echo "/>";
+              }
+              echo "</td>\n\t</tr>\n";
+              echo "\t<tr>\n\t\t<td>" . '<label for="' . "memberEthnicity{$i}" . '">Family member ' . $j . ' ethnicity: ' . "</label></td>\n";
+              echo "\t\t<td>" . '<select name="' . "memberEthnicity{$i}" . '">' . "\n";
+              echo '<option value="0" ';
+              if (!isset($familyMember["ethnicity"])){ echo " selected"; }
+              echo ">Select an ethnicity</option>\n";
+              foreach ($ethnicities as $ethnicity)
+              {
+                echo "\t\t\t";
+                echo '<option value="' . $ethnicity->getEthnicityID() . '"';
+                if ($familyMember["ethnicity"] == $ethnicity->getEthnicityID()){ echo " selected"; }
+                echo '>' . $ethnicity->getEthnicityDesc();
+                echo "</option>\n";
+              }
+              echo "\t\t</select></td>\n\t</tr>";
+            }
+            if (!isset($_SESSION['memberCount']) || $_SESSION['memberCount'] < MAX_FAMILY_MEMBERS)
+            {
+              echo "\t<tr>\n\t\t<td><input type=" . '"submit" onClick="changeToDo(' . "'addMember');" . '" value="Add family member"/></td></tr>';
+              echo "\n";
+            }
+            if (isset($_SESSION['memberCount']) && $_SESSION['memberCount'] > 0)
+            {
+              echo "\t<tr>\n\t\t<td><input type=" . '"submit" onClick="changeToDo(' . "'deleteMember');" . '" value="Remove family member"/></td></tr>'; 
+              echo "\n";
+            }
+            ?>
           <tr>
             <td><label for="explanation">Explanation (if necessary): </label></div></td>
             <td><input type="text" name="explanation" id="explanation" value="<?php echo $_SESSION['explanation']; ?>"/></td>
@@ -304,7 +372,7 @@
             </td>
           </tr>
 					<tr>
-						<td><input type="submit" name="clientSub" id="clientSub" value="<?php 
+						<td><input type="submit" name="clientSub" id="clientSub" onClick="changeToDo('submit');"value="<?php 
                                                                                 if(!empty($_SESSION['edit']))
                                                                                   {
                                                                                     echo 'Edit Client';
