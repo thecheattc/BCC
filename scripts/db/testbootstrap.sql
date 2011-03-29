@@ -13,11 +13,13 @@ DROP TABLE IF EXISTS `bcc_food_client`.`houses` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`houses` (
   `house_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `address` VARCHAR(45) NOT NULL ,
+  `street_number` VARCHAR(45) NOT NULL ,
+  `street_name` VARCHAR(45) NOT NULL ,
+  `street_type` VARCHAR(45) NULL DEFAULT NULL,
   `city` VARCHAR(45) NOT NULL ,
   `zip` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`house_id`) ,
-  UNIQUE INDEX `house_UNIQUE` (`address` ASC, `city` ASC, `zip` ASC) )
+  UNIQUE INDEX `house_UNIQUE` (`street_name` ASC, `city` ASC, `zip` ASC) )
 ENGINE = InnoDB;
 
 
@@ -205,11 +207,11 @@ VALUES ('Lost job'), ('Unusual expenses this month'),
 ('DHS application in progress'), ('Homeless'),
 ('Other');
 
-INSERT INTO bcc_food_client.houses(address, city, zip)
+INSERT INTO bcc_food_client.houses(street_number, street_name, street_type, city, zip)
 VALUES
-('811 Brookwood Pl', 'Ann Arbor', '48104'),
-('123 Fake St', 'Ann Arbor', '48109'),
-('Near the Dumpster', 'Ann Arbor', '48107');
+('811', 'Brookwood', 'Pl', 'Ann Arbor', '48104'),
+('123', 'Fake', 'St', 'Ann Arbor', '48109'),
+('Nearthe', 'Dumpster', NULL, 'Ann Arbor', '48107');
 
 INSERT INTO bcc_food_client.clients(first_name, last_name, age, phone_number, house_id,
 ethnicity_id, gender_id, reason_id, unemployment_date, application_date, receives_stamps, wants_stamps)

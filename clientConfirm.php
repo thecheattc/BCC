@@ -9,30 +9,32 @@
   
   define("LOST_JOB", 1);
   define("OTHER", 7);
-  /*
+
   echo "<PRE>";
   var_dump($_SESSION);
-  echo "</PRE>";*/
+  echo "</PRE>";
+   
+    
+  //Grab everything from POST and put it in session, so long
+  //as we haven't been redirected here. Since we never redirect here
+  //unless there are errors, we can use that to check.
+  if (empty($_SESSION['errors']))
+  {
+    $_SESSION['appDate'] = $_POST['appDate'];
+    $_SESSION['firstName'] = $_POST['firstName'];
+    $_SESSION['lastName'] = $_POST['lastName'];
+    $_SESSION['number'] = $_POST['number'];
+    $_SESSION['age'] = $_POST['age'];
+    $_SESSION['gengroup'] = $_POST['gengroup'];
+    $_SESSION['ethgroup'] = $_POST['ethgroup'];
+    $_SESSION['reasongroup'] = $_POST['reasongroup'];
+    $_SESSION['explanation'] = $_POST['explanation'];
+    $_SESSION['uDate'] = $_POST['uDate'];
+    $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
+    $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
+  }
   
-  $_SESSION['errors'] = NULL;
-  
-  //Grab everything from POST, put it in SESSION.
-  $_SESSION['appDate'] = $_POST['appDate'];
-  $_SESSION['firstName'] = $_POST['firstName'];
-  $_SESSION['lastName'] = $_POST['lastName'];
-  $_SESSION['address'] = $_POST['address'];
-  $_SESSION['city'] = $_POST['city'];
-  $_SESSION['zip'] = $_POST['zip'];
-  $_SESSION['oldAddressValid'] = $_POST['oldAddressValid'];
-  $_SESSION['number'] = $_POST['number'];
-  $_SESSION['age'] = $_POST['age'];
-  $_SESSION['gengroup'] = $_POST['gengroup'];
-  $_SESSION['ethgroup'] = $_POST['ethgroup'];
-  $_SESSION['reasongroup'] = $_POST['reasongroup'];
-  $_SESSION['explanation'] = $_POST['explanation'];
-  $_SESSION['uDate'] = $_POST['uDate'];
-  $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
-  $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
+  $_SESSION['fromConfirm'] = TRUE;
   
   for ($i=0; $i<$_SESSION['memberCount']; $i++)
   {
@@ -46,15 +48,41 @@
     $_SESSION['memberCount']++;
     $familyMember = array("age" => '', "gender" => '', "ethnicity" => '');
     $_SESSION['familyMembers'][] = $familyMember;
-    header("Location: dataEntry.php");
+    header("Location: clientEntry.php");
   }
   if ($_POST['toDo'] == "deleteMember")
   {
     $_SESSION['memberCount']--;
     $_SESSION['familyMembers'][$_SESSION['memberCount']] = NULL;
-    header("Location: dataEntry.php");
+    header("Location: clientEntry.php");
   }
-
+  
+  //To make the client confirmation screen correct, update the session
+  //variables with the address they chose from search (if necessary).
+  $house = array();
+  if ($_SESSION['houseID'] != "new")
+  {
+    foreach($_SESSION['matches'] as $match)
+    {
+      if ($match["houseID"] == $_SESSION['houseID'])
+      {
+        $house['streetNumber'] = $match['streetNumber'];
+        $house['streetName'] = $match['streetName'];
+        $house['streetType'] = $match['streetType'];
+        $house['city'] = $match['city'];
+        $house['zip'] = $match['zip'];
+      }
+    }
+  }
+  else
+  {
+    $house['streetNumber'] = $_SESSION['streetNumber'];
+    $house['streetName'] = $_SESSION['streetName'];
+    $house['streetType'] = $_SESSION['streetType'];
+    $house['city'] = $_SESSION['city'];
+    $house['zip'] = $_SESSION['zip'];
+  }
+  
   $gender = Gender::getGenderByID($_SESSION['gengroup']);
   $ethnicity = Ethnicity::getEthnicityByID($_SESSION['ethgroup']);
   $reason = Reason::getReasonByID($_SESSION['reasongroup']);
@@ -76,31 +104,57 @@
 			<h2>Please check that the information you have entered is correct.</h2>
 			<hr/>
 		</div><!-- /header -->
+<?php 
+  if (!empty($_SESSION['errors']))
+  {
+    $addressError = FALSE;
+    echo '<div id="error">';
+    echo "\n";
+    echo "<h4 style='color:red;'>There was an error " . $changing . " the client. ";
+    echo "Please make sure the the following fields are present and correct:</h4>\n";
+    echo "\t<ul>\n";
+    foreach ($_SESSION['errors'] as $error)
+    {
+      if ($error === "Street number" || $error === "Street name" || $error === "Street type" || $error === "City" || $error === "Zip")
+      {
+        $addressError = TRUE;
+      }
+      echo "\t\t<li>$error</li>\n";
+    }
+    echo "\t</ul></div>\n";
+    if ($addressError)
+    {
+      echo "<h5>For addresses, either list all parts of an address or no parts (if the client is homeless)</h5>\n";
+    }
+    $_SESSION['errors'] = NULL;
+  }
+?>  
     <div id="newClient">
         <table>
           <tr>
             <td><label>Date of Application:</label></td>
-            <td><?php echo htmlentities($_SESSION['appDate']); ?></td>
+            <td><?php   echo htmlentities($_SESSION['appDate']); ?></td>
           </tr>
           <tr>
             <td><label>First Name: </label></td>
-            <td><?php echo htmlentities($_SESSION['firstName']); ?></td>
+            <td><?php   echo htmlentities($_SESSION['firstName']); ?></td>
           </tr>
           <tr>
             <td><label>Last Name: </label></td>
-            <td><?php echo htmlentities($_SESSION['lastName']); ?></td>
+            <td><?php   echo htmlentities($_SESSION['lastName']); ?></td>
           </tr>
           <tr>
             <td><label>Current Address: </label></td>
-            <td><?php echo htmlentities($_SESSION['address']); ?></td>
+            <td><?php   echo htmlentities($house['streetNumber']) . " ". htmlentities($house['streetName']) . " " .
+                            htmlentities($house['streetType']); ?></td>
           </tr>
           <tr>
             <td><label>Current City: </label></td>
-            <td><?php echo htmlentities($_SESSION['city']); ?></td>
+            <td><?php   echo htmlentities($house['city']); ?></td>
           </tr>
           <tr>
             <td><label>Zip Code: </label></td>
-            <td><?php echo htmlentities($_SESSION['zip']); ?></td>
+            <td><?php   echo htmlentities($house['zip']); ?></td>
           </tr>
           <?php          
             if($_SESSION['edit'])
@@ -115,11 +169,11 @@
             ?>
           <tr>
             <td><label>Phone Number: <span class="example">(111-222-3333)</span></label></td>
-            <td><?php echo htmlentities($_SESSION['number']); ?></td>
+            <td><?php   echo htmlentities($_SESSION['number']); ?></td>
           </tr>
           <tr>
             <td><label>Client Age: </label></td>
-            <td><?php echo htmlentities($_SESSION['age']);  ?></td>
+            <td><?php   echo htmlentities($_SESSION['age']);  ?></td>
           </tr>
           <tr>
             <td><label>Client Gender: </label></td>
@@ -156,7 +210,7 @@
             ?>
           <tr>
             <td><label>Explanation (if necessary): </label></td>
-            <td><?php echo htmlentities($_SESSION['explanation']); ?></td>
+            <td><?php   echo htmlentities($_SESSION['explanation']); ?></td>
           </tr>
                     <?php
             if (!empty($reason) && $reason->getReasonID() == LOST_JOB)
@@ -169,14 +223,17 @@
           <tr>
             <td><label>Are you currently receving food stamps?</label></td>
             <td><?php 
-                  if(isset($_SESSION['receivesStamps']) && $_SESSION['receivesStamps'] == 1)
+                  if(isset($_SESSION['receivesStamps']))
                   { 
-                    echo "Yes";
+                    if ($_SESSION['receivesStamps'] == 1)
+                    {
+                      echo "Yes";
+                    }
+                    else
+                    {
+                      echo "No";
+                    }
                   }
-                  else
-                  {
-                    echo "No";
-                  } 
                 ?>
             </td>
           </tr>
@@ -200,19 +257,15 @@
             }
             ?>
           <tr>
-<td><form method="post" action="controllers/modifyClient.php"><input type="submit" value="<?php 
-                                                                                            if(!empty($_SESSION['client']))
-                                                                                            {
-                                                                                              echo 'Edit Client';
-                                                                                            }
-                                                                                            else
-                                                                                            {
-                                                                                              echo 'Add New Client';
-                                                                                            }
-                                                                                            ?>"/></form>
+          <td><form method="post" action="controllers/modifyClient.php"><input type="submit" 
+                                  value="<?php if(!empty($_SESSION['clientID']))
+                                                {echo 'Edit Client';}
+                                                else
+                                                {echo 'Add New Client';}?>"/></form>
           </tr>
         </table>
   </div><!-- /confirm client -->
-  <a href="dataEntry.php">Go back to change information</a>
+  <a href="addressEntry.php">Go back to change address information</a><br />
+  <a href="clientEntry.php">Go back to change client information</a>
 </body>
 </html>

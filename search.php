@@ -57,7 +57,7 @@
           <hr />
           <ul>
           <li><a href="selectTask.php">Select a Task</a></li>
-          <li><a href="dataEntry.php?clean=1">Add a new Client</a></li>
+          <li><a href="addressEntry.php?clean=1">Add a new Client</a></li>
         </ul>
       </div>';
       if (isset($_GET['deleteError']))
@@ -94,7 +94,7 @@
                 <td><input type="submit" name="searchsubmit" id="searchsubmit" value="Search" /></td>
               </tr>
               <tr>
-                <td><br /><a href="dataEntry.php">Add a client</a></td>
+                <td><br /><a href="addressEntry.php?clean=1">Add a client</a></td>
               </tr>
             </table>
           </fieldset>
@@ -113,7 +113,7 @@
         <hr />
         <ul>
           <li><a href="selectTask.php">Select a Task</a></li>
-          <li><a href="dataEntry.php">Add a new Client</a></li>
+          <li><a href="addressEntry.php?clean=1">Add a new Client</a></li>
         </ul>
         </div>
         <div id="newClient" class="search">
@@ -130,13 +130,13 @@
         }
         echo "<td><span>Registered {$clients[$i]->getApplicationDate()} </span></td>";
         echo "<td><a href='viewHistory.php?client={$clients[$i]->getClientID()}'>View visit history</a></td>";
-        echo "<td><a href='dataEntry.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
+        echo "<td><a href='addressEntry.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
         echo "</tr>";
       }
       echo "</table><br/>";
       echo '<form action="search.php"><input type="submit" name="searchAgain" value="Try another search" / >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="selectTask.php">Return to the task selection page</a>
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="dataEntry.php">Add a client</a>
+      <a href="addressEntry.php?clean=1">Add a client</a>
       </form>';
       echo '</div>';
     }
@@ -149,14 +149,14 @@
    		<hr />
    		<ul>
 			<li><a href="selectTask.php">Select a Task</a></li>
-			<li><a href="dataEntry.php">Add a new Client</a></li>
+			<li><a href="addressEntry.php?clean=1">Add a new Client</a></li>
 		</ul>
   	</div>
 	<div id="newClient" class="search">  
 	<div id="noResults">
   	<h3 style="color:red;">There are no results for your search</h3>
-  	<h4>You can search again or add this client to the database</h4>
-  	<form action="search.php"><a href="dataEntry.php">Add a client</a><br/><br/>
+  	<h4>You can search again or create a client</h4>
+  	<form action="search.php"><a href="addressEntry.php?clean=1">Add a client</a><br/><br/>
   	<a href="selectTask.php">Return to the task selection page</a><br/><br/>
   	<input type="submit" name="searchAgain" value="Try another search" / ></form>
   	</div>

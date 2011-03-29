@@ -1,9 +1,13 @@
 <?php
 
   //Strips a string of all non-alphanumeric characters except hyphens and spaces
-  function processString ($string)
+  function processString ($string, $stripSpaces = FALSE)
   {
     $string = trim($string);
+    if ($stripSpaces)
+    {
+      $string = str_replace(' ', '', $string);
+    }
     $string = preg_replace('/[^a-zA-Z0-9\- ]/', '', $string);
     if ($string !== "0" && empty($string))
     {

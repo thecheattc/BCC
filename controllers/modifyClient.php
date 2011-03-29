@@ -8,15 +8,6 @@
   
   define("UNEMPLOYED_REASON_ID", 1);
   define("NOT_ON_FOODSTAMPS", 0);
-    
-  /**** If two people live at the same house and one changes their address, both people 
-   **** will reflect this change. This is fine since the paperwork is only filled out once a year ****/
-  
-  //Grab all the kids related to a client.
-  //If a house is given, tie the array of kids in session to the house
-  //Else tie the array of kids in session to the client
-  //Insert all the new kids
-  //Run through and delete all the old
       
   $edit = (!empty($_SESSION['edit']))? TRUE : FALSE;
   $house = NULL;
@@ -25,7 +16,7 @@
   $oldFamilyMembers = array();
   if ($edit)
   {
-    $client = Client::getClientByID($_SESSION['client']);
+    $client = Client::getClientByID($_SESSION['clientID']);
     if ($client === NULL)
     {
       header("Location: ../search.php");
@@ -33,36 +24,15 @@
     else
     {
       $oldFamilyMembers = $client->getAllFamilyMembers();
-      if ($client->getHouseID() !== NULL)
-      {
-        $house = House::getHouseByID($client->getHouseID());
-      }
     }
   }
-  /*
-  echo "<PRE>";
-  echo "Date: "; var_dump($_SESSION['appDate']);
-  echo "First: "; var_dump($_SESSION['firstName']);
-  echo "Last: "; var_dump($_SESSION['lastName']);
-  echo "Street: "; var_dump($_SESSION['address']); 	
-  echo "City: "; var_dump($_SESSION['city']);
-  echo "Zip: "; var_dump($_SESSION['zip']);
-  echo "Phone: "; var_dump($_SESSION['number']);
-  echo "Age: "; var_dump($_SESSION['age']);
-  echo "GenderID: "; var_dump($_SESSION['gengroup']);
-  echo "EthnicityID: "; var_dump($_SESSION['ethgroup']);
-  echo "ReasonID: "; var_dump($_SESSION['reasongroup']);
-  echo "Reason explanation: "; var_dump($_SESSION['explanation']);
-  echo "UnempDate: "; var_dump($_SESSION['uDate']);
-  echo "Receives stamps: "; var_dump($_SESSION['receivesStamps']);
-  echo "Wants stamps: "; var_dump($_SESSION['wantsStamps']);
-  echo "\n";
-   */
   
   $appDate = $_SESSION['appDate'];
   $first = processString($_SESSION['firstName']);
   $last = processString($_SESSION['lastName']);
-  $address = processString($_SESSION['address']);
+  $streetNumber = processString($_SESSION['streetNumber']);
+  $streetName = processString($_SESSION['streetName']);
+  $streetType = processString($_SESSION['streetType']);
   $city = processString($_SESSION['city']);
   $zip = processString($_SESSION['zip']);
   $oldAddressValid = processString($_SESSION['oldAddressValid']);
@@ -92,36 +62,27 @@
   {
     $wantsStamps = processString($_SESSION['wantsStamps']);
   }
-  /*
-  echo "Date: "; var_dump($appDate);
-  echo "First: "; var_dump($first);
-  echo "Last: "; var_dump($last);
-  echo "Street: "; var_dump($address);
-  echo "City: "; var_dump($city);
-  echo "Zip: "; var_dump($zip);
-  echo "Phone: "; var_dump($phone);
-  echo "Age: "; var_dump($age);
-  echo "GenderID: "; var_dump($genderID);
-  echo "EthnicityID: "; var_dump($ethnicityID);
-  echo "ReasonID: "; var_dump($reasonID);
-  echo "UnempDate: "; var_dump($unempDate);
-  echo "Receives stamps: "; var_dump($receivesStamps);
-  echo "Wants stamps: "; var_dump($wantsStamps);
-  echo "</PRE>";
-  */
   
   //If any part of the address is listed, all parts must be.
   $badAddr = FALSE;
   $count = 0;
-  if (!empty($address)){ $count++;}
+  if (!empty($streetNumber)){ $count++;}
+  if (!empty($streetName)){ $count++;}
+  if (!empty($streetType)){ $count++;}
   if (!empty($city)){ $count++;}
   if (!empty($zip)){ $count++;}
-  if ($count > 0 && $count < 3){ $badAddr = TRUE;}
+  if ($count > 0 && $count < 5){ $badAddr = TRUE;}
   
   $errors = array();
+  if (empty($_SESSION['houseID']))
+  {
+    $errors[] = "House selection from search results";
+  }
   if ($badAddr)
   {
-    $errors[] = "Address";
+    $errors[] = "Street number";
+    $errors[] = "Street name";
+    $errors[] = "Street address";
     $errors[] = "City";
     $errors[] = "Zip";
   }
@@ -145,15 +106,15 @@
   {
     $errors[] = "Age";
   }
-  if (!isset($genderID))
+  if (empty($genderID))
   {
     $errors[] = "Gender";
   }
-  if (!isset($ethnicityID))
+  if (empty($ethnicityID))
   {
     $errors[] = "Ethnicity";
   }
-  if (!isset($reasonID))
+  if (empty($reasonID))
   {
     $errors[] = "Reason for getting food";
   }
@@ -188,29 +149,46 @@
   if (!empty($errors))
   {
     $_SESSION['errors'] = $errors;
-    header('Location: ../dataEntry.php');
+    header('Location: ../clientConfirm.php');
   }
   else
   {
-    $houseSaveFail = false;
-    //If the address is given, create an entry in the database for their house.
-    if ($count === 3)
+    $house = NULL;
+    $houseSaveFail = FALSE;
+    //Only bother with a house if an address was given
+    if ($count === 5)
     {
-      //If it's a new client, the client previously had no address, or 
-      //they moved to a new house but the old house still has people registered with BCC in it,
-      //create a house
-      if (!$edit || $client->getHouseID() === NULL || $oldAddressValid)
+      //If the houseID is new, or the houseID is something other than new and the old adderss is still valid, make a new house.
+      //Otherwise just grab the house and edit it.
+      if ($_SESSION['houseID'] === "new")
       {
         $house = House::create();
       }
-      $house->setAddress($address);
+      else
+      {
+        if ($_SESSION['oldAddressValid'])
+        {
+          $house = House::create();
+        }
+        else
+        {
+          $house = House::getHouseByID($_SESSION['houseID']);
+        }
+      }
+      $house->setStreetNumber($streetNumber);
+      $house->setStreetName($streetName);
+      $house->setStreetType($streetType);
       $house->setCity($city);
       $house->setZip($zip);
-      
+      /*
+      echo "<pre>";
+      var_dump($house);
+      echo "</pre>";
+       */
       //If the insert failed then presumably the house already exists
       if ($house->save() === FALSE)
       {
-        $house = House::searchByAddress($address, $city, $zip);
+        $house = House::searchByAddress($streetNumber, $streetName, $streetType, $city, $zip);
         if ($house === NULL)
         {
           //Couldn't find that house, so the insert failed for some other reason. Raise an error
@@ -218,15 +196,11 @@
         }
       }
     }
-    //If it's an edit and no address was given, set the house (and in doing so, the client's house id) to NULL.
-    else if ($edit && $count === 0)
-    {
-      $house = NULL;
-    }
-    //House insertion failed
     if ($houseSaveFail)
     {
-      header('Location: ../dataEntry.php');
+      $errors[] = "There was an error adding the address to the database.";
+      $_SESSION['errors'] = $errors;
+      header('Location: ../clientConfirm.php');
     }
     else
     {
@@ -266,7 +240,12 @@
       if (!$client->save())
       {
         $client->discard();
-        header("Location: ../dataEntry.php");
+        $errors[] = "There was an error adding the client to the database.";
+        $_SESSION['errors'] = $errors;
+        echo "<PRE>";
+        var_dump($_SESSION);
+        echo "</PRE>";
+        //header("Location: ../clientConfirm.php");
       }
       else
       {
@@ -303,18 +282,15 @@
         }
         foreach($oldFamilyMembers as $familyMember)
         {
-          if (!$familyMember->delete())
-          {
-            echo "wut wut in the butt";
-          }
+          $familyMember->delete();
         }
         if ($edit)
-        {          
-          header("Location: ../dataEntry.php?success=1&edit=1");
+        { 
+          header("Location: ../search.php?success=1&clientEdit=1");
         }
         else
         {
-          header("Location: ../dataEntry.php?success=1&edit=0");
+          header("Location: ../search.php?success=1&clientEdit=0");
         }
       }
     }

@@ -1,9 +1,11 @@
 <?php
-
+  
   class House
   {
     private $houseID;
-    private $address;
+    private $streetNumber;
+    private $streetName;
+    private $streetType;
     private $city;
     private $zip;
     
@@ -31,6 +33,42 @@
       $this->dirty = true;
       $this->address = $val;
       return $this->address;
+    }
+   
+    public function getStreetNumber()
+    {
+      return $this->streetNumber;
+    }
+    
+    public function setStreetNumber($val)
+    {
+      $this->dirty = true;
+      $this->streetNumber = $val;
+      return $this->streetNumber;
+    }
+    
+    public function getStreetName()
+    {
+      return $this->streetName;
+    }
+    
+    public function setStreetName($val)
+    {
+      $this->dirty = true;
+      $this->streetName = $val;
+      return $this->streetName;
+    }
+    
+    public function getStreetType()
+    {
+      return $this->streetType;
+    }
+    
+    public function setStreetType($val)
+    {
+      $this->dirty = true;
+      $this->streetType = $val;
+      return $this->streetType;
     }
     
     public function getCity()
@@ -100,7 +138,18 @@
       SQLDB::connect();
       
       //Sanitize user-generated input
-      $addressParam = mysql_real_escape_string($this->address);
+      $streetNumberParam = mysql_real_escape_string($this->streetNumber);
+      $streetNameParam = mysql_real_escape_string($this->streetName);
+      $streetTypeParam = NULL;
+      
+      if(mysql_real_escape_string($this->streetType) === '')
+      {
+        $streetTypeParam = "NULL";
+      }
+      else
+      {
+        $streetTypeParam = "'" . mysql_real_escape_string($this->streetType) . "'";
+      }
       $cityParam = mysql_real_escape_string($this->city);
       $zipParam = mysql_real_escape_string($this->zip);
       $query = "";
@@ -109,7 +158,9 @@
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_food_client.houses SET ";
-        $query .= "address='{$addressParam}', ";
+        $query .= "street_number='{$streetNumberParam}', ";
+        $query .= "street_name='{$streetNameParam}', ";
+        $query .= "street_type=" . $streetTypeParam . ", ";
         $query .= "city='{$cityParam}', ";
         $query .= "zip='{$zipParam}' ";
         $query .= "WHERE house_id = '{$this->houseID}'";
@@ -117,10 +168,9 @@
       //If the house was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.houses (address, city, zip) ";
-        $query .= "VALUES ('{$addressParam}', '{$cityParam}', '{$zipParam}')";
+        $query = "INSERT INTO bcc_food_client.houses (street_number, street_name, street_type, city, zip) ";
+        $query .= "VALUES ('{$streetNumberParam}', '{$streetNameParam}', " . $streetTypeParam . ", '{$cityParam}', '{$zipParam}')";
       }
-            
       $result = mysql_query($query);
       
       if ($result !== FALSE)
@@ -143,7 +193,9 @@
     {
       $house = new House();
       $house->houseID = $row["house_id"];
-      $house->address = $row["address"];
+      $house->streetNumber = $row["street_number"];
+      $house->streetName = $row["street_name"];
+      $house->streetType = $row["street_type"];
       $house->city = $row["city"];
       $house->zip = $row["zip"];
       $house->createdFromDB = true;
@@ -158,7 +210,7 @@
       
       $houseID = mysql_real_escape_string($houseID);
       
-      $query = "SELECT house_id, address, city, zip ";
+      $query = "SELECT house_id, street_number, street_name, street_type, city, zip ";
       $query .= "FROM bcc_food_client.houses ";
       $query .= "WHERE house_id = '{$houseID}'";
       
@@ -173,19 +225,21 @@
       return $house;
     }
     
-    //Returns the house that matches the given street, city, and zip.
-    public static function searchByAddress($street = '', $city = '', $zip = '')
+    //Returns a house given all fields
+    public static function searchByAddress($streetNumber, $streetName, $streetType, $city, $zip)
     {
       SQLDB::connect();
       
-      $street = mysql_real_escape_string($street);
-      $city = mysql_real_escape_string($city);
-      $zip = mysql_real_escape_string($zip);
+      $streetNumber = mysql_real_escape_string(processString($streetNumber, TRUE));
+      $streetName = mysql_real_escape_string(processString($streetName));
+      $streetType = mysql_real_escape_string(processString($streetType));
+      $city = mysql_real_escape_string(processString($city));
+      $zip = mysql_real_escape_string(processString($zip));
       
-      $query = "SELECT house_id, address, city, zip ";
+      $query = "SELECT house_id, street_number, street_name, street_type, city, zip ";
       $query .= "FROM bcc_food_client.houses ";
-      $query .= "WHERE address = '{$street}' AND city = '{$city}' AND zip = '{$zip}'";
-      
+      $query .= "WHERE street_number = '{$streetNumber}' AND street_name = '{$streetName}' AND ";
+      $query .= "street_type = '{$streetType}' AND city = '{$city}' AND zip = '{$zip}'";
       
       $result = mysql_query($query);
       $house = NULL;
@@ -196,6 +250,37 @@
       }
       
       return $house;
+    }
+    
+    
+    //Returns an array of houses matching the given streetNumber and streetName.
+    public static function searchAddresses($streetNumber = '', $streetName = '')
+    {
+      SQLDB::connect();
+      
+      $streetNumber = mysql_real_escape_string(processString($streetNumber, TRUE));
+      $streetName = mysql_real_escape_string(processString($streetName));
+      
+      $query = "SELECT house_id, street_number, street_name, street_type, city, zip ";
+      $query .= "FROM bcc_food_client.houses ";
+      $query .= "WHERE street_number LIKE '{$streetNumber}' OR street_name LIKE '{$streetName}'";
+      
+      $result = mysql_query($query);
+      $houses = array();
+      
+      while ($row = mysql_fetch_array($result))
+      {
+        $house = array();
+        $house['houseID'] = $row['house_id'];
+        $house['streetNumber'] = $row['street_number'];
+        $house['streetName'] = $row['street_name'];
+        $house['streetType'] = $row['street_type'];
+        $house['city'] = $row['city'];
+        $house['zip'] = $row['zip'];
+        $houses[] = $house;
+      }
+      
+      return $houses;
     }
     
   }

@@ -13,11 +13,13 @@ DROP TABLE IF EXISTS `bcc_food_client`.`houses` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`houses` (
   `house_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
-  `address` VARCHAR(45) NOT NULL ,
+  `street_number` VARCHAR(45) NOT NULL ,
+  `street_name` VARCHAR(45) NOT NULL ,
+  `street_type` VARCHAR(45) NULL DEFAULT NULL ,
   `city` VARCHAR(45) NOT NULL ,
   `zip` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`house_id`) ,
-  UNIQUE INDEX `house_UNIQUE` (`address` ASC, `city` ASC, `zip` ASC) )
+  UNIQUE INDEX `house_UNIQUE` (`street_name` ASC, `city` ASC, `zip` ASC) )
 ENGINE = InnoDB;
 
 

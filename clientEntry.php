@@ -12,54 +12,52 @@
   define("LOST_JOB", 1);
   define("MAX_FAMILY_MEMBERS", 20);
   
+  var_dump($_SESSION);
+  
+  //Set the houseID so the controller will know how to handle it.
+  //Only do this when coming from the addressEntry page
+  if (!isset($_SESSION['fromConfirm']))
+  {
+    if (empty($_POST['houseID']))
+    {
+      if (!isset($_SESSION['errors']))
+      {
+        $_SESSION['errors'] = array();
+      }
+      $_SESSION['errors'][] = "Please select an address from the list.";
+      header("Location: addressEntry.php");
+    }
+    else
+    {
+       $_SESSION['houseID'] = $_POST['houseID'];
+    }
+  }
+  
+  $_SESSION['fromConfirm'] = NULL;
+  $_SESSION['errors'] = NULL;
+  
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
   $reasons = Reason::getAllReasons();
   $changed = "added";
   $changing = "adding";
   
-  if (isset($_GET['clean']))
-  {
-    $_SESSION = NULL;
-    session_destroy();
-    
-  }
-  
-  if (!empty($_SESSION['edit']) || !empty($_GET['client']) || (isset($_GET['edit']) && $_GET['edit'] == 1))
+  if (!empty($_SESSION['edit']))
   {
     $changed = "edited";
     $changing = "editing";
-  }
-  
-  if (!empty($_GET['client']))
-  {
-    $_SESSION['edit'] = TRUE;
-    $client = Client::getClientByID($_GET['client']);
-    
+    $client = Client::getClientByID($_SESSION['clientID']);
     if($client === NULL)
     {
       session_destroy();
       header("Location: search.php?error=1");
     }
     else
-    {
-      $house = NULL;
-      if ($client->getHouseID() !== NULL)
-      {
-        $house = House::getHouseByID($client->getHouseID());
-        if ($house === NULL)
-        {
-          session_destroy();
-          header("Location: search.php?error=1");
-        }
-      }
-      $_SESSION['client'] = $client->getClientID();
+    { 
+      $_SESSION['clientID'] = $client->getClientID();
       $_SESSION['appDate'] = $client->getApplicationDate();
       $_SESSION['firstName'] = $client->getFirstName();
       $_SESSION['lastName'] = $client->getLastName();
-      $_SESSION['address'] = ($house !== NULL)? $house->getAddress() : NULL;
-      $_SESSION['city'] = ($house !== NULL)? $house->getCity() : NULL;
-      $_SESSION['zip'] = ($house !== NULL)? $house->getZip() : NULL;
       $_SESSION['number'] = $client->getPhoneNumber();
       $_SESSION['age'] = $client->getAge();
       $_SESSION['gengroup'] = $client->getGenderID();
@@ -69,7 +67,7 @@
       $_SESSION['uDate'] = $client->getUnemploymentDate();
       $_SESSION['receivesStamps'] = $client->getReceivesStamps();
       $_SESSION['wantsStamps'] = $client->getWantsStamps();
-      
+            
       //Populate session with client children
       $familyMembers = $client->getAllFamilyMembers();
       $sessionFamilyMembers = array();
@@ -166,40 +164,11 @@
         <?php
           if (isset($_SESSION['edit']))
           {
-            echo '<li><a href="dataEntry.php?clean=1">Add a new client</a></li>';
+            echo '<li><a href="addressEntry.php?clean=1">Add a new client</a></li>';
           }
         ?>
 			</ul>
 		</div><!-- /header -->
-<?php 
-  if (!empty($_SESSION['errors']))
-  {
-    $addressError = FALSE;
-    echo '<div id="error">';
-    echo "\n";
-    echo "<h4 style='color:red;'>There was an error " . $changing . " the client. ";
-    echo "Please make sure the the following fields are present and correct:</h4>\n";
-    echo "\t<ul>\n";
-    foreach ($_SESSION['errors'] as $error)
-    {
-      if ($error === "Address" || $error === "City" || $error === "Zip")
-      {
-        $addressError = TRUE;
-      }
-      echo "\t\t<li>$error</li>\n";
-    }
-    echo "\t</ul></div>\n";
-    if ($addressError)
-    {
-      echo "<h5>For addresses, either list all parts of an address or no parts (if the client is homeless)</h5>\n";
-    }
-
-  }
-  elseif (!empty($_GET['success']) && $_GET['success'] == 1)
-  {
-    echo "<h4 style='color:green;'>Client " . $changed . " successfully.</h4>";
-  }
-  ?>
 		<div id="newClient">
 			<form method="post" action="clientConfirm.php">
       <input name="toDo" id="toDo" type="hidden" value="submit" />
@@ -218,31 +187,7 @@
 						<td><label for="lastName">Last Name: </label></td>
 						<td><input name="lastName" type="text" size="60" value="<?php echo $_SESSION['lastName']; ?>"/></td>
 					</tr>
-					<tr>
-						<td><label for="address">Current Address: </label></td>
-						<td><input name="address" type="text" size="80" value="<?php echo $_SESSION['address']; ?>"/></td>
-					</tr>
-					<tr>
-						<td><label for="city">Current City: </label></td>
-						<td><input name="city" type="text" size="50" value="<?php echo $_SESSION['city']; ?>"/></td>
-					</tr>
-					<tr>
-						<td><label for="zip">Zip Code: </label></td>
-						<td><input name="zip" type="text" size="11" maxlength="11" value="<?php echo $_SESSION['zip']; ?>" /></td>
-					</tr>
-          <?php          
-            if($_SESSION['edit'])
-            {
-              echo "\n\t<tr>\n\t\t<td><label for='oldAddressValid'>If your address has changed, ";
-              echo "are there still people registered with Bryant at the old address?</label></td>\n";
-              echo "\t\t<td>No <input name='oldAddressValid' id='oldAddressValid' type='radio' value='0' ";
-              if (isset($_SESSION['oldAddressValid']) && $_SESSION['oldAddressValid'] == 0){ echo "checked"; }
-              echo "/> Yes <input name='oldAddressValid' id='oldAddressValid' type='radio' value='1' ";
-              if (isset($_SESSION['oldAddressValid']) && $_SESSION['oldAddressValid'] == 1){ echo "checked"; }
-              echo "/></td>\n\t</tr>";
-            }
-            ?>
-					<tr>
+          <tr>
 						<td><label for="number">Phone Number: <span class="example">(111-222-3333)</span></label></td>
 						<td><input name="number" id="number"type="text" size="16" maxlength="16" value="<?php echo $_SESSION['number']; ?>" /></td>
 					</tr>
@@ -386,11 +331,12 @@
 				</table>
 			</fieldset>
 			</form>
+      <a href="addressEntry.php">Back to address information</a>
 		</div><!-- /newClient -->
 <?php 
-  if (!empty($_SESSION['client']))
+  if (!empty($_SESSION['clientID']))
   {
-    echo "<a href=controllers/deleteClient.php?client=" . $_SESSION['client'] . " ";
+    echo "<a href=controllers/deleteClient.php?client=" . $_SESSION['clientID'] . " ";
     echo "onClick=" . '"' . "return confirm('Are you sure you want to delete this client? ";
     echo "Doing so will remove all information related to the client from the database.')" . '">Delete this client</a>';
   }
