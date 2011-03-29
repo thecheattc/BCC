@@ -12,8 +12,6 @@
   define("LOST_JOB", 1);
   define("MAX_FAMILY_MEMBERS", 20);
   
-  var_dump($_SESSION);
-  
   //Set the houseID so the controller will know how to handle it.
   //Only do this when coming from the addressEntry page
   if (!isset($_SESSION['fromConfirm']))
@@ -26,6 +24,7 @@
       }
       $_SESSION['errors'][] = "Please select an address from the list.";
       header("Location: addressEntry.php");
+      exit();
     }
     else
     {
@@ -67,7 +66,7 @@
       $_SESSION['uDate'] = $client->getUnemploymentDate();
       $_SESSION['receivesStamps'] = $client->getReceivesStamps();
       $_SESSION['wantsStamps'] = $client->getWantsStamps();
-            
+      
       //Populate session with client children
       $familyMembers = $client->getAllFamilyMembers();
       $sessionFamilyMembers = array();
@@ -286,7 +285,7 @@
             }
             ?>
           <tr>
-            <td><label for="explanation">Explanation (if necessary): </label></div></td>
+            <td><label for="explanation">Explanation (required if the reason is "Other"): </label></div></td>
             <td><input type="text" name="explanation" id="explanation" value="<?php echo $_SESSION['explanation']; ?>"/></td>
           </tr>
 					<tr>

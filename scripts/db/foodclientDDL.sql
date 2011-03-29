@@ -81,7 +81,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   `unemployment_date` DATE NULL ,
   `application_date` DATE NOT NULL ,
   `receives_stamps` TINYINT(1)  NOT NULL ,
-  `wants_stamps` TINYINT(1)  NULL ,
+  `wants_stamps` TINYINT(1)  NOT NULL ,
   PRIMARY KEY (`client_id`) ,
   INDEX `client_house_id` (`house_id` ASC) ,
   INDEX `client_reason` (`reason_id` ASC) ,

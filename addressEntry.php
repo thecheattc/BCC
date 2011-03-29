@@ -6,9 +6,9 @@
   include('models/client.php');
   include('models/house.php');
   
-  echo "<PRE>";
-  var_dump($_SESSION);
-  echo "</PRE>";
+   echo "<PRE>";
+   var_dump($_SESSION);
+   echo "</PRE>";
 
   if (isset($_GET['clean']))
   {
@@ -25,37 +25,33 @@
     {
       session_destroy();
       header("Location: search.php?error=1");
+      exit();
     }
-    else
+    $_SESSION['clientID'] = $client->getClientID();
+    $_SESSION['houseID'] = NULL;
+    $_SESSION['streetNumber'] = NULL;
+    $_SESSION['streetName'] = NULL;
+    $_SESSION['streetType'] = NULL;
+    $_SESSION['city'] = NULL;
+    $_SESSION['zip'] = NULL;
+    
+    if ($client->getHouseID() !== NULL)
     {
-      if ($client->getHouseID() !== NULL)
+      $house = House::getHouseByID($client->getHouseID());
+      if ($house)
       {
-        $house = House::getHouseByID($client->getHouseID());
-        if ($house === NULL)
-        {
-          session_destroy();
-          header("Location: search.php?error=1");
-        }
-        
-        $_SESSION['clientID'] = $client->getClientID();
-        if ($house)
-        {
-          $_SESSION['houseID'] = $house->getHouseID();
-          $_SESSION['streetNumber'] = $house->getStreetNumber();
-          $_SESSION['streetName'] = $house->getStreetName();
-          $_SESSION['streetType'] = $house->getStreetType();
-          $_SESSION['city'] = $house->getCity();
-          $_SESSION['zip'] = $house->getZip();
-        }
-        else
-        {
-          $_SESSION['houseID'] = NULL;
-          $_SESSION['streetNumber'] = NULL;
-          $_SESSION['streetName'] = NULL;
-          $_SESSION['streetType'] = NULL;
-          $_SESSION['city'] = NULL;
-          $_SESSION['zip'] = NULL;
-        }
+        $_SESSION['houseID'] = $house->getHouseID();
+        $_SESSION['streetNumber'] = $house->getStreetNumber();
+        $_SESSION['streetName'] = $house->getStreetName();
+        $_SESSION['streetType'] = $house->getStreetType();
+        $_SESSION['city'] = $house->getCity();
+        $_SESSION['zip'] = $house->getZip();
+      }
+      else
+      {
+        session_destroy();
+        header("Location: search.php?error=1");
+        exit();
       }
     }
   }
@@ -130,17 +126,18 @@
           echo "\n";
         }
         echo '<tr>
-        <td>Use what was entered: ' . $_SESSION['streetNumber'] . ' ' . $_SESSION['streetName'] . ' ' . $_SESSION['streetType'] . ' '
+        <td>Create a new entry using what was entered: ' . $_SESSION['streetNumber'] . ' ' . $_SESSION['streetName'] . ' ' . $_SESSION['streetType'] . ' '
         . $_SESSION['city'] . ' ' . $_SESSION['zip'] . '</td>
         <td><input name="houseID" type="radio" value="new" ';
         if ($_SESSION['houseID'] === "new")
         {
           echo "checked";
         }
-        echo '/></td>
+        echo '/></td>';
+        echo '
         </tr>
         <tr>
-          <td><input type="submit" value="Continue" /></td>
+        <td><input type="submit" value="Continue" /></td>
         </tr>
         <tr>
           <td><a href="addressEntry.php?clean=1">Go back</a>

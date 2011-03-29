@@ -255,4 +255,14 @@
       return $members;
     }
     
+    //Deletes all family members that are not tied to a house or a client
+    public static function cleanFamilyMembers()
+    {
+      SQLDB::connect();
+      
+      $query = "DELETE FROM bcc_food_client.family_members WHERE member_house_id = NULL AND guardian_id = NULL";
+      $result = mysql_query($query);
+      return $result;
+    }
+    
   }

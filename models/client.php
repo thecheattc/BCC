@@ -302,15 +302,7 @@
       }
       $appDateParam = mysql_real_escape_string(normalDateToMySQL($this->applicationDate));
       $receivesStampsParam = mysql_real_escape_string($this->receivesStamps);
-      $wantsStampsParam = NULL;
-      if (mysql_real_escape_string($this->wantsStamps === ''))
-      {
-        $wantsStampsParam = "NULL";
-      }
-      else
-      {
-        $wantsStampsParam = "'" . mysql_real_escape_string($this->wantsStamps) . "'";
-      }
+      $wantsStampsParam = mysql_real_escape_string($this->wantsStamps);
       $query = "";
       
       //If this client already existed in the database, update it
@@ -343,6 +335,7 @@
         $query .= "'$genderIDParam', '$reasonIDParam', " . $explanationParam . ", ";
         $query .= $unempDateParam . ", '$appDateParam', '$receivesStampsParam', " . $wantsStampsParam . ")";
       }
+      
       $result = mysql_query($query);
       
       if ($result !== FALSE)

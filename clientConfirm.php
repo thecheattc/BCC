@@ -9,12 +9,13 @@
   
   define("LOST_JOB", 1);
   define("OTHER", 7);
-
+/*
   echo "<PRE>";
   var_dump($_SESSION);
   echo "</PRE>";
+ */
    
-    
+  $_SESSION['fromConfirm'] = TRUE;
   //Grab everything from POST and put it in session, so long
   //as we haven't been redirected here. Since we never redirect here
   //unless there are errors, we can use that to check.
@@ -32,15 +33,12 @@
     $_SESSION['uDate'] = $_POST['uDate'];
     $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
     $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
-  }
-  
-  $_SESSION['fromConfirm'] = TRUE;
-  
-  for ($i=0; $i<$_SESSION['memberCount']; $i++)
-  {
-    $_SESSION['familyMembers'][$i]["age"] = $_POST["memberAge{$i}"];
-    $_SESSION['familyMembers'][$i]["gender"] = $_POST["memberGender{$i}"];
-    $_SESSION['familyMembers'][$i]["ethnicity"] = $_POST["memberEthnicity{$i}"];
+    for ($i=0; $i<$_SESSION['memberCount']; $i++)
+    {
+      $_SESSION['familyMembers'][$i]["age"] = $_POST["memberAge{$i}"];
+      $_SESSION['familyMembers'][$i]["gender"] = $_POST["memberGender{$i}"];
+      $_SESSION['familyMembers'][$i]["ethnicity"] = $_POST["memberEthnicity{$i}"];
+    }
   }
   
   if ($_POST['toDo'] == "addMember")
@@ -81,6 +79,12 @@
     $house['streetType'] = $_SESSION['streetType'];
     $house['city'] = $_SESSION['city'];
     $house['zip'] = $_SESSION['zip'];
+  }
+  
+  $changing = "adding";
+  if ($_SESSION['edit'])
+  {
+    $changing = "editing";
   }
   
   $gender = Gender::getGenderByID($_SESSION['gengroup']);
@@ -192,27 +196,27 @@
             {
               $familyMember = $_SESSION['familyMembers'][$i];
               $j = $i+1;
-              $childGender = Gender::getGenderByID($_POST["memberGender{$i}"]);
-              $childEthnicity = Ethnicity::getEthnicityByID($_POST["memberEthnicity{$i}"]);
+              $childGender = Gender::getGenderByID($familyMember["gender"]);
+              $childEthnicity = Ethnicity::getEthnicityByID($familyMember["ethnicity"]);
               echo "\n\t<tr>\n\t\t<td><label>Child {$j} age:</label></td>\n";
-              echo "<td> ";
+              echo "\t<td> ";
               if (!empty($familyMember['age'])){ echo $familyMember['age']; }
               echo "</td>\n\t</tr>\n";
               echo "\t<tr>\n\t\t<td><label>Child {$j} gender:</label></td>\n";
-              echo "<td> ";
+              echo "\t<td> ";
               if (!empty($childGender)){ echo $childGender->getGenderDesc(); }
               echo "</td>\n\t</tr>\n";
               echo "\t<tr>\n\t\t<td><label>Child {$j} ethnicity:</label></td>\n";
-              echo "<td> ";
+              echo "\t<td> ";
               if (!empty($childEthnicity)){ echo $childEthnicity->getEthnicityDesc(); }
               echo "</td>\n\t</tr>\n";
             }
             ?>
           <tr>
-            <td><label>Explanation (if necessary): </label></td>
+            <td><label>Explanation (required if the reason is "Other"): </label></td>
             <td><?php   echo htmlentities($_SESSION['explanation']); ?></td>
           </tr>
-                    <?php
+          <?php
             if (!empty($reason) && $reason->getReasonID() == LOST_JOB)
             {
               echo "\t<tr>\n\t\t<td><label>Date of Job Loss: </label></td>\n\t\t<td>";

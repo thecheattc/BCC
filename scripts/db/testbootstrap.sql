@@ -15,7 +15,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`houses` (
   `house_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `street_number` VARCHAR(45) NOT NULL ,
   `street_name` VARCHAR(45) NOT NULL ,
-  `street_type` VARCHAR(45) NULL DEFAULT NULL,
+  `street_type` VARCHAR(45) NULL DEFAULT NULL ,
   `city` VARCHAR(45) NOT NULL ,
   `zip` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`house_id`) ,
@@ -81,7 +81,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   `unemployment_date` DATE NULL ,
   `application_date` DATE NOT NULL ,
   `receives_stamps` TINYINT(1)  NOT NULL ,
-  `wants_stamps` TINYINT(1)  NULL ,
+  `wants_stamps` TINYINT(1)  NOT NULL ,
   PRIMARY KEY (`client_id`) ,
   INDEX `client_house_id` (`house_id` ASC) ,
   INDEX `client_reason` (`reason_id` ASC) ,
@@ -216,7 +216,7 @@ VALUES
 INSERT INTO bcc_food_client.clients(first_name, last_name, age, phone_number, house_id,
 ethnicity_id, gender_id, reason_id, unemployment_date, application_date, receives_stamps, wants_stamps)
 VALUES
-('Evan', 'Lindell', '20', '5178994272', '1', '1', '1', '1', CURDATE(), CURDATE(), 1, NULL),
+('Evan', 'Lindell', '20', '5178994272', '1', '1', '1', '1', CURDATE(), CURDATE(), 1, 0),
 ('Mike', 'onna Bike', '27', '1800luvcoke', NULL, '1', '1', '6', CURDATE(), CURDATE(), 0, 1),
 ('Trisha', 'Takinawa', '42', '6124952284', '2', '4', '2', '3', CURDATE(), CURDATE(), 0, 0);
 

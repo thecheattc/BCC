@@ -126,7 +126,8 @@
         echo "\t<span>{$clients[$i]->getFirstName()} {$clients[$i]->getLastName()}</span></td>";
         if($houses[$i] != NULL)
         {
-          echo "<td><span>{$houses[$i]->getAddress()} {$houses[$i]->getCity()} {$houses[$i]->getZip()}</span></td>";
+          echo "<td><span>{$houses[$i]->getStreetNumber()} {$houses[$i]->getStreetName()} 
+          {$houses[$i]->getStreetType()} {$houses[$i]->getCity()} {$houses[$i]->getZip()}</span></td>";
         }
         echo "<td><span>Registered {$clients[$i]->getApplicationDate()} </span></td>";
         echo "<td><a href='viewHistory.php?client={$clients[$i]->getClientID()}'>View visit history</a></td>";
