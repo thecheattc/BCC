@@ -162,10 +162,7 @@
           <td><input type="hidden" name="fromAddress" value="yup" /></td>
         </tr>
         <tr>
-        <td><input type="submit" value="Continue" /></td>
-        </tr>
-        <tr>
-          <td><a href="addressEntry.php?nosearch=1">Back to address entry</a>
+					<td><input type="submit" value="Continue" /></td>
         </tr>
         </table>
         </form>

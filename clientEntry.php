@@ -323,7 +323,6 @@
 				</table>
 			</fieldset>
 			</form>
-      <a href="addressEntry.php">Back to address selection</a>
 		</div><!-- /newClient -->
 	</body>
 

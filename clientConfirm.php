@@ -282,7 +282,5 @@
           </tr>
         </table>
   </div><!-- /confirm client -->
-  <a href="clientEntry.php">Go back to change client information</a><br />  
-  <a href="addressEntry.php">Go back to change address information</a>
 </body>
 </html>
