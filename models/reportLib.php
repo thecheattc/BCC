@@ -10,7 +10,7 @@
   //to the first of the next month
   function getUnduplicatedIndividuals($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     global $REJECTED_ID;
     $start = mysql_real_escape_string($start);
@@ -34,7 +34,7 @@
   //(just the number of visits)
   function getDuplicatedHouseholds($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     global $REJECTED_ID;
     $start = mysql_real_escape_string($start);
@@ -56,7 +56,7 @@
   function getTotalHomeless($start, $end)
   {
     
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     global $HOMELESS_REASON_ID;
     global $REJECTED_ID;
@@ -84,7 +84,7 @@
   //as a distinct household
   function getUnduplicatedHouseholds($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     global $HOMELESS_REASON_ID;
     global $REJECTED_ID;
@@ -114,7 +114,7 @@
   
   function getHouseholdLocations($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     $start = mysql_real_escape_string($start);
     $end = mysql_real_escape_string($end);
@@ -139,7 +139,7 @@
   
   function getGenderCount($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     $start = mysql_real_escape_string($start);
     $end = mysql_real_escape_string($end);
@@ -204,7 +204,7 @@
   
   function getEthnicityCount($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     $start = mysql_real_escape_string($start);
     $end = mysql_real_escape_string($end);
@@ -270,7 +270,7 @@
   //Fill this in
   function getAgeCount($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     $start = mysql_real_escape_string($start);
     $end = mysql_real_escape_string($end);
@@ -334,7 +334,7 @@
   
   function getReasonCount($start, $end)
   {
-    SQLDB::connect();
+    SQLDB::connect("bcc_food_client");
     
     $start = mysql_real_escape_string($start);
     $end = mysql_real_escape_string($end);

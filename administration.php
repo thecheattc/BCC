@@ -5,12 +5,14 @@
 	include ('models/administrator.php');
 	$admin = NULL;
 	$loggedIn = FALSE;
-	if (!hasAccess())
+	if (!hasAccess(TRUE))
 	{
 		$_SESSION['errors'] = array();
 		$_SESSION['errors'][] = "This operation requires administrative privileges";
 		header("Location: ./");
+		exit();
 	}
+	resetTimeout();
 	?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -20,9 +22,12 @@
 <script type="text/javascript" 
 			src="scripts/js/jquery-1.4.4.min.js"></script>
 <head>
-<title>Bryant Community Center</title>
 </head>
 	<body>
+		<div id="header">
+		<?php showHeader("Bryant Community Center", "Food Distribution Administration", "", TRUE); ?>
+		</div>
+		<?php showErrors(); ?>	
 		<div>
 			<ul>
 				<li><a href="manageAdmins.php">Manage administrators</a></li>

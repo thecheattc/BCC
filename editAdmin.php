@@ -3,6 +3,7 @@
 	include ('controllers/utility.php');
 	include ('models/sqldb.php');
 	include ('models/administrator.php');
+	
 	if (!hasAccess(TRUE))
 	{
 		$_SESSION['errors'] = array();
@@ -27,7 +28,7 @@
 		exit();
 	}
 	$accessLevels = Administrator::getAllAccessLevels();
-	$accessLevelID = (empty($_SESSION['eaccessID']))? $admin->getAccessID() : $_SESSION['eaccessID']
+	$accessLevelID = (empty($_SESSION['eaccessID']))? $admin->getAccessID() : $_SESSION['eaccessID'];
 	?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -37,23 +38,12 @@
 <script type="text/javascript" 
 			src="scripts/js/jquery-1.4.4.min.js"></script>
 <head>
-<title>BCC Administration</title>
 </head>
 	<body>
-<?php
-	if (!empty($_SESSION['errors']))
-	{
-		echo "<div class='errors'>
-		<ul>\n";
-		foreach($_SESSION['errors'] as $error)
-		{
-			echo "<li>" . $error . "</li>\n";
-		}
-		echo "\t</ul>\n</div>";
-		$_SESSION['errors'] = NULL;
-	}
-	?>
-		<h3>Edit <?php echo $admin->getUsername(); ?>'s account</h3><!-- ' -->
+		<div id="header">
+			<?php showHeader("BCC Administration", "Edit {$admin->getUsername()}'s account", "", TRUE); ?>
+		</div>
+		<?php showErrors();	?>
 		<div>
 			<form id="editAdmin" method="post" action="controllers/editAdmin.php?id=<?php echo $admin->getAdminID(); ?>">
 				<label for="eadminPass1">Password:</label><input type="password" name="eadminPass1" /><br />

@@ -51,7 +51,7 @@
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.genders WHERE gender_id = '{$this->genderID}'";
       $result = mysql_query($query);
@@ -71,7 +71,7 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $genderDescParam = mysql_real_escape_string($this->genderDesc);
@@ -122,7 +122,7 @@
     
     public static function getAllGenders()
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "SELECT gender_id, gender_desc ";
       $query .= "FROM bcc_food_client.genders ";
@@ -141,7 +141,7 @@
     //Returns a gender object given a gender ID, or null if none found
     public static function getGenderByID($genderID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $genderID = mysql_real_escape_string($genderID);
       
@@ -159,6 +159,63 @@
       
       return $gender;
     }
+		
+		public static function getGenderByDesc($desc)
+		{
+			SQLDB::connect("bcc_food_client");
+			$desc = strToLower(mysql_real_escape_string($desc));
+			
+			$query = "SELECT gender_id, gender_desc
+			FROM bcc_food_client.genders
+			WHERE gender_desc = '{$desc}'";
+			
+			$result = mysql_query($query);
+			$gender = NULL;
+			if ($row = mysql_fetch_array($result))
+			{
+				$gender  = Gender::createFromSQLRow($row);
+			}
+			return $gender;
+		}
+		
+    //Returns the description of a given gender ID, or NULL if none found.
+    public static function getGenderDescByID($genderID)
+    {
+      SQLDB::connect("bcc_food_client");
+      
+      $genderID = mysql_real_escape_string($genderID);
+      
+      $query = "SELECT gender_desc ";
+      $query .= "FROM bcc_food_client.genders ";
+      $query .= "WHERE gender_id = '{$genderID}'";
+      
+      $result = mysql_query($query);
+      
+      $gender = NULL;
+      if ($row = mysql_fetch_array($result))
+      {
+        $gender = $row['gender_desc'];
+      }
+      
+      return $gender;
+    }
+		
+		public static function getRemovableGenderIDs()
+		{
+			SQLDB::connect("bcc_food_client");
+			$query = "SELECT gender_id 
+								FROM bcc_food_client.genders
+								WHERE gender_id NOT IN (SELECT gender_id FROM bcc_food_client.clients)";
+			$result = mysql_query($query);
+			$IDs = array();
+			
+			while ($row = mysql_fetch_array($result))
+			{
+				$IDs[] = $row['gender_id'];
+			}
+			
+			return $IDs;
+		}
     
   }
 ?>

@@ -14,7 +14,6 @@
 	}
 	else
 	{
-		echo "WRONG";
 		$_SESSION['attemptedUser'] = $_POST['bccUser'];
 		$_SESSION['errors'] = array();
 		$_SESSION['errors'][] = "The username or password is incorrect.";

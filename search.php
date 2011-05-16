@@ -1,11 +1,30 @@
 <?php
-
-  include('models/sqldb.php');
-  include('models/visit.php');
-  include('models/client.php');
-  include('models/house.php');
-  include('controllers/utility.php');
-  
+	session_start();
+  include ('models/sqldb.php');
+  include ('models/visit.php');
+	include ('models/administrator.php');
+  include ('models/familyMember.php');
+  include ('models/client.php');
+  include ('models/house.php');
+  include ('controllers/utility.php');
+	
+	if (!hasAccess())
+	{
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "This operation requires administrative privileges.";
+		header("Location: ./");
+		exit();
+	}
+	resetTimeout();
+	$adminID = $_SESSION['adminID'];
+	$timeout = $_SESSION['timeout'];
+	if (isset($_GET['clean']))
+  {
+    $_SESSION = array();
+		$_SESSION['adminID'] = $adminID;
+		$_SESSION['timeout'] = $timeout;
+  }
+	
   $first = isset($_POST['first'])? $_POST['first'] : '';
   $last = isset($_POST['last'])? $_POST['last'] : '';
   $street = isset($_POST['street'])? $_POST['street'] : '';
@@ -20,7 +39,7 @@
   
   if ($search)
   {
-    $clients = Client::searchByNameAndStreet(processString($first), processString($last), processString($street));
+    $clients = Client::searchByNameAndStreet($first, $last, $street);
     
     $houses = array();
     foreach ($clients as $client)
@@ -48,76 +67,65 @@
   <script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
 </head>
 <body>
-	<?php
-    if($search == false){
-      echo '
-        <div id="header">
-          <h1> Search for a Client</h1>
-          <h3>Search by first name, last name, and/or street address</h3>
-          <hr />
-          <ul>
-          <li><a href="selectTask.php">Select a Task</a></li>
-          <li><a href="addressEntry.php?clean=1">Add a new Client</a></li>
-        </ul>
-      </div>';
-      if (isset($_GET['deleteError']))
-      {
-        echo "<h4>There was an error deleting the client.</h4>";
-      }
-      if (isset($_GET['deleteSuccess']))
-      {
-        echo "<h4>Client deletion successful.</h4>";
-      }
-      if (isset($_GET['deleteVisitError']))
-      {
-        echo "<h4>There was an error deleting the visit.</h4>";  
-      }
-      echo '<div id="newClient" class="search">
-          
-          <form method="post" action="search.php">
-          <fieldset>
-            <legend>Search for a client</legend>
-            <table>
-              <tr>
-                <td><label for="first">First name:</label></td>
-                <td><input type="text" name="first" value="'.$first.'" /></td>
-              </tr>
-              <tr>
-                <td><label for="last">Last name: </label></td>
-                <td><input type="text" size="60" name="last" value="'.$last.'" /></td>
-              </tr>
-              <tr>
-                <td><label for="street">Street address: </label></td>
-                <td><input name="street" type="text" size="60" value="'.$street.'" /></td>
-              </tr>
-              <tr>
-                <td><input type="submit" name="searchsubmit" id="searchsubmit" value="Search" /></td>
-              </tr>
-              <tr>
-                <td><br /><a href="addressEntry.php?clean=1">Add a client</a></td>
-              </tr>
-            </table>
-          </fieldset>
-          </form>
-        </div>';
-  	}
-
+	<div id="header">
+		<?php 
+			if ($search === FALSE)
+			{
+				$heading = "Search for a Client";
+				$subheading = "Search by first name, last name, and/or street address";
+			}
+			else if (!empty($clients))
+			{
+				$heading = "Search Results";
+				$subheading = "";
+			}
+			else
+			{
+				$heading = "No results were found";
+				$subheading = "";
+			}
+			showHeader("BCC Search", $heading, $subheading); 
+			?>
+	</div>
+<?php
+	showErrors();
+	
+	if($search == false){
+		echo '
+		<div id="newClient" class="search">
+				<form method="post" action="search.php">
+				<fieldset>
+					<legend>Search for a client</legend>
+					<table>
+						<tr>
+							<td><label for="first">First name:</label></td>
+							<td><input type="text" name="first" value="'.$first.'" /></td>
+						</tr>
+						<tr>
+							<td><label for="last">Last name: </label></td>
+							<td><input type="text" size="60" name="last" value="'.$last.'" /></td>
+						</tr>
+						<tr>
+							<td><label for="street">Street address: </label></td>
+							<td><input name="street" type="text" size="60" value="'.$street.'" /></td>
+						</tr>
+						<tr>
+							<td><input type="submit" name="searchsubmit" id="searchsubmit" value="Search" /></td>
+						</tr>
+						<tr>
+							<td><br /><a href="addressEntry.php?clean=1">Add a client</a></td>
+						</tr>
+					</table>
+				</fieldset>
+				</form>
+			</div>';
+	}
   else
   {
     if (!empty($clients))
     {
       echo '
-        <div id="header">
-          <h1> Search Results</h1>
-          <h2>Record a visit, edit client information, or search again</h2>
-        <hr />
-        <ul>
-          <li><a href="selectTask.php">Select a Task</a></li>
-          <li><a href="addressEntry.php?clean=1">Add a new Client</a></li>
-        </ul>
-        </div>
-        <div id="newClient" class="search">
-          <h3>Your results:</h3>';
+        <div id="newClient" class="search">';
       
       echo "<table id='resTable'>\n";
       for ($i=0; $i<count($clients); $i++)
@@ -129,41 +137,18 @@
           echo "<td><span>{$houses[$i]->getStreetNumber()} {$houses[$i]->getStreetName()} 
           {$houses[$i]->getStreetType()} {$houses[$i]->getCity()} {$houses[$i]->getZip()}</span></td>";
         }
-        echo "<td><span>Registered {$clients[$i]->getApplicationDate()} </span></td>";
+				$tempDate = mySQLDateToNormal($clients[$i]->getApplicationDate());
+        echo "<td><span>Registered {$tempDate} </span></td>";
         echo "<td><a href='viewHistory.php?client={$clients[$i]->getClientID()}'>View visit history</a></td>";
         echo "<td><a href='addressEntry.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
+				echo "<td><a href='controllers/deleteClient.php?client={$clients[$i]->getClientID()}' " ;
+				echo "onClick=" . '"' . "return confirm('Are you sure you want to delete this client? ";
+				echo "Doing so will remove all information related to the client from the database.')" . '">Delete this client</a>';
         echo "</tr>";
       }
       echo "</table><br/>";
-      echo '<form action="search.php"><input type="submit" name="searchAgain" value="Try another search" / >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="selectTask.php">Return to the task selection page</a>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <a href="addressEntry.php?clean=1">Add a client</a>
-      </form>';
-      echo '</div>';
     }
-    else
-    {
-  	echo '
-  	<div id="header">
-    	<h1> Search Results</h1>
-    	<h2>Record a visit, edit client information, or search again</h2>
-   		<hr />
-   		<ul>
-			<li><a href="selectTask.php">Select a Task</a></li>
-			<li><a href="addressEntry.php?clean=1">Add a new Client</a></li>
-		</ul>
-  	</div>
-	<div id="newClient" class="search">  
-	<div id="noResults">
-  	<h3 style="color:red;">There are no results for your search</h3>
-  	<h4>You can search again or create a client</h4>
-  	<form action="search.php"><a href="addressEntry.php?clean=1">Add a client</a><br/><br/>
-  	<a href="selectTask.php">Return to the task selection page</a><br/><br/>
-  	<input type="submit" name="searchAgain" value="Try another search" / ></form>
-  	</div>
-  	</div>';
-    }
-  }
+	}
 ?>
 </body>
 </html>

@@ -46,24 +46,14 @@
 <head>
 	<link rel="stylesheet" href="style/bryant.css" type="text/css"/>
 	<link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />
-	<title>BCC Form Options</title>
 </head>
 	<body>
-		<div>
-			<h4>Add or remove options from the client entry form</h4>
-			<p>All options marked with a * are not currently in use and are removable.</p>
-			<?php
-			if (!empty($_SESSION['errors']))
-			{
-				echo "\n<div class='errors'>\n\t<ul>\n";
-				foreach($_SESSION['errors'] as $error)
-				{
-					echo "\t\t<li>" . $error . "</li>\n";
-				}
-				echo "\t</ul>\n</div>";
-				$_SESSION['errors'] = NULL;
-			}
-			?>
+		<div id="header">
+			<?php showHeader("BCC Form Options", "", "Add or remove options from the client entry form", TRUE); ?>
+		</div>
+		<p>All options marked with a * are not currently in use and are removable.</p>
+		<div id="error">
+		<?php showErrors();	?>
 		</div>
 		<div id="editForms">
 			<h4>Ethnicities</h4>

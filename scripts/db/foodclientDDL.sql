@@ -3,7 +3,9 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 
 DROP SCHEMA IF EXISTS `bcc_food_client` ;
-CREATE SCHEMA IF NOT EXISTS `bcc_food_client` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci ;
+CREATE SCHEMA IF NOT EXISTS `bcc_food_client` DEFAULT CHARACTER SET latin1 ;
+DROP SCHEMA IF EXISTS `bcc_admin` ;
+CREATE SCHEMA IF NOT EXISTS `bcc_admin` DEFAULT CHARACTER SET latin1 ;
 USE `bcc_food_client` ;
 
 -- -----------------------------------------------------
@@ -16,10 +18,11 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`houses` (
   `street_number` VARCHAR(45) NOT NULL ,
   `street_name` VARCHAR(45) NOT NULL ,
   `street_type` VARCHAR(45) NULL DEFAULT NULL ,
+  `line2` VARCHAR(45) NULL ,
   `city` VARCHAR(45) NOT NULL ,
   `zip` VARCHAR(45) NOT NULL ,
   PRIMARY KEY (`house_id`) ,
-  UNIQUE INDEX `house_UNIQUE` (`street_name` ASC, `city` ASC, `zip` ASC) )
+  UNIQUE INDEX `house_UNIQUE` (`house_id` ASC, `street_number` ASC, `street_name` ASC, `street_type` ASC, `line2` ASC) )
 ENGINE = InnoDB;
 
 
@@ -87,7 +90,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   INDEX `client_reason` (`reason_id` ASC) ,
   INDEX `client_gender` (`gender_id` ASC) ,
   INDEX `client_ethnicity` (`ethnicity_id` ASC) ,
-  UNIQUE INDEX `client_UNIQUE` (`first_name` ASC, `last_name` ASC, `age` ASC, `phone_number` ASC, `house_id` ASC, `ethnicity_id` ASC, `gender_id` ASC, `unemployment_date` ASC, `reason_id` ASC) ,
+  UNIQUE INDEX `client_UNIQUE` (`first_name` ASC, `last_name` ASC, `age` ASC, `phone_number` ASC, `house_id` ASC, `ethnicity_id` ASC, `gender_id` ASC, `reason_id` ASC) ,
   CONSTRAINT `client_house_id`
     FOREIGN KEY (`house_id` )
     REFERENCES `bcc_food_client`.`houses` (`house_id` )
@@ -174,16 +177,52 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`family_members` (
   CONSTRAINT `fam_house_id`
     FOREIGN KEY (`member_house_id` )
     REFERENCES `bcc_food_client`.`houses` (`house_id` )
-    ON DELETE CASCADE
+    ON DELETE SET NULL
     ON UPDATE NO ACTION,
   CONSTRAINT `guardian_id`
     FOREIGN KEY (`guardian_id` )
     REFERENCES `bcc_food_client`.`clients` (`client_id` )
-    ON DELETE NO ACTION
+    ON DELETE SET NULL
     ON UPDATE NO ACTION,
   CONSTRAINT `fam_eth_id`
     FOREIGN KEY (`ethnicity_id` )
     REFERENCES `bcc_food_client`.`ethnicities` (`ethnicity_id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+USE `bcc_admin` ;
+
+-- -----------------------------------------------------
+-- Table `bcc_admin`.`access_levels`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `bcc_admin`.`access_levels` ;
+
+CREATE  TABLE IF NOT EXISTS `bcc_admin`.`access_levels` (
+  `access_level_id` INT NOT NULL AUTO_INCREMENT ,
+  `access_level_name` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`access_level_id`) ,
+  UNIQUE INDEX `access_level_name_UNIQUE` (`access_level_name` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bcc_admin`.`administrators`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `bcc_admin`.`administrators` ;
+
+CREATE  TABLE IF NOT EXISTS `bcc_admin`.`administrators` (
+  `admin_id` INT NOT NULL AUTO_INCREMENT ,
+  `username` VARCHAR(45) NOT NULL ,
+  `password` CHAR(64) NOT NULL ,
+  `salt` CHAR(64) NOT NULL ,
+  `access_id` INT NOT NULL ,
+  PRIMARY KEY (`admin_id`) ,
+  UNIQUE INDEX `username_UNIQUE` (`username` ASC) ,
+  INDEX `admin_access` (`access_id` ASC) ,
+  CONSTRAINT `admin_access`
+    FOREIGN KEY (`access_id` )
+    REFERENCES `bcc_admin`.`access_levels` (`access_level_id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

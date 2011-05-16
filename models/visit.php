@@ -44,7 +44,7 @@
     {
       $this->dirty = true;
       $this->typeID = $val;
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       $query = "SELECT dist_type_desc FROM bcc_food_client.distribution_type ";
       $query .= "WHERE dist_type_id = {$val}";
       
@@ -97,7 +97,7 @@
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.usage WHERE dist_id = '{$this->visitID}'";
       $result = mysql_query($query);
@@ -117,7 +117,7 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $clientIDParam = mysql_real_escape_string($this->clientID);
@@ -165,7 +165,7 @@
       $visit->clientID = $row["client_id"];
       $visit->typeID = $row["type_id"];
       $visit->distTypeDesc = $row["dist_type_desc"];
-      $visit->date = mySQLDatetoNormal($row["date"]);
+      $visit->date = createMySQLDate($row["date"]);
       $visit->createdFromDB = true;
       $visit->dirty = false;
       return $visit;
@@ -174,10 +174,10 @@
     //Returns an array of visits given a client ID
     public static function getHistoryByClientID($clientID, $since)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $clientID = mysql_real_escape_string($clientID);
-      $since = mysql_real_escape_string($since);
+      $since = mysql_real_escape_string(normalDateToMySQL($since));
       
       $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
       $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
@@ -198,7 +198,7 @@
     
     public static function getVisitByID($visitID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $visitID = mysql_real_escape_string($visitID);
       
@@ -221,7 +221,7 @@
     //to the given date and distribution type
     public static function changeHistoryByID($distID, $newDate, $newDistTypeID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $distID = mysql_real_escape_string($distID);
       $newDate = mysql_real_escape_string(normalDateToMySQL($newDate));
@@ -239,7 +239,7 @@
     
     public static function deleteVisitByID($distID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       $distID = mysql_real_escape_string($distID);
       $query = "DELETE FROM bcc_food_client.usage WHERE dist_id = '{$distID}'";
       $result = mysql_query($query);
@@ -249,7 +249,7 @@
     //Returns an array of distribution type ID - distribution description pairs
     public static function getAllDistTypes()
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "SELECT dist_type_id, dist_type_desc ";
       $query .= "FROM bcc_food_client.distribution_type ";

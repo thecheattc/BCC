@@ -1,5 +1,5 @@
 <?php
-  
+  define("ROOT_ACCESS_ID", 1);
   class Administrator
   {
     private $adminID;
@@ -127,9 +127,8 @@
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_admin.administrators SET ";
-        $query .= "username ='{$usernameParam}' ";
-				$query .= "password ='{$passwordParam}' ";
-				$query .= "salt ='{$saltParam}' ";
+				$query .= "password ='{$passwordParam}', ";
+				$query .= "salt ='{$saltParam}', ";
 				$query .= "access_id ='{$accessIDParam}' ";
         $query .= "WHERE admin_id = '{$this->adminID}'";
       }
@@ -139,7 +138,6 @@
         $query = "INSERT INTO bcc_admin.administrators (username, password, salt, access_id) ";
         $query .= "VALUES ('{$usernameParam}', '{$passwordParam}', '{$saltParam}', '{$accessIDParam}')";
       }
-      
       
       $result = mysql_query($query);
       
@@ -248,9 +246,10 @@
 			$query = "SELECT access_level_id, access_level_name FROM bcc_admin.access_levels";
 			$result = mysql_query($query);
 			$accessLevels = array(array());
+			$i = 0;
 			while ($row = mysql_fetch_array($result))
 			{
-				$accessLevels[] = array("accessLevelID" => $row[0], "accessLevelName" => $row[1]);
+				$accessLevels[$i++] = array("id" => $row[0], "name" => $row[1]);
 			}
 			return $accessLevels;
 		}
@@ -265,6 +264,37 @@
 				$string .= $characters[mt_rand(0, $charlen)];
 			}
 			return $string;
+		}
+		
+		//Returns a count of the administrators with root access
+		public static function rootAdminCount()
+		{
+			SQLDB::connect("bcc_admin");
+			$rootAccessID = ROOT_ACCESS_ID;
+			$query = "SELECT COUNT(*) FROM bcc_admin.administrators WHERE access_id = {$rootAccessID}";
+			$result = mysql_query($query);
+			$adminCount = -1;
+			if ($row = mysql_fetch_array($result))
+			{
+				$adminCount = $row[0];
+			}
+			return $adminCount;
+		}
+		
+		public static function isValidAccessID($accessID)
+		{
+			SQLDB::connect("bcc_admin");
+			$accessID = mysql_real_escape_string($accessID);
+			$query = "SELECT COUNT(*) FROM bcc_admin.access_levels WHERE access_level_id = {$accessID}";
+			$result = mysql_query($query);
+			if ($row = mysql_fetch_array($result))
+			{
+				if ($row[0] > 0)
+				{
+					return TRUE;
+				}
+			}
+			return FALSE;
 		}
     
   }

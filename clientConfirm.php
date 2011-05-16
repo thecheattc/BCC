@@ -2,57 +2,68 @@
   session_start();
   include ('models/sqldb.php');
   include ('controllers/utility.php');
+	include ('models/administrator.php');
+  include ('models/familyMember.php');
+  include ('models/visit.php');
   include ('models/client.php');
   include ('models/gender.php');
   include ('models/ethnicity.php');
   include ('models/reason.php');
+
+	if (!hasAccess())
+	{
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "This operation requires administrative privileges.";
+		header("Location: ./");
+		exit();
+	}
   
+	resetTimeout();
+	
   define("LOST_JOB", 1);
   define("OTHER", 7);
-/*
-  echo "<PRE>";
-  var_dump($_SESSION);
-  echo "</PRE>";
- */
-   
-  $_SESSION['fromConfirm'] = TRUE;
+
   //Grab everything from POST and put it in session, so long
   //as we haven't been redirected here. Since we never redirect here
   //unless there are errors, we can use that to check.
   if (empty($_SESSION['errors']))
   {
-    $_SESSION['appDate'] = $_POST['appDate'];
-    $_SESSION['firstName'] = $_POST['firstName'];
-    $_SESSION['lastName'] = $_POST['lastName'];
-    $_SESSION['number'] = $_POST['number'];
-    $_SESSION['age'] = $_POST['age'];
-    $_SESSION['gengroup'] = $_POST['gengroup'];
-    $_SESSION['ethgroup'] = $_POST['ethgroup'];
-    $_SESSION['reasongroup'] = $_POST['reasongroup'];
-    $_SESSION['explanation'] = $_POST['explanation'];
-    $_SESSION['uDate'] = $_POST['uDate'];
-    $_SESSION['receivesStamps'] = $_POST['receivesStamps'];
-    $_SESSION['wantsStamps'] = $_POST['wantsStamps'];
+    $_SESSION['appDate'] = stripslashes($_POST['appDate']);
+    $_SESSION['firstName'] = stripslashes($_POST['firstName']);
+    $_SESSION['lastName'] = stripslashes($_POST['lastName']);
+    $_SESSION['number'] = stripslashes($_POST['number']);
+    $_SESSION['age'] = stripslashes($_POST['age']);
+    $_SESSION['gengroup'] = stripslashes($_POST['gengroup']);
+    $_SESSION['ethgroup'] = stripslashes($_POST['ethgroup']);
+    $_SESSION['reasongroup'] = stripslashes($_POST['reasongroup']);
+    $_SESSION['explanation'] = stripslashes($_POST['explanation']);
+    $_SESSION['uDate'] = stripslashes($_POST['uDate']);
+    $_SESSION['receivesStamps'] = stripslashes($_POST['receivesStamps']);
+    $_SESSION['wantsStamps'] = stripslashes($_POST['wantsStamps']);
     for ($i=0; $i<$_SESSION['memberCount']; $i++)
     {
-      $_SESSION['familyMembers'][$i]["age"] = $_POST["memberAge{$i}"];
-      $_SESSION['familyMembers'][$i]["gender"] = $_POST["memberGender{$i}"];
-      $_SESSION['familyMembers'][$i]["ethnicity"] = $_POST["memberEthnicity{$i}"];
+      $_SESSION['familyMembers'][$i]["age"] = stripslashes($_POST["memberAge{$i}"]);
+      $_SESSION['familyMembers'][$i]["gender"] = stripslashes($_POST["memberGender{$i}"]);
+      $_SESSION['familyMembers'][$i]["ethnicity"] = stripslashes($_POST["memberEthnicity{$i}"]);
     }
   }
   
   if ($_POST['toDo'] == "addMember")
   {
+    $_SESSION['modifyFamily'] = TRUE;
     $_SESSION['memberCount']++;
     $familyMember = array("age" => '', "gender" => '', "ethnicity" => '');
     $_SESSION['familyMembers'][] = $familyMember;
     header("Location: clientEntry.php");
+    exit();
   }
   if ($_POST['toDo'] == "deleteMember")
   {
+    $_SESSION['modifyFamily'] = TRUE;
     $_SESSION['memberCount']--;
     $_SESSION['familyMembers'][$_SESSION['memberCount']] = NULL;
     header("Location: clientEntry.php");
+    exit();
   }
   
   //To make the client confirmation screen correct, update the session
@@ -67,6 +78,7 @@
         $house['streetNumber'] = $match['streetNumber'];
         $house['streetName'] = $match['streetName'];
         $house['streetType'] = $match['streetType'];
+        $house['line2'] = $match['line2'];
         $house['city'] = $match['city'];
         $house['zip'] = $match['zip'];
       }
@@ -77,6 +89,7 @@
     $house['streetNumber'] = $_SESSION['streetNumber'];
     $house['streetName'] = $_SESSION['streetName'];
     $house['streetType'] = $_SESSION['streetType'];
+    $house['line2'] = $_SESSION['line2'];
     $house['city'] = $_SESSION['city'];
     $house['zip'] = $_SESSION['zip'];
   }
@@ -99,14 +112,13 @@
 		<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
     <link rel="stylesheet" href="style/bryant.css" type="text/css"/>
     <link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />	
-		<title>Bryant Food Distribution Client Data Confirmation page</title>
 	</head>
 	
 	<body>
 		<div id="header">
-			<h1>Confirm Client Information</h1>
-			<h2>Please check that the information you have entered is correct.</h2>
-			<hr/>
+			<?php 
+				showHeader("BCC Client Info Confirmation", "Confirm Client Information", "Please check that the information you have entered is correct.");
+			?>
 		</div><!-- /header -->
 <?php 
   if (!empty($_SESSION['errors']))
@@ -130,8 +142,9 @@
     {
       echo "<h5>For addresses, either list all parts of an address or no parts (if the client is homeless)</h5>\n";
     }
-    $_SESSION['errors'] = NULL;
+    $_SESSION['errors'] = array();
   }
+	showClientEntrySteps(4);
 ?>  
     <div id="newClient">
         <table>
@@ -150,7 +163,7 @@
           <tr>
             <td><label>Current Address: </label></td>
             <td><?php   echo htmlentities($house['streetNumber']) . " ". htmlentities($house['streetName']) . " " .
-                            htmlentities($house['streetType']); ?></td>
+                            htmlentities($house['streetType']) . " " . htmlentities($house['line2']); ?></td>
           </tr>
           <tr>
             <td><label>Current City: </label></td>
@@ -187,10 +200,6 @@
             <td><label>Client Ethnicity: </label></td>
             <td><?php if (!empty($ethnicity)) {echo $ethnicity->getEthnicityDesc();} ?></td>
           </tr>
-          <tr>
-            <td><label>Reason For Assistance: </label></td>
-            <td><?php if (!empty($reason)) {echo $reason->getReasonDesc();} ?></td>
-          </tr>
           <?php
             for ($i=0; $i<$_SESSION['memberCount']; $i++)
             {
@@ -198,23 +207,23 @@
               $j = $i+1;
               $childGender = Gender::getGenderByID($familyMember["gender"]);
               $childEthnicity = Ethnicity::getEthnicityByID($familyMember["ethnicity"]);
-              echo "\n\t<tr>\n\t\t<td><label>Child {$j} age:</label></td>\n";
+              echo "\n\t<tr>\n\t\t<td><label>Family member {$j} age:</label></td>\n";
               echo "\t<td> ";
               if (!empty($familyMember['age'])){ echo $familyMember['age']; }
               echo "</td>\n\t</tr>\n";
-              echo "\t<tr>\n\t\t<td><label>Child {$j} gender:</label></td>\n";
+              echo "\t<tr>\n\t\t<td><label>Family member {$j} gender:</label></td>\n";
               echo "\t<td> ";
               if (!empty($childGender)){ echo $childGender->getGenderDesc(); }
               echo "</td>\n\t</tr>\n";
-              echo "\t<tr>\n\t\t<td><label>Child {$j} ethnicity:</label></td>\n";
+              echo "\t<tr>\n\t\t<td><label>Family member {$j} ethnicity:</label></td>\n";
               echo "\t<td> ";
               if (!empty($childEthnicity)){ echo $childEthnicity->getEthnicityDesc(); }
               echo "</td>\n\t</tr>\n";
             }
             ?>
           <tr>
-            <td><label>Explanation (required if the reason is "Other"): </label></td>
-            <td><?php   echo htmlentities($_SESSION['explanation']); ?></td>
+            <td><label>Reason For Assistance: </label></td>
+            <td><?php if (!empty($reason)) {echo $reason->getReasonDesc();} ?></td>
           </tr>
           <?php
             if (!empty($reason) && $reason->getReasonID() == LOST_JOB)
@@ -224,6 +233,10 @@
               echo "</td>\n\t</tr>\n";
             }
             ?>
+          <tr>
+            <td><label>Explanation (required if the reason is "Other"): </label></td>
+            <td><?php   echo htmlentities($_SESSION['explanation']); ?></td>
+          </tr>
           <tr>
             <td><label>Are you currently receving food stamps?</label></td>
             <td><?php 
@@ -269,7 +282,7 @@
           </tr>
         </table>
   </div><!-- /confirm client -->
-  <a href="addressEntry.php">Go back to change address information</a><br />
-  <a href="clientEntry.php">Go back to change client information</a>
+  <a href="clientEntry.php">Go back to change client information</a><br />  
+  <a href="addressEntry.php">Go back to change address information</a>
 </body>
 </html>

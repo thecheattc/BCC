@@ -1,73 +1,95 @@
+<?php 
+	define("ROOT_ACCESS_ID", 1);
+	session_start();
+	include ('controllers/utility.php');
+	include ('models/sqldb.php');
+	include ('models/administrator.php');
+	$admin = NULL;
+	$loggedIn = FALSE;
+	if (isset($_SESSION['adminID']))
+	{
+		$admin = Administrator::getAdminByID($_SESSION['adminID']);
+		if (empty($admin))
+		{
+			header("Location: logout.php");
+			exit();
+		}
+		$loggedIn = TRUE;
+	}
+	resetTimeout();
+	?>
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<link rel="stylesheet" href="bryant.css" type="text/css"/>
+<meta name="original-source" content="http://commons.wikimedia.org/wiki/File:CampbellsModif.png">
+<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
+<link rel="stylesheet" href="style/bryant.css" type="text/css"/>
 <script type="text/javascript" 
-			src="js/jquery-1.4.4.min.js"></script>
-	<?php 
-		session_start();
-    
-    
-		session_register($user);
-	?>
+			src="scripts/js/jquery-1.4.4.min.js"></script>
 <head>
-<title>Bryant Food Distribution Management Tool</title>
+<title>Bryant Community Center</title>
 </head>
 	<body>
 		<div id="header">
-			<h1>Bryant Food Distribution Admin Login</h1>
-			<h2>Sign in to manage food distribution clients</h2>
-			<hr/>
-		</div><!-- /header -->
-		<div id="adLogin">
+		<a href="./"><img src="/style/images/orangeCANsmall.jpg" /></a>
 		<?php
-			$myusername=$_POST['uName'];
-			if(empty($myusername)){
-				echo'
-			<form method="post">
-				<fieldset>
-					<legend>Administrator Login</legend>
-					
-					<table>
-						<tr>
-							<td><label for="uName">Enter user name:</label></td>
-							<td><input name="uName" type="text" size="30"/></td>
-						</tr>
-						<tr>
-							<td><label for="pWord">Enter password:</label></td> <td><input name="pWord" type="text" size="30"/></td>
-						</tr>
-						<tr>
-							<td><input type="submit" name="log" value="Login"/></td>
-					</table>
-				</fieldset>
-			</form>';
+			if ($loggedIn)
+			{
+echo <<<LOGGED_IN_AS1
+					<h1>Bryant Food Distribution Task Selection</h1>
+					<h2>Choose which task to manage</h2>
+					<p>Logged in as: {$admin->getUsername()}</p>
+					<a href="logout.php" class="compact-button default">Logout</a>
+					<hr/>
+				</div>
+LOGGED_IN_AS1;
+				showErrors();
+echo <<<LOGGED_IN_AS2
+				</div>
+				<div id="taskWrap">
+					<div class="task">
+						<a href="addressEntry.php?clean=1">
+						<h3>Enter New Client Information</h3>
+						<img src="style/images/addClient.jpg" alt="Click this area to add new client information" />
+						<p>Click here to add a new client to the database</p></a>
+					</div>
+					<div class="task">
+						<a href="search.php?clean=1">
+						<h3>Manage Food Distribution</h3>
+						<img src="style/images/foodDist.png" alt="Click this area to check the date of a client's last visit" />
+					<p>Click here to check for a client's last distribution.</p></a><!--'-->
+					</div><!-- /.task -->
+LOGGED_IN_AS2;
+				if ($admin->getAccessID() == ROOT_ACCESS_ID)
+				{
+echo <<<LOGGED_IN_AS3
+					<div class="task">
+						<a href="administration.php">
+						<h3>Administrative business</h3>
+						<p>Manage administrator accounts, form options, and monthly reports.</p></a>
+					</div>
+LOGGED_IN_AS3;
+				}
+					echo "</div><!-- /.taskWrap -->	";	
 			}
-			elseif($myusername!="Bryant"){
-				echo'
-				<form method="post">
-				<fieldset>
-					<legend>Administrator Login</legend>
-					<h4 style="color:red;">Please enter a valid user name</h4>
-					<table>
-						<tr>
-							<td><label for="uName">Enter user name:</label></td>
-							<td><input name="uName" type="text" size="30"/></td>
-						</tr>
-						<tr>
-							<td><label for="pWord">Enter password:</label></td> <td><input name="pWord" type="text" size="30"/></td>
-						</tr>
-						<tr>
-							<td><input type="submit" name="log" value="Login"/></td>
-					</table>
-				</fieldset>
-			</form>';    
-			}
-			else{
-				echo '<META HTTP-EQUIV="Refresh" Content="0;URL=selectTask.php">';    
-  			  	exit;
+			else
+			{
+				echo "
+				<h1>Bryant Community Center Login</h1>
+				<hr/></div>";
+				$attemptedUser = isset($_SESSION['attemptedUser'])? $_SESSION['attemptedUser'] : '';
+				showErrors();
+echo <<<LOGIN_FORM
+				<form action="controllers/login.php" method="post">
+					<label for="bccUser">Username:</label><input type="text" id="bccUser" name="bccUser" value="{$attemptedUser}" /><br />
+					<label for="bccPassword">Password:</label><input type="password" id="bccPassword" name="bccPassword" /><br />
+					<input type="submit" name="login" value="Login" />
+				</form>
+						
+LOGIN_FORM;
 			}
 			?>
-			<p><a href="register.php">Click here to register a new administrator</a></p>
-		</div><!-- /adLogin -->
-	</body>
+			</body>
 </html>
+

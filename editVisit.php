@@ -1,27 +1,41 @@
 <?php
-  include ('models/visit.php');
+	session_start();
+	include ('models/visit.php');
   include ('models/client.php');
+	include ('models/administrator.php');
+  include ('models/familyMember.php');
   include ('models/sqldb.php');
   include ('controllers/utility.php');
+
+	if (!hasAccess())
+	{
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "This operation requires administrative privileges.";
+		header("Location: ./");
+		exit();
+	}
+	resetTimeout();
   
   if (empty($_GET['visit']))
   {
-    header("Location: search.php?editVisitError=1");
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "No visit requested.";
+    header("Location: search.php?clean=1");
+		exit();
   }
-  else
-  {
-    $visit = Visit::getVisitByID($_GET['visit']);
-    $client = NULL;
-    if ($visit !== NULL)
-    {
-      $client = Client::getClientByID($visit->getClientID());
-    }
-    if ($visit === NULL || $client === NULL)
-    {
-      header("Location: search.php?editVisitError=1");
-    }
-    $types = Visit::getAllDistTypes();
-  }
+	$visit = Visit::getVisitByID($_GET['visit']);
+	$client = NULL;
+	if ($visit !== NULL)
+	{
+		$client = Client::getClientByID($visit->getClientID());
+	}
+	if ($visit === NULL || $client === NULL)
+	{
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "There was an error retrieving the requested visit.";
+		header("Location: search.php?clean=1");
+	}
+	$types = Visit::getAllDistTypes();
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -35,12 +49,12 @@
 </head>
 <body>
   <div id="header">
-    <h3>Edit <?php echo $client->getFirstName() . " " . $client->getLastName() ?>&rsquo;s visit</h1>
-    <hr />
+		<?php showHeader("Edit Visit", "Edit {$client->getFirstName()} {$client->getLastName()}'s visit"); ?> 
   </div>
+	<?php showErrors();	?>
 <form method="post" action="controllers/processVisitEdit.php?visit=<?php echo $_GET['visit']; ?>&client=<?php echo $visit->getClientID(); ?>">
     <label for="date">Date: </label>
-    <input name="date" id="date" value="<?php echo $visit->getDate(); ?>" />
+    <input name="date" id="date" value="<?php echo mySQLDateToNormal($visit->getDate()); ?>" />
     <label for="type">Type: </label>
     <select id="type" name="type">
       <?php foreach ($types as $key => $value)

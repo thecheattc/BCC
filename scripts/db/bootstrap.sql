@@ -3,7 +3,9 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 
 DROP SCHEMA IF EXISTS `bcc_food_client` ;
-CREATE SCHEMA IF NOT EXISTS `bcc_food_client` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci ;
+CREATE SCHEMA IF NOT EXISTS `bcc_food_client` DEFAULT CHARACTER SET latin1 ;
+DROP SCHEMA IF EXISTS `bcc_admin` ;
+CREATE SCHEMA IF NOT EXISTS `bcc_admin` DEFAULT CHARACTER SET latin1 ;
 USE `bcc_food_client` ;
 
 -- -----------------------------------------------------
@@ -189,12 +191,56 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`family_members` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
+USE `bcc_admin` ;
+
+-- -----------------------------------------------------
+-- Table `bcc_admin`.`access_levels`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `bcc_admin`.`access_levels` ;
+
+CREATE  TABLE IF NOT EXISTS `bcc_admin`.`access_levels` (
+  `access_level_id` INT NOT NULL AUTO_INCREMENT ,
+  `access_level_name` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`access_level_id`) ,
+  UNIQUE INDEX `access_level_name_UNIQUE` (`access_level_name` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `bcc_admin`.`administrators`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `bcc_admin`.`administrators` ;
+
+CREATE  TABLE IF NOT EXISTS `bcc_admin`.`administrators` (
+  `admin_id` INT NOT NULL AUTO_INCREMENT ,
+  `username` VARCHAR(45) NOT NULL ,
+  `password` CHAR(64) NOT NULL ,
+  `salt` CHAR(64) NOT NULL ,
+  `access_id` INT NOT NULL ,
+  PRIMARY KEY (`admin_id`) ,
+  UNIQUE INDEX `username_UNIQUE` (`username` ASC) ,
+  INDEX `admin_access` (`access_id` ASC) ,
+  CONSTRAINT `admin_access`
+    FOREIGN KEY (`access_id` )
+    REFERENCES `bcc_admin`.`access_levels` (`access_level_id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
+INSERT INTO bcc_admin.access_levels (access_level_name)
+VALUES ('root'), ('Volunteer');
+
+INSERT INTO bcc_admin.administrators (username, password, salt, access_id)
+VALUES ('bryantadmin','69a4b06e82b22cef4f71f3f52fa2ffc96e9bcb905028d1d4a2f79d2e8ff029a5','rl2hu4as', 1);
+
+INSERT INTO bcc_admin.administrators (username, password, salt, access_id)
+VALUES ('volunteer','781488af3f49428d841b7b359ba717b9dc2ceaa8f7500f0d7db81f94a40b0c6a','phjlq5w5', 2);
 
 INSERT INTO bcc_food_client.genders(gender_desc)
 VALUES ('Male'), ('Female');

@@ -6,6 +6,7 @@
     private $streetNumber;
     private $streetName;
     private $streetType;
+    private $line2;
     private $city;
     private $zip;
     
@@ -71,6 +72,18 @@
       return $this->streetType;
     }
     
+    public function getLine2()
+    {
+      return $this->line2;
+    }
+    
+    public function setLine2($val)
+    {
+      $this->dirty = true;
+      $this->line2 = $val;
+      return $this->line2;
+    }
+    
     public function getCity()
     {
       return $this->city;
@@ -115,7 +128,7 @@
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.houses WHERE house_id = '{$this->houseID}'";
       $result = mysql_query($query);
@@ -135,21 +148,13 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $streetNumberParam = mysql_real_escape_string($this->streetNumber);
       $streetNameParam = mysql_real_escape_string($this->streetName);
-      $streetTypeParam = NULL;
-      
-      if(mysql_real_escape_string($this->streetType) === '')
-      {
-        $streetTypeParam = "NULL";
-      }
-      else
-      {
-        $streetTypeParam = "'" . mysql_real_escape_string($this->streetType) . "'";
-      }
+      $streetTypeParam = (mysql_real_escape_string($this->streetType) === '')? "NULL" : "'" . mysql_real_escape_string($this->streetType) . "'";
+      $line2Param = (mysql_real_escape_string($this->line2) === '')? "NULL" : "'" . mysql_real_escape_string($this->line2) . "'";
       $cityParam = mysql_real_escape_string($this->city);
       $zipParam = mysql_real_escape_string($this->zip);
       $query = "";
@@ -161,6 +166,7 @@
         $query .= "street_number='{$streetNumberParam}', ";
         $query .= "street_name='{$streetNameParam}', ";
         $query .= "street_type=" . $streetTypeParam . ", ";
+        $query .= "line2=" . $line2Param . ", ";
         $query .= "city='{$cityParam}', ";
         $query .= "zip='{$zipParam}' ";
         $query .= "WHERE house_id = '{$this->houseID}'";
@@ -168,12 +174,12 @@
       //If the house was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.houses (street_number, street_name, street_type, city, zip) ";
-        $query .= "VALUES ('{$streetNumberParam}', '{$streetNameParam}', " . $streetTypeParam . ", '{$cityParam}', '{$zipParam}')";
+        $query = "INSERT INTO bcc_food_client.houses (street_number, street_name, street_type, line2, city, zip) ";
+        $query .= "VALUES ('{$streetNumberParam}', '{$streetNameParam}', ";
+        $query .= $streetTypeParam . ", " . $line2Param . ", '{$cityParam}', '{$zipParam}')";
       }
       $result = mysql_query($query);
-      
-      if ($result !== FALSE)
+        if ($result !== FALSE)
       {
         //If the update or insert was successful, this object is now consistent with the database
         //so if it's deleted we don't need to update the database
@@ -196,6 +202,7 @@
       $house->streetNumber = $row["street_number"];
       $house->streetName = $row["street_name"];
       $house->streetType = $row["street_type"];
+      $house->line2 = $row["line2"];
       $house->city = $row["city"];
       $house->zip = $row["zip"];
       $house->createdFromDB = true;
@@ -206,11 +213,11 @@
     //Returns a house object given a house ID, or null if none found
     public static function getHouseByID($houseID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $houseID = mysql_real_escape_string($houseID);
       
-      $query = "SELECT house_id, street_number, street_name, street_type, city, zip ";
+      $query = "SELECT house_id, street_number, street_name, street_type, line2, city, zip ";
       $query .= "FROM bcc_food_client.houses ";
       $query .= "WHERE house_id = '{$houseID}'";
       
@@ -226,20 +233,21 @@
     }
     
     //Returns a house given all fields
-    public static function searchByAddress($streetNumber, $streetName, $streetType, $city, $zip)
+    public static function searchByAddress($streetNumber, $streetName, $streetType, $line2, $city, $zip)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $streetNumber = mysql_real_escape_string(processString($streetNumber, TRUE));
       $streetName = mysql_real_escape_string(processString($streetName));
       $streetType = mysql_real_escape_string(processString($streetType));
+      $line2 = mysql_real_escape_string(processString($line2));
       $city = mysql_real_escape_string(processString($city));
       $zip = mysql_real_escape_string(processString($zip));
       
-      $query = "SELECT house_id, street_number, street_name, street_type, city, zip ";
+      $query = "SELECT house_id, street_number, street_name, street_type, line2, city, zip ";
       $query .= "FROM bcc_food_client.houses ";
       $query .= "WHERE street_number = '{$streetNumber}' AND street_name = '{$streetName}' AND ";
-      $query .= "street_type = '{$streetType}' AND city = '{$city}' AND zip = '{$zip}'";
+      $query .= "street_type = '{$streetType}' AND line2 = '{$line2}' AND city = '{$city}' AND zip = '{$zip}'";
       
       $result = mysql_query($query);
       $house = NULL;
@@ -256,12 +264,12 @@
     //Returns an array of houses matching the given streetNumber and streetName.
     public static function searchAddresses($streetNumber = '', $streetName = '')
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $streetNumber = mysql_real_escape_string(processString($streetNumber, TRUE));
       $streetName = mysql_real_escape_string(processString($streetName));
       
-      $query = "SELECT house_id, street_number, street_name, street_type, city, zip ";
+      $query = "SELECT house_id, street_number, street_name, street_type, line2, city, zip ";
       $query .= "FROM bcc_food_client.houses ";
       $query .= "WHERE street_number LIKE '{$streetNumber}' OR street_name LIKE '{$streetName}'";
       
@@ -275,6 +283,7 @@
         $house['streetNumber'] = $row['street_number'];
         $house['streetName'] = $row['street_name'];
         $house['streetType'] = $row['street_type'];
+        $house['line2'] = $row['line2'];
         $house['city'] = $row['city'];
         $house['zip'] = $row['zip'];
         $houses[] = $house;

@@ -1,8 +1,5 @@
 <?php
   
-  include_once("visit.php");
-  include_once("familyMember.php");
-  
   class Client
   {
     private $clientID;
@@ -224,7 +221,7 @@
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.clients WHERE client_id = '{$this->clientID}'";
 
@@ -255,7 +252,7 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $firstNameParam = mysql_real_escape_string($this->firstName);
@@ -292,7 +289,7 @@
         $explanationParam = "'" . mysql_real_escape_string($this->explanation) . "'";
       }
       $unempDateParam = NULL;
-      if (mysql_real_escape_string(normalDateToMySQL($this->unemploymentDate)) === '')
+      if (empty($this->unemploymentDate) || mysql_real_escape_string(normalDateToMySQL($this->unemploymentDate)) === '')
       {
         $unempDateParam = "NULL";
       }
@@ -304,7 +301,6 @@
       $receivesStampsParam = mysql_real_escape_string($this->receivesStamps);
       $wantsStampsParam = mysql_real_escape_string($this->wantsStamps);
       $query = "";
-      
       //If this client already existed in the database, update it
       if($this->createdFromDB)
       {
@@ -367,8 +363,8 @@
       $client->genderID = $row["gender_id"];
       $client->reasonID = $row["reason_id"];
       $client->explanation = $row["explanation"];
-      $client->unemploymentDate = mySQLDateToNormal($row["unemployment_date"]);
-      $client->applicationDate = mySQLDateToNormal($row["application_date"]);
+      $client->unemploymentDate = createMySQLDate($row["unemployment_date"]);
+      $client->applicationDate = createMySQLDate($row["application_date"]);
       $client->receivesStamps = $row["receives_stamps"];
       $client->wantsStamps = $row["wants_stamps"];
       $client->createdFromDB = true;
@@ -379,7 +375,7 @@
     //Returns an array of clients associated with a houseID
     public static function getClientsByHouseID($houseID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $houseID = mysql_real_escape_string($houseID);
       
@@ -404,7 +400,7 @@
     //Returns an array of clients that match the given first name or last name
     public static function searchByNameAndStreet($firstName = '', $lastName = '', $streetNumber = '', $streetName = '')
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $firstName = mysql_real_escape_string(processString($firstName));
       $lastName = mysql_real_escape_string(processString($lastName));
@@ -434,7 +430,7 @@
     //Returns a client given a client ID. Returns NULL on failure.
     public static function getClientByID($id)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $id = mysql_real_escape_string($id);
       
@@ -470,6 +466,11 @@
     
     public static function deleteHouseIfNotReferenced($houseID)
     {
+      //homeless case
+      if (empty($houseID))
+      {
+        return TRUE;
+      }
       //Determine the number of people tied to the deleted client's house
       $query = "SELECT COUNT(*) FROM bcc_food_client.clients WHERE house_id = '{$houseID}'";
       $result = mysql_query($query);

@@ -15,7 +15,9 @@
 		$_SESSION['errors'] = array();
 		$_SESSION['errors'][] = "This operation requires administrative privileges.";
 		header("Location: ./");
+		exit();
 	}
+	resetTimeout();
 
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
@@ -62,7 +64,19 @@
 			of clients who have been served.<h2>
 			<hr/>
 		</div><!-- /header -->
-    <div id="newClient">
+<?php
+	if (!empty($_SESSION['errors']))
+	{
+		echo "\n<div class='errors'>\n\t<ul>\n";
+		foreach($_SESSION['errors'] as $error)
+		{
+			echo "\t\t<li>" . $error . "</li>\n";
+		}
+		echo "\t</ul>\n</div>";
+		$_SESSION['errors'] = NULL;
+	}
+	?>
+    <div>
     	<form method="post" action="">
     		
     		<fieldset>	

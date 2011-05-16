@@ -39,7 +39,7 @@
       }
     }
     
-    //Creates a new house
+    //Creates a new reason
     public static function create()
     {
       $reason = new Reason();
@@ -47,11 +47,11 @@
       return $reason;
     }
     
-    //Deletes a house from the database
+    //Deletes a reason from the database
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.reasons WHERE reason_id = '{$this->reasonID}'";
       $result = mysql_query($query);
@@ -71,7 +71,7 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $reasonDescParam = mysql_real_escape_string($this->reasonDesc);
@@ -81,17 +81,15 @@
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_food_client.reasons SET ";
-        $query .= "reason_desc='{reasonDescParam}' ";
+        $query .= "reason_desc='{$reasonDescParam}' ";
         $query .= "WHERE reason_id = '{$this->reasonID}'";
       }
       //If the reason was freshly created, insert it into the database.
       else
       {
         $query = "INSERT INTO bcc_food_client.reasons (reason_desc) ";
-        $query .= "VALUES ('{$reasondescParam}')";
+        $query .= "VALUES ('{$reasonDescParam}')";
       }
-      
-      
       $result = mysql_query($query);
       
       if ($result !== FALSE)
@@ -109,7 +107,7 @@
     }
     
     
-    //Creates a new house given a row from the bcc_food_client.reasons table
+    //Creates a new reason given a row from the bcc_food_client.reasons table
     private static function createFromSQLRow($row)
     {
       $reason = new Reason();
@@ -120,10 +118,10 @@
       return $reason;
     }
     
-    //Returns a house object given a house ID, or null if none found
+    //Returns a reason object given a reason ID, or null if none found
     public static function getReasonByID($reasonID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $reasonID = mysql_real_escape_string($reasonID);
       
@@ -142,9 +140,27 @@
       return $reason;
     }
     
+		public static function getReasonByDesc($desc)
+		{
+			SQLDB::connect("bcc_food_client");
+			$desc = strToLower(mysql_real_escape_string($desc));
+			
+			$query = "SELECT reason_id, reason_desc
+			FROM bcc_food_client.reasons
+			WHERE reason_desc = '{$desc}'";
+
+			$result = mysql_query($query);
+			$reason = NULL;
+			if ($row = mysql_fetch_array($result))
+			{
+				$reason  = Reason::createFromSQLRow($row);
+			}
+			return $reason;
+		}
+		
     public static function getAllReasons()
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "SELECT reason_id, reason_desc FROM bcc_food_client.reasons";
       
@@ -158,6 +174,23 @@
       
       return $reasons;
     }
+		
+		public static function getRemovableReasonIDs()
+		{
+			SQLDB::connect("bcc_food_client");
+			$query = "SELECT reason_id 
+								FROM bcc_food_client.reasons
+								WHERE reason_id NOT IN (SELECT reason_id FROM bcc_food_client.clients)";
+			$result = mysql_query($query);
+			$IDs = array();
+			
+			while ($row = mysql_fetch_array($result))
+			{
+				$IDs[] = $row['reason_id'];
+			}
+			
+			return $IDs;
+		}
     
   }
 ?>

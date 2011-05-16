@@ -2,38 +2,41 @@
   session_start();
   include('models/sqldb.php');
   include('controllers/utility.php');
+	include('models/administrator.php');
   include('models/visit.php');
   include('models/gender.php');
   include('models/ethnicity.php');
   include('models/reason.php');
   include('models/client.php');
   include('models/house.php');
+  include('models/familyMember.php');
+	
+	if (!hasAccess())
+	{
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "This operation requires administrative privileges.";
+		header("Location: ./");
+		exit();
+	}
+	resetTimeout();
   
   define("LOST_JOB", 1);
   define("MAX_FAMILY_MEMBERS", 20);
   
   //Set the houseID so the controller will know how to handle it.
   //Only do this when coming from the addressEntry page
-  if (!isset($_SESSION['fromConfirm']))
+  if (isset($_POST['fromAddress']) && !isset($_POST['houseID']))
   {
-    if (empty($_POST['houseID']))
-    {
-      if (!isset($_SESSION['errors']))
-      {
-        $_SESSION['errors'] = array();
-      }
-      $_SESSION['errors'][] = "Please select an address from the list.";
-      header("Location: addressEntry.php");
-      exit();
-    }
-    else
-    {
-       $_SESSION['houseID'] = $_POST['houseID'];
-    }
+		$_SESSION['errors'] = array();
+    $_SESSION['errors'][] = "Please select an address from the list.";
+    header("Location: addressEntry.php");
+    exit();
   }
   
-  $_SESSION['fromConfirm'] = NULL;
-  $_SESSION['errors'] = NULL;
+  if (isset($_POST['houseID']))
+  {
+    $_SESSION['houseID'] = $_POST['houseID'];
+  }
   
   $genders = Gender::getAllGenders();
   $ethnicities = Ethnicity::getAllEthnicities();
@@ -48,39 +51,46 @@
     $client = Client::getClientByID($_SESSION['clientID']);
     if($client === NULL)
     {
-      session_destroy();
-      header("Location: search.php?error=1");
+      $adminID = $_SESSION['adminID'];
+			$timeout = $_SESSION['timeout'];
+			$_SESSION = NULL;
+			$_SESSION['adminID'] = $adminID;
+			$_SESSION['timeout'] = $timeout;
+			$_SESSION['errors'] = array();
+			$_SESSION['errors'][] = "There was an error editing the client."; 
+      header("Location: search.php?clean=1");
+			exit();
     }
-    else
-    { 
-      $_SESSION['clientID'] = $client->getClientID();
-      $_SESSION['appDate'] = $client->getApplicationDate();
-      $_SESSION['firstName'] = $client->getFirstName();
-      $_SESSION['lastName'] = $client->getLastName();
-      $_SESSION['number'] = $client->getPhoneNumber();
-      $_SESSION['age'] = $client->getAge();
-      $_SESSION['gengroup'] = $client->getGenderID();
-      $_SESSION['ethgroup'] = $client->getEthnicityID();
-      $_SESSION['reasongroup'] = $client->getReasonID();
-      $_SESSION['explanation'] = $client->getExplanation();
-      $_SESSION['uDate'] = $client->getUnemploymentDate();
-      $_SESSION['receivesStamps'] = $client->getReceivesStamps();
-      $_SESSION['wantsStamps'] = $client->getWantsStamps();
-      
-      //Populate session with client children
-      $familyMembers = $client->getAllFamilyMembers();
-      $sessionFamilyMembers = array();
-      foreach($familyMembers as $familyMember)
-      {
-        $sessionFamilyMember = array();
-        $sessionFamilyMember["age"] = $familyMember->getAge();
-        $sessionFamilyMember["gender"] = $familyMember->getGenderID();
-        $sessionFamilyMember["ethnicity"] = $familyMember->getEthnicityID();
-        $sessionFamilyMembers[] = $sessionFamilyMember;
-      }
-      $_SESSION['memberCount'] = count($sessionFamilyMembers);
-      $_SESSION['familyMembers'] = $sessionFamilyMembers;
-    }
+		$_SESSION['clientID'] = $client->getClientID();
+		$_SESSION['appDate'] = mySQLDateToNormal($client->getApplicationDate());
+		$_SESSION['firstName'] = $client->getFirstName();
+		$_SESSION['lastName'] = $client->getLastName();
+		$_SESSION['number'] = $client->getPhoneNumber();
+		$_SESSION['age'] = $client->getAge();
+		$_SESSION['gengroup'] = $client->getGenderID();
+		$_SESSION['ethgroup'] = $client->getEthnicityID();
+		$_SESSION['reasongroup'] = $client->getReasonID();
+		$_SESSION['explanation'] = $client->getExplanation();
+		$_SESSION['uDate'] = ($client->getUnemploymentDate())? mySQLDateToNormal($client->getUnemploymentDate()) : NULL;
+		$_SESSION['receivesStamps'] = $client->getReceivesStamps();
+		$_SESSION['wantsStamps'] = $client->getWantsStamps();
+		
+		//Populate session with client children so long as they haven't modified the information already
+		if (empty($_SESSION['modifyFamily']))
+		{
+			$familyMembers = $client->getAllFamilyMembers();
+			$sessionFamilyMembers = array();
+			foreach($familyMembers as $familyMember)
+			{
+				$sessionFamilyMember = array();
+				$sessionFamilyMember["age"] = $familyMember->getAge();
+				$sessionFamilyMember["gender"] = $familyMember->getGenderID();
+				$sessionFamilyMember["ethnicity"] = $familyMember->getEthnicityID();
+				$sessionFamilyMembers[] = $sessionFamilyMember;
+			}
+			$_SESSION['memberCount'] = count($sessionFamilyMembers);
+			$_SESSION['familyMembers'] = $sessionFamilyMembers;
+		}
   }
   
 ?>
@@ -139,35 +149,28 @@
       $("#toDo").val(toDo);
     }
   </script>
-	
-	<title>Bryant Food Distribution Client Data Entry Screen</title>
 </head>
 	<body>
 		<div id="header">
     <?php 
       if (isset($_SESSION['edit']))
       {
-        echo "<h1>Edit Client</h1>
-        <h2>Enter the information to change this client</h2>";
+        $heading = "Edit Client";
+				$subheading = "Enter the information to change this client";
       }
       else
       {
-        echo " <h1>Add a New Client</h1>
-        <h2>Enter the information for a new client</h2>";
+				$heading = "Add a New Client";
+				$subheading = "Enter the information for a new client";
       }
+			showHeader("BCC Client Entry", $heading, $subheading);
       ?>
-			<hr/>
-			<ul>
-				<li><a href="selectTask.php">Select a Task</a></li>
-				<li><a href="search.php">Search for a Client</a></li>
-        <?php
-          if (isset($_SESSION['edit']))
-          {
-            echo '<li><a href="addressEntry.php?clean=1">Add a new client</a></li>';
-          }
-        ?>
-			</ul>
-		</div><!-- /header -->
+		</div>
+		<?php 
+			showClientEntrySteps(3);
+			showErrors(); 
+		?>
+		</div>
 		<div id="newClient">
 			<form method="post" action="clientConfirm.php">
       <input name="toDo" id="toDo" type="hidden" value="submit" />
@@ -225,21 +228,6 @@
 							</select>
 						</td>
 					</tr>
-					<tr>
-						<td><label for="reasongroup">Reason For Assistance: </label></td>
-						<td><select id="reasongroup" name="reasongroup">
-              <option value="0" selected>Select a reason</option>
-              <?php foreach ($reasons as $reason)
-                {
-                  echo "\t\t\t\t\t\t";
-                  echo '<option value="' . $reason->getReasonID() . '"';
-                  if (isset($_SESSION['reasongroup']) && $_SESSION['reasongroup'] == $reason->getReasonID()){ echo " selected"; }
-                  echo  '>' . $reason->getReasonDesc();
-                  echo "</option>\n";
-                }
-                ?>
-						</select></td>
-					</tr>	
           <?php
             $_SESSION['memberCount'] = (!isset($_SESSION['memberCount']))? 0: $_SESSION['memberCount'];
             for($i = 0; $i<$_SESSION['memberCount']; $i++)
@@ -285,14 +273,28 @@
             }
             ?>
           <tr>
+            <td><label for="reasongroup">Reason For Assistance: </label></td>
+            <td><select id="reasongroup" name="reasongroup">
+              <option value="0" selected>Select a reason</option>
+              <?php foreach ($reasons as $reason)
+                {
+                  echo "\t\t\t\t\t\t";
+                  echo '<option value="' . $reason->getReasonID() . '"';
+                  if (isset($_SESSION['reasongroup']) && $_SESSION['reasongroup'] == $reason->getReasonID()){ echo " selected"; }
+                  echo  '>' . $reason->getReasonDesc();
+                  echo "</option>\n";
+                }
+                ?>
+            </select></td>
+          </tr>	
+          <tr>
+            <td><div class="showUDate" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
+            <td><input class="showUDate" style="display:none;"type="text" name="uDate" id="uDate" value="<?php echo $_SESSION['uDate']; ?>"/></td>
+          </tr>
+          <tr>
             <td><label for="explanation">Explanation (required if the reason is "Other"): </label></div></td>
             <td><input type="text" name="explanation" id="explanation" value="<?php echo $_SESSION['explanation']; ?>"/></td>
           </tr>
-					<tr>
-						<td><div class="showUDate" style="display:none;"><label for="uDate">Date of Job Loss: </label></div></td>
-						<td><input class="showUDate" style="display:none;"type="text" name="uDate" id="uDate" 
-                  value="<?php echo $_SESSION['uDate']; ?>"/></td>
-					</tr>
           <tr>
             <td><label for="receivesStamps">Are you currently receving food stamps?</label></td>
             <td>
@@ -316,30 +318,13 @@
             </td>
           </tr>
 					<tr>
-						<td><input type="submit" name="clientSub" id="clientSub" onClick="changeToDo('submit');"value="<?php 
-                                                                                if(!empty($_SESSION['edit']))
-                                                                                  {
-                                                                                    echo 'Edit Client';
-                                                                                  }
-                                                                                  else
-                                                                                  {
-                                                                                    echo 'Add New Client';
-                                                                                  }
-                                                                                ?>"/></td>
+						<td><input type="submit" name="clientSub" id="clientSub" onClick="changeToDo('submit');"value="Continue to confirmation"/></td>
 					</tr>
 				</table>
 			</fieldset>
 			</form>
-      <a href="addressEntry.php">Back to address information</a>
+      <a href="addressEntry.php">Back to address selection</a>
 		</div><!-- /newClient -->
-<?php 
-  if (!empty($_SESSION['clientID']))
-  {
-    echo "<a href=controllers/deleteClient.php?client=" . $_SESSION['clientID'] . " ";
-    echo "onClick=" . '"' . "return confirm('Are you sure you want to delete this client? ";
-    echo "Doing so will remove all information related to the client from the database.')" . '">Delete this client</a>';
-  }
-  ?>
 	</body>
 
 </html>

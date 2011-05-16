@@ -107,7 +107,7 @@
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.family_members WHERE fam_member_id = '{$this->famMemberID}'";
       $result = mysql_query($query);
@@ -127,7 +127,7 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $houseIDParam = NULL;
@@ -206,7 +206,7 @@
     //Returns a family member object given a family member ID, or null if none found
     public static function getFamilyMemberByID($memberID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $memberID = mysql_real_escape_string($memberID);
       
@@ -230,7 +230,7 @@
     //they're retrieved if their guardian_id matches the given id.
     public static function getAllFamilyMembersForClient($ID, $byHouse)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $ID = mysql_real_escape_string($ID);
       
@@ -258,9 +258,9 @@
     //Deletes all family members that are not tied to a house or a client
     public static function cleanFamilyMembers()
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
-      $query = "DELETE FROM bcc_food_client.family_members WHERE member_house_id = NULL AND guardian_id = NULL";
+      $query = "DELETE FROM bcc_food_client.family_members WHERE member_house_id IS NULL AND guardian_id IS NULL  ";
       $result = mysql_query($query);
       return $result;
     }

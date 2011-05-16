@@ -1,21 +1,31 @@
 <?php
-
-  include('models/sqldb.php');
-  include('models/visit.php');
-  include('models/client.php');
-  include('models/gender.php');
-  include('controllers/utility.php');
-  
+	session_start();
   date_default_timezone_set('America/New_York');
-  
+  include ('models/sqldb.php');
+  include ('models/visit.php');
+	include ('models/administrator.php');
+  include ('models/familyMember.php');
+  include ('models/client.php');
+  include ('models/gender.php');
+  include ('controllers/utility.php');
+	
+	if (!hasAccess())
+	{
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "This operation requires administrative privileges.";
+		header("Location: ./");
+		exit();
+	}
+	resetTimeout();
+    
   if (empty($_GET['client']))
   {
-    header('Location: /selectTask.php');
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "No client was specified.";
+    header('Location: ./');
+		exit();
   }
-  else
-  {
-    $client = Client::getClientByID($_GET['client']);
-  }
+	$client = Client::getClientByID($_GET['client']);
   $firstName = '';
   $lastName = '';
   $visits = NULL;
@@ -24,31 +34,31 @@
   
   if (empty($client))
   {
-    header('Location: /selectTask.php');
+		$_SESSION['errors'] = array();
+		$_SESSION['errors'][] = "The requested client could not be found.";
+    header('Location: ./');
+		exit();
   }
-  else
-  {
-    //Default date to search for is since this month
-    $since = date("Y-m");
-    $since = $since . "-01";
-    if (!empty($_POST['since']))
-    {
-      if($_POST['since'] == 1)//This year
-      {
-        $since = date("Y");
-        $since = $since . "-01-01";
-      }
-      elseif($_POST['since'] == 2) // Forever
-      {
-        $since = '';
-      }
-    }
-    $firstName = $client->getFirstName();
-    $lastName = $client->getLastName();
-    $visits = $client->getVisitHistory($since);
-    $pronoun = (Gender::getGenderByID($client->getGenderID())->getGenderDesc() == "Male")? "him" : "her";
-    $distTypes = Visit::getAllDistTypes();
-  }
+	//Default date to search for is since this month
+	$since = date("Y-m");
+	$since = $since . "-01";
+	if (!empty($_POST['since']))
+	{
+		if($_POST['since'] == 1)//This year
+		{
+			$since = date("Y");
+			$since = $since . "-01-01";
+		}
+		elseif($_POST['since'] == 2) // Forever
+		{
+			$since = '';
+		}
+	}
+	$firstName = $client->getFirstName();
+	$lastName = $client->getLastName();
+	$visits = $client->getVisitHistory(date_create($since));
+	$pronoun = (Gender::getGenderByID($client->getGenderID())->getGenderDesc() == "Male")? "him" : "her";
+	$distTypes = Visit::getAllDistTypes();
   
 ?>
 
@@ -64,21 +74,9 @@
 </head>
 <body>
   <div id="header">
-    <h3>Visit history for <?php echo $client->getFirstName() . " " . $client->getLastName() ?></h1>
-    <?php
-      if (!empty($_GET['deleteVisitSuccess'])){ echo "<h4>The visit was successfully deleted.</h4>";}
-      if (!empty($_GET['deleteVisitError'])){ echo "<h4>There was an error deleting the visit.</h4>";}
-      if (!empty($_GET['editVisitSuccess']) && !empty($_GET['visit'])){ echo "Visit {$_GET['visit']} was successfully edited.</h4>";}
-      if (!empty($_GET['editVisitError'])){ echo "<h4>There was an error editing the visit.</h4>";}
-      if (!empty($_GET['recordVisitSuccess']) && !empty($_GET['visit'])){ echo "<h4>Visit {$_GET['visit']} was successfully recorded.</h4>";}
-      if (!empty($_GET['recordVisitError'])){ echo "<h4>There was an error recording the visit.</h4>";}
-      ?>
-    <hr />
-    <ul>
-			<li><a href="selectTask.php">Select a Task</a></li>
-			<li><a href="dataEntry.php">Add a new Client</a></li>
-		</ul>
-  </div>
+		<?php showHeader("View Visit History", "Visit history for {$client->getFirstName()} {$client->getLastName()}", ""); ?>
+	</div>
+	<?php showErrors();	?>
   <form method="post" action="viewHistory.php?client=<?php echo $_GET['client']; ?>">
     <label for="since">View visit history for:</label>
     <select id="since" name="since">
@@ -97,8 +95,9 @@
 <?php
   foreach($visits as $visit)
   {
+		$visitDate = mySQLDateToNormal($visit->getDate());
     echo "\t<tr>\n";
-    echo "\t\t<td>{$visit->getDate()}</td>\n";
+    echo "\t\t<td>{$visitDate}</td>\n";
     echo "\t\t<td>{$visit->getDistTypeDesc()}</td>\n";
     echo "\t\t<td><a href='editVisit.php?visit={$visit->getVisitID()}'>Edit</a></td>\n";
     echo "\t\t<td><a href='controllers/deleteVisit.php?visit={$visit->getVisitID()}'>Delete</a></td>\n";

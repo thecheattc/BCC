@@ -12,7 +12,6 @@
 	
 	if (!hasAccess(TRUE))
 	{
-		$_SESSION['errors'] = array();
 		$_SESSION['errors'][] = "This operation requires administrative privileges.";
 		header("Location: ../");
 		exit();
@@ -20,7 +19,6 @@
   
   if (empty($_GET['id']))
   {
-		$_SESSION['errors'] = array();
 		$_SESSION['errors'][] = "There was an error editing this administrator.";
     header('Location: ../manageAdmins.php');
     exit();
@@ -29,7 +27,6 @@
 	$admin = Administrator::getAdminByID($_GET['id']);
 	if (empty($admin))
 	{
-		$_SESSION['errors'] = array();
 		$_SESSION['errors'][] = "The administrator requested was not found.";
     header('Location: ../manageAdmins.php');
     exit();

@@ -1,10 +1,21 @@
 <?php
   session_start();
+	date_default_timezone_set('America/New York');
   include_once('utility.php');
+	include_once('../models/administrator.php');
   include_once('../models/house.php');
   include_once('../models/client.php');
   include_once('../models/sqldb.php');
   include_once('../models/familyMember.php');
+  include('../models/visit.php');
+	
+	$_SESSION['errors'] = array();
+	if (!hasAccess())
+	{
+		$_SESSION['errors'][] = "This operation requires administrative privileges.";
+		header("Location: ../");
+		exit();
+	}
   
   define("UNEMPLOYED_REASON_ID", 1);
   define("HOMELESS_REASON_ID", 6);
@@ -16,13 +27,13 @@
   $client = NULL;
   $newFamilyMembers = array();
   $oldFamilyMembers = array();
-  $errors = array();
 
   if ($edit)
   {
     $client = Client::getClientByID($_SESSION['clientID']);
     if ($client === NULL)
     {
+			$_SESSION['errors'][] = "The requested client could not be found.";
       header("Location: ../search.php");
       exit();
     }
@@ -36,7 +47,7 @@
     $_SESSION['oldAddressValid'] = FALSE;
   }
   
-  $appDate = $_SESSION['appDate'];
+  $appDate = createNormalDate($_SESSION['appDate']);
   $first = processString($_SESSION['firstName']);
   $last = processString($_SESSION['lastName']);
   if ($_SESSION['houseID'] === "new")
@@ -44,6 +55,7 @@
     $streetNumber = processString($_SESSION['streetNumber']);
     $streetName = processString($_SESSION['streetName']);
     $streetType = processString($_SESSION['streetType']);
+    $line2 = processString($_SESSION['line2']);
     $city = processString($_SESSION['city']);
     $zip = processString($_SESSION['zip']);
   }
@@ -62,14 +74,14 @@
       $streetNumber = processString($match['streetNumber']);
       $streetName = processString($match['streetName']);
       $streetType = processString($match['streetType']);
+      $line2 = processString($match['line2']);
       $city = processString($match['city']);
       $zip = processString($match['zip']);
     }
     else
     {
-      $errors[] = "There was an error processing the address given.";
-      $_SESSION['errors'] = $errors;
-      header("Location: clientConfim.php");
+      $_SESSION['errors'][] = "There was an error processing the address given.";;
+      header("Location: ../clientConfirm.php");
       exit();
     }
   }
@@ -94,7 +106,7 @@
   
   if ($reasonID == UNEMPLOYED_REASON_ID)
   {
-    $unempDate = $_SESSION['uDate'];
+    $unempDate = createNormalDate($_SESSION['uDate']);
   }
   if ($receivesStamps == NOT_ON_FOODSTAMPS)
   {
@@ -108,101 +120,100 @@
   
   if (empty($_SESSION['houseID']))
   {
-    $errors[] = "House selection from search results";
+    $_SESSION['errors'][] = "House selection from search results";
   }
   if ($addressRequired)
   {
     if (empty($streetNumber))
     {
-      $errors[] = "Street number";
+      $_SESSION['errors'][] = "Street number";
     }
     if (empty($streetName))
     {
-      $errors[] = "Street name";
+      $_SESSION['errors'][] = "Street name";
     }
     if (empty($streetType))
     {
-      $errors[] = "Street type";
+      $_SESSION['errors'][] = "Street type";
     }
     if (empty($city))
     {
-      $errors[] = "City";
+      $_SESSION['errors'][] = "City";
     }
     if (empty($zip))
     {
-      $errors[] = "Zip";
+      $_SESSION['errors'][] = "Zip";
     }
   }
   if (empty($appDate))
   {
-    $errors[] = "Application date";
+    $_SESSION['errors'][] = "Application date";
   }
   if (empty($first))
   {
-    $errors[] = "First name";
+    $_SESSION['errors'][] = "First name";
   }
   if (empty($last))
   {
-    $errors[] = "Last name";
+    $_SESSION['errors'][] = "Last name";
   }
-  if (!isset($age))
+  if (empty($age))
   {
-    $errors[] = "Age";
+    $_SESSION['errors'][] = "Age";
   }
   if (empty($genderID))
   {
-    $errors[] = "Gender";
+    $_SESSION['errors'][] = "Gender";
   }
   if (empty($ethnicityID))
   {
-    $errors[] = "Ethnicity";
+    $_SESSION['errors'][] = "Ethnicity";
   }
   if (empty($reasonID))
   {
-    $errors[] = "Reason for getting food";
+    $_SESSION['errors'][] = "Reason for getting food";
   }
   if ($reasonID == UNEMPLOYED_REASON_ID && empty($unempDate))
   {
-    $errors[] = "Unemployment date";
+    $_SESSION['errors'][] = "Unemployment date";
   }
   if ($reasonID == OTHER_REASON_ID && empty($explanation))
   {
-    $errors[] = "Explanation of reason";
+    $_SESSION['errors'][] = "Explanation of reason";
   }
   if (!isset($receivesStamps))
   {
-    $errors[] = "Current food stamp status";
+    $_SESSION['errors'][] = "Current food stamp status";
   }
   if ($receivesStamps == NOT_ON_FOODSTAMPS && !isset($wantsStamps))
   {
-    $errors[] = "Interest in food stamps";
+    $_SESSION['errors'][] = "Interest in food stamps";
   }
   for ($i=0; $i<$_SESSION['memberCount']; $i++)
   {
     $j = $i+1;
     if (empty($_SESSION['familyMembers'][$i]["age"]))
     {
-      $errors[] = "Child {$j} age";
+      $_SESSION['errors'][] = "Child {$j} age";
     }
     if (empty($_SESSION['familyMembers'][$i]["gender"]))
     {
-      $errors[] = "Child {$j} gender";
+      $_SESSION['errors'][] = "Child {$j} gender";
     }
     if (empty($_SESSION['familyMembers'][$i]["ethnicity"]))
     {
-      $errors[] = "Child {$j} ethnicity";
+      $_SESSION['errors'][] = "Child {$j} ethnicity";
     }
   }
-  if (!empty($errors))
+  if (!empty($_SESSION['errors']))
   {
-    $_SESSION['errors'] = $errors;
     header('Location: ../clientConfirm.php');
     exit();
   }
-
+	
   $house = NULL;
   $houseSaveFail = FALSE;
-  //Only bother with a house if an address was given - at this point, if any part is given, all are
+  //Only bother with a house if an address was given - at this point, if any part is given, all (except line2) are
   if (!empty($streetNumber))
   {
     if ($_SESSION['houseID'] === "new")
@@ -220,6 +231,7 @@
       $house->setStreetNumber($streetNumber);
       $house->setStreetName($streetName);
       $house->setStreetType($streetType);
+      $house->setLine2($line2);
       $house->setCity($city);
       $house->setZip($zip);
     }
@@ -236,7 +248,7 @@
     //If the insert failed then presumably the house already exists
     if ($house->save() === FALSE)
     {
-      $house = House::searchByAddress($streetNumber, $streetName, $streetType, $city, $zip);
+      $house = House::searchByAddress($streetNumber, $streetName, $streetType, $line2, $city, $zip);
       if ($house === NULL)
       {
         //Couldn't find that house, so the insert failed for some other reason. Raise an error
@@ -245,8 +257,7 @@
     }
     if ($houseSaveFail)
     {
-      $errors[] = "There was an error adding the address to the database.";
-      $_SESSION['errors'] = $errors;
+			$_SESSION['errors'][] = "There was an error adding the address to the database.";
       header('Location: ../clientConfirm.php');
       exit();
     }
@@ -274,6 +285,7 @@
   $client->setExplanation($explanation);
   $client->setUnemploymentDate($unempDate);
   $client->setReceivesStamps($receivesStamps);
+	
   if ($client->getReceivesStamps())
   {
     $client->setWantsStamps(NULL);
@@ -295,8 +307,7 @@
   if (!$client->save())
   {
     $client->discard();
-    $errors[] = "There was an error adding the client to the database.";
-    $_SESSION['errors'] = $errors;
+    $_SESSION['errors'][] = "There was an error adding the client to the database.";
     header("Location: ../clientConfirm.php");
     exit();
   }
@@ -321,13 +332,12 @@
     $familyMember->setEthnicityID($_SESSION['familyMembers'][$i]["ethnicity"]);
     $newFamilyMembers[] = $familyMember;
   }
-  /*
-   echo "<PRE>";
-   var_dump($newFamilyMembers);
-   echo "</PRE>";
-   */
   Client::deleteHouseIfNotReferenced($oldHouseID);
-  session_destroy();
+  $adminID = $_SESSION['adminID'];
+	$timeout = $_SESSION['timeout'];
+	$_SESSION = NULL;
+	$_SESSION['adminID'] = $adminID;
+	$_SESSION['timeout'] = $timeout;
   foreach($newFamilyMembers as $familyMember)
   {
     $familyMember->save();
@@ -338,9 +348,11 @@
   }
   if ($edit)
   { 
-    header("Location: ../search.php?success=1&clientEdit=1");
+		$_SESSION['errors'][] = "Client successfully edited.";
+    header("Location: ../search.php");
   }
   else
   {
-    header("Location: ../search.php?success=1&clientEdit=0");
+		$_SESSION['errors'][] = "Client successfully created.";
+    header("Location: ../search.php");
   }

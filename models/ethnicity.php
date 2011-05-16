@@ -51,7 +51,7 @@
     public function delete()
     {
       // Ensure DB Connection
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "DELETE FROM bcc_food_client.ethnicities WHERE ethnicity_id = '{$this->ethnicityID}'";
       $result = mysql_query($query);
@@ -71,7 +71,7 @@
     public function save()
     {
       //Ensure connection to the database
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
       $ethnicityDescParam = mysql_real_escape_string($this->ethnicityDesc);
@@ -123,7 +123,7 @@
     //Returns an ethnicity object given an ethnicity ID, or null if none found
     public static function getEthnicityByID($ethnicityID)
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $ethnicityID = mysql_real_escape_string($ethnicityID);
       
@@ -141,10 +141,28 @@
       
       return $ethnicity;
     }
+		
+		public static function getEthnicityByDesc($desc)
+		{
+			SQLDB::connect("bcc_food_client");
+			$desc = strToLower(mysql_real_escape_string($desc));
+			
+			$query = "SELECT ethnicity_id, ethnicity_desc
+								FROM bcc_food_client.ethnicities
+								WHERE ethnicity_desc = '{$desc}'";
+			
+			$result = mysql_query($query);
+			$ethnicity = NULL;
+			if ($row = mysql_fetch_array($result))
+			{
+				$ethnicity  = Ethnicity::createFromSQLRow($row);
+			}
+			return $ethnicity;
+		}
     
     public static function getAllEthnicities()
     {
-      SQLDB::connect();
+      SQLDB::connect("bcc_food_client");
       
       $query = "SELECT ethnicity_id, ethnicity_desc FROM bcc_food_client.ethnicities";
       
@@ -154,10 +172,25 @@
       while ($row = mysql_fetch_array($result))
       {
         $ethnicities[] = Ethnicity::createFromSQLRow($row);
-      }
-      
+      } 
       return $ethnicities;
     }
+		
+		public static function getRemovableEthnicityIDs()
+		{
+			SQLDB::connect("bcc_food_client");
+			$query = "SELECT ethnicity_id 
+								FROM bcc_food_client.ethnicities
+								WHERE ethnicity_id NOT IN (SELECT ethnicity_id FROM bcc_food_client.clients)";
+			$result = mysql_query($query);
+			$IDs = array();
+			
+			while ($row = mysql_fetch_array($result))
+			{
+				$IDs[] = $row['ethnicity_id'];
+			}
+			return $IDs;
+		}
     
   }
 ?>

@@ -23,22 +23,12 @@
 <script type="text/javascript" 
 			src="scripts/js/jquery-1.4.4.min.js"></script>
 <head>
-<title>BCC Administration</title>
 </head>
 	<body>
-<?php
-	if (!empty($_SESSION['errors']))
-	{
-		echo "<div class='errors'>
-		<ul>\n";
-		foreach($_SESSION['errors'] as $error)
-		{
-			echo "<li>" . $error . "</li>\n";
-		}
-		echo "\t</ul>\n</div>";
-		$_SESSION['errors'] = NULL;
-	}
-	?>
+		<div id="header">
+			<?php showHeader("BCC Administration", "Manage Administrators", "Add or remove people to assist with food distribution", TRUE); ?>
+		</div>
+		<?php showErrors(); ?>
 		<div><!-- Admin list-->
 			<h3>Current administrators:</h3>
 			<table>
