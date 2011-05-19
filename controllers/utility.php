@@ -147,4 +147,58 @@
 		</div>";
 	}
 	
+	//Given queries that return group names and counts of the occurrences of those group names
+	// - in that order - this will
+	//run each query and sum the counts of all identical keys to condense it into one array
+	function runCountQueriesAndUnionResults($queryArray)
+	{
+		$resultsArray = array();
+		foreach ($queryArray as $query)
+		{
+			$result = mysql_query($query);
+			if ($result === FALSE)
+			{
+				return FALSE;
+			}
+			$queryResultSet = array();
+			while ($row = mysql_fetch_array($result))
+			{
+				$queryResultSet[$row[0]] = (int) $row[1];
+			}
+			
+			$resultsArray[] = $queryResultSet;
+		}
+		return array_add($resultsArray);
+	}
+	
+	function array_add($arrayOfArraysToAdd)
+	{
+		if (empty($arrayOfArraysToAdd))
+		{
+			return $arrayOfArraysToAdd;
+		}
+		$result = $arrayOfArraysToAdd[0];
+		for ($i=1; $i<sizeof($arrayOfArraysToAdd); $i++)
+		{
+			$curArray = $arrayOfArraysToAdd[$i];
+			foreach ($curArray as $key => $val)
+			{
+				$result[$key] += $val;
+			}
+		}
+		return $result;
+	}
+	
+	function printKeyValue($array)
+	{
+		if (!is_array($array))
+		{
+			return FALSE;
+		}
+		foreach($array as $key => $value)
+		{
+			echo "\t{$key}: {$value}\n";
+		}
+	}
+	
 	?>

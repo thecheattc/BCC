@@ -11,21 +11,8 @@
   $end = "2011-06-10";
 	$report = new Report();
   echo "<PRE>";
-  echo $report->getReport($start, $end);
-  //echo getDuplicatedHouseholds($start, $end);
-  //echo getTotalHomeless($start, $end);
-	/*$houses =  getHouseholdLocations($start, $end);
-  foreach($houses as $house)
-  {
-    echo $house["zip"] . " : " . $house["count"] . "\n";
-  }
-  
-  $count = getGenderCount($start, $end);
-  var_dump($count);
-  $count = getEthnicityCount($start, $end);
-  var_dump($count);*/
-  
-echo "</PRE>";
+	$report->getReport($start, $end);
+	echo "</PRE>";
 
 
 ?>
