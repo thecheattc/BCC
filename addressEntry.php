@@ -24,13 +24,13 @@
 		$_SESSION['adminID'] = $adminID;
 		$_SESSION['timeout'] = $timeout;
   }
-  if (isset($_GET['nosearch']))
+  if (isset($_GET['noHouseSearch']))
   {
-    $_SESSION['haveSearched'] = NULL;
+    $_SESSION['haveSearchedHouse'] = NULL;
   }
   
   //If it's an edit and they haven't searched yet, prepopulate the form fields.
-  if ((!empty($_GET['client']) || !empty($_SESSION['edit'])) && empty($_SESSION['haveSearched']))
+  if ((!empty($_GET['client']) || !empty($_SESSION['edit'])) && empty($_SESSION['haveSearchedHouse']))
   {
     $client = NULL;
     if (!empty($_SESSION['edit']))
@@ -116,20 +116,19 @@
 		</div>
     
     <?php
-      showErrors();
-        
-      if ($_SESSION['haveSearched'] === TRUE)
+      if ($_SESSION['haveSearchedHouse'] === TRUE)
       {
 				showClientEntrySteps(2);
-        echo "<div>\n\t<p>Select the address you would like for this client.</p>\n";
-        echo "<form method='post' action='clientEntry.php'>\n<table>\n";
-        foreach($_SESSION['matches'] as $match)
+				showErrors();
+        echo "<div style=\"float: left\">\n\t<p>Select the address you would like for this client.</p>\n";
+        echo "<form method='post' action='spouseEntry.php?noSpouseSearch=1'>\n<table>\n";
+        foreach($_SESSION['houseMatches'] as $houseMatch)
         {
           echo '<tr>
-                  <td>' . $match["streetNumber"] . " " . $match["streetName"] . " " . $match["streetType"] . " " . $match["line2"] . " "
-                        . $match ["city"] . " " . $match["zip"] . '</td>
-                  <td><input name="houseID" type="radio" value="' . $match["houseID"] . '"';
-          if ($_SESSION['houseID'] == $match["houseID"])
+                  <td>' . $houseMatch["streetNumber"] . " " . $houseMatch["streetName"] . " " . $houseMatch["streetType"] . " " . $houseMatch["line2"] . " "
+                        . $houseMatch ["city"] . " " . $houseMatch["zip"] . '</td>
+                  <td><input name="houseID" type="radio" value="' . $houseMatch["houseID"] . '"';
+          if ($_SESSION['houseID'] == $houseMatch["houseID"])
           {
             echo "checked";
           }
@@ -171,6 +170,7 @@
       else
       {
 				showClientEntrySteps(1);
+				showErrors();
         echo ' 
         <div id="newClient">
           <p>Leave all fields blank if the client is homeless.</p>

@@ -13,7 +13,7 @@
 		exit();
 	}
   
-  if (empty($_SESSION['haveSearched']))
+  if (empty($_SESSION['haveSearchedHouse']))
   {
     $_SESSION['streetNumber'] = $_POST['streetNumber'];
     $_SESSION['streetName'] = $_POST['streetName'];
@@ -23,8 +23,8 @@
     $_SESSION['zip'] = $_POST['zip'];
     $_SESSION['oldAddressValid'] = $_POST['oldAddressValid'];
     $houses = House::searchAddresses($_POST['streetNumber'], $_POST['streetName']);
-    $_SESSION['matches'] = $houses;
-    $_SESSION['haveSearched'] = TRUE;
+    $_SESSION['houseMatches'] = $houses;
+    $_SESSION['haveSearchedHouse'] = TRUE;
     header("Location: ../addressEntry.php");
 		exit();
    }
@@ -51,13 +51,13 @@
 		$_SESSION['line2'] = $house->getLine2();
 		$_SESSION['city'] = $_POST['city'];
 		$_SESSION['zip'] = $_POST['zip'];
-		header("Location: ../clientEntry.php");
+		header("Location: ../spouseEntry.php");
 		exit();
 	}
 	else
 	{
 		$_SESSION['houseID'] = $_POST['houseID'];
-		header("Location: ../clientEntry.php");
+		header("Location: ../spouseEntry.php");
 		exit();
 	}
   

@@ -138,8 +138,16 @@ border-collapse: collapse;
 border: 1px solid black;
 padding: .75em;
 }
-
+/*==========================Admin pages=======================================*/
 .removable
 {
     background-color:LightSkyBlue;
+}
+
+/*==========================Client entry process=============================*/
+#clientEntrySteps ol li
+{
+    float: left;
+    margin:0px 16px;
+    font-size: 16px;
 }

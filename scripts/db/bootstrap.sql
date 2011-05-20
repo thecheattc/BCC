@@ -72,6 +72,7 @@ DROP TABLE IF EXISTS `bcc_food_client`.`clients` ;
 
 CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   `client_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `spouse_id` INT UNSIGNED NULL ,
   `first_name` VARCHAR(45) NOT NULL ,
   `last_name` VARCHAR(45) NOT NULL ,
   `age` INT NOT NULL ,
@@ -91,6 +92,7 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
   INDEX `client_gender` (`gender_id` ASC) ,
   INDEX `client_ethnicity` (`ethnicity_id` ASC) ,
   UNIQUE INDEX `client_UNIQUE` (`first_name` ASC, `last_name` ASC, `age` ASC, `phone_number` ASC, `house_id` ASC, `ethnicity_id` ASC, `gender_id` ASC, `reason_id` ASC) ,
+  INDEX `client_spouse` (`spouse_id` ASC) ,
   CONSTRAINT `client_house_id`
     FOREIGN KEY (`house_id` )
     REFERENCES `bcc_food_client`.`houses` (`house_id` )
@@ -110,6 +112,11 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`clients` (
     FOREIGN KEY (`ethnicity_id` )
     REFERENCES `bcc_food_client`.`ethnicities` (`ethnicity_id` )
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `client_spouse`
+    FOREIGN KEY (`spouse_id` )
+    REFERENCES `bcc_food_client`.`clients` (`client_id` )
+    ON DELETE SET NULL
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -232,6 +239,7 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
 
 INSERT INTO bcc_admin.access_levels (access_level_name)
 VALUES ('root'), ('Volunteer');

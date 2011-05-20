@@ -128,6 +128,15 @@
 		}
 	}
 	
+	function linkWrap($linkTarget, $textToWrap, $shouldWrap)
+	{
+		if($shouldWrap)
+		{
+			return "<a href=\"{$linkTarget}\">{$textToWrap}</a>";
+		}
+		return "{$textToWrap}";
+	}
+	
 	function showClientEntrySteps($stepNumber)
 	{
 		$style = "style=\"color:red\"";
@@ -135,16 +144,20 @@
 		$atStepTwo = ($stepNumber == 2)? $style : "";
 		$atStepThree = ($stepNumber == 3)? $style : "";
 		$atStepFour = ($stepNumber == 4)? $style : "";
+		$atStepFive = ($stepNumber == 5)? $style : "";
+		$atStepSix = ($stepNumber == 6)? $style : "";
 		echo "
 		<div id=\"clientEntrySteps\">
 			<label for=\"formSteps\">Form steps:</label>
-			<ol id=\"formSteps\">
-				<a href=\"addressEntry.php?nosearch=1\"><li {$atStepOne}>Address Entry and Search</li></a>
-				<a href=\"addressEntry.php\"><li {$atStepTwo}>Address Selection</li></a>
-				<a href=\"clientEntry.php\"><li {$atStepThree}>Personal Information</li></a>
-				<a href=\"clientConfirm.php\"><li {$atStepFour}>Confirmation and Submission</li></a>
-			</ol>
-		</div>";
+			<ol id=\"formSteps\">";
+		echo linkWrap("addressEntry.php?noHouseSearch=1", "<li {$atStepOne}>Address Entry and Search</li>", ($stepNumber > 1));
+		echo linkWrap("addressEntry.php", "<li {$atStepTwo}>Address Selection</li>", ($stepNumber > 2));
+		echo linkWrap("spouseEntry.php?noSpouseSearch=1", "<li {$atStepThree}>Spouse Entry and Search</li>", ($stepNumber > 3));
+		echo linkWrap("spouseEntry.php", "<li {$atStepFour}>Spouse Selection</li>", ($stepNumber > 4));
+		echo linkWrap("clientEntry.php", "<li {$atStepFive}>Personal Information</li>", ($stepNumber > 5));
+		echo linkWrap("clientConfirm.php", "<li {$atStepSix}>Confirmation and Submission</li>", ($stepNumber > 6));
+		echo "</ol>
+		</div><br />";
 	}
 	
 	//Given queries that return group names and counts of the occurrences of those group names

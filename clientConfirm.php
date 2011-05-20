@@ -65,13 +65,16 @@
     header("Location: clientEntry.php");
     exit();
   }
+	
+	$spouseName =  ($_SESSION['spouseID'] === "single")? "None" : 
+										htmlentities($_SESSION['spouseFirst'] . " " . $_SESSION['spouseLast']);
   
   //To make the client confirmation screen correct, update the session
   //variables with the address they chose from search (if necessary).
   $house = array();
   if ($_SESSION['houseID'] != "new")
   {
-    foreach($_SESSION['matches'] as $match)
+    foreach($_SESSION['houseMatches'] as $match)
     {
       if ($match["houseID"] == $_SESSION['houseID'])
       {
@@ -120,7 +123,8 @@
 				showHeader("BCC Client Info Confirmation", "Confirm Client Information", "Please check that the information you have entered is correct.");
 			?>
 		</div><!-- /header -->
-<?php 
+<?php
+	showClientEntrySteps(6);
   if (!empty($_SESSION['errors']))
   {
     $addressError = FALSE;
@@ -144,7 +148,6 @@
     }
     $_SESSION['errors'] = array();
   }
-	showClientEntrySteps(4);
 ?>  
     <div id="newClient">
         <table>
@@ -160,6 +163,10 @@
             <td><label>Last Name: </label></td>
             <td><?php   echo htmlentities($_SESSION['lastName']); ?></td>
           </tr>
+					<tr>
+						<td><label>Spouse: </label></td>
+						<td><?php   echo $spouseName; ?></td>
+					</tr>
           <tr>
             <td><label>Current Address: </label></td>
             <td><?php   echo htmlentities($house['streetNumber']) . " ". htmlentities($house['streetName']) . " " .

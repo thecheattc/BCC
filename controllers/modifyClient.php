@@ -62,7 +62,7 @@
   else
   {
     $match = NULL;
-    foreach($_SESSION['matches'] as $possible)
+    foreach($_SESSION['houseMatches'] as $possible)
     {
       if ($possible['houseID'] == $_SESSION['houseID'])
       {
@@ -85,6 +85,7 @@
       exit();
     }
   }
+	$spouseID = (processString($_SESSION['spouseID']) == "single")? NULL : $_SESSION['spouseID'];
   $oldAddressValid = processString($_SESSION['oldAddressValid']);
   $phone = processString($_SESSION['number']);
   $age = processString($_SESSION['age']);
@@ -274,6 +275,7 @@
   {
     $client = Client::create();
   }
+	$client->setSpouseID($spouseID);
   $client->setFirstName($first);
   $client->setLastName($last);
   $client->setApplicationDate($appDate);
@@ -317,7 +319,7 @@
   for ($i=0; $i<$_SESSION['memberCount']; $i++)
   {
     $familyMember = FamilyMember::create();
-    if($house !== NULL)
+    if($reasonID != HOMELESS_REASON_ID)
     {
       $familyMember->setHouseID($house->getHouseID());
       $familyMember->setGuardianID(NULL);

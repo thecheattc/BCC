@@ -372,7 +372,9 @@
 				echo "visitingHouses";
 				return FALSE;
 			}
-			
+			//Since there's only a link between parent and children, and not parent and parent,
+			//This will possibly give us a slightly lower count for queries regarding the homeless
+			//because spouses won't be factored in.
 			$homelessParents = 
 			"CREATE TEMPORARY TABLE homeless_parents
 			SELECT * FROM visiting_clients WHERE reason_id = {$this->HOMELESS_REASON_ID}";
@@ -388,7 +390,7 @@
 			SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
 							c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
 							c.receives_stamps, c.wants_stamps
-			FROM	(SELECT DISTINCT house_id FROM visiting_clients) AS visiting_houses JOIN bcc_food_client.clients c ON visiting_houses.house_id = c.house_id";
+			FROM	(SELECT house_id FROM visiting_houses) AS visiting_house_ids JOIN bcc_food_client.clients c ON visiting_house_ids.house_id = c.house_id";
 			$result = mysql_query($homeParents);
 			if ($result === FALSE)
 			{

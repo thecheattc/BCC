@@ -23,19 +23,32 @@
   define("LOST_JOB", 1);
   define("MAX_FAMILY_MEMBERS", 20);
   
-  //Set the houseID so the controller will know how to handle it.
+  //Set the spouseID so the controller will know how to handle it.
   //Only do this when coming from the addressEntry page
-  if (isset($_POST['fromAddress']) && !isset($_POST['houseID']))
+  if (isset($_POST['fromSpouse']) && !isset($_POST['spouseID']))
   {
 		$_SESSION['errors'] = array();
-    $_SESSION['errors'][] = "Please select an address from the list.";
-    header("Location: addressEntry.php");
+    $_SESSION['errors'][] = "Please select a choice from the list.";
+    header("Location: spouseEntry.php");
     exit();
   }
   
-  if (isset($_POST['houseID']))
+  if (isset($_POST['spouseID']))
   {
-    $_SESSION['houseID'] = $_POST['houseID'];
+    $_SESSION['spouseID'] = $_POST['spouseID'];
+		if ($_POST['spouseID'] != "single")
+		{
+			$spouse = Client::getClientByID($_SESSION['spouseID']);
+			if (empty($spouse))
+			{
+				$_SESSION['errors'] = array();
+				$_SESSION['errors'][] = "The selected spouse could not be found.";
+				header("Location: spouseEntry.php?noSpouseSearch=1");
+				exit();
+			}
+			$_SESSION['spouseFirst'] = $spouse->getFirstName();
+			$_SESSION['spouseLast'] = $spouse->getLastName();
+		}
   }
   
   $genders = Gender::getAllGenders();
@@ -79,6 +92,7 @@
 		if (empty($_SESSION['modifyFamily']))
 		{
 			$familyMembers = $client->getAllFamilyMembers();
+			var_dump($familyMembers);
 			$sessionFamilyMembers = array();
 			foreach($familyMembers as $familyMember)
 			{
@@ -167,7 +181,7 @@
       ?>
 		</div>
 		<?php 
-			showClientEntrySteps(3);
+			showClientEntrySteps(5);
 			showErrors(); 
 		?>
 		</div>

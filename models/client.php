@@ -1,8 +1,9 @@
 <?php
-  
+  define("HOMELESS_REASON_ID", 6);
   class Client
   {
     private $clientID;
+		private $spouseID;
     private $firstName;
     private $lastName;
     private $age;
@@ -29,6 +30,18 @@
     public function getClientID()
     {
       return $this->clientID;
+    }
+		
+		public function getSpouseID()
+    {
+      return $this->spouseID;
+    }
+		
+		public function setSpouseID($val)
+    {
+			$this->dirty = true;
+			$this->spouseID = $val;
+      return $this->spouseID;
     }
     
     public function getFirstName()
@@ -222,6 +235,15 @@
     {
       // Ensure DB Connection
       SQLDB::connect("bcc_food_client");
+			
+			//If this person is homeless and has a spouse, grab this client's children (if any)
+			//and assign them to the spouse
+			if($this->reasonID == HOMELESS_REASON_ID && isset($this->spouseID))
+			{
+					mysql_query("UPDATE bcc_food_client.family_members 
+											SET guardian_id='{$this->spouseID}' 
+											WHERE guardian_id='{$this->clientID}'");
+			}
       
       $query = "DELETE FROM bcc_food_client.clients WHERE client_id = '{$this->clientID}'";
 
@@ -255,6 +277,15 @@
       SQLDB::connect("bcc_food_client");
       
       //Sanitize user-generated input
+			$spouseIDParam = NULL;
+			if (!isset($this->spouseID))
+			{
+				$spouseIDParam = "NULL";
+			}
+			else
+			{
+				$spouseIDParam = "'" . $this->spouseID . "'";
+			}
       $firstNameParam = mysql_real_escape_string($this->firstName);
       $lastNameParam = mysql_real_escape_string($this->lastName);
       $ageParam = mysql_real_escape_string($this->age);
@@ -305,6 +336,7 @@
       if($this->createdFromDB)
       {
         $query = "UPDATE bcc_food_client.clients SET ";
+				$query .= "spouse_id=" . $spouseIDParam . ", ";
         $query .= "first_name='$firstNameParam', ";
         $query .= "last_name='$lastNameParam', ";
         $query .= "age='$ageParam', ";
@@ -323,10 +355,10 @@
       //If the client was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.clients (first_name, last_name, age, phone_number, ";
+        $query = "INSERT INTO bcc_food_client.clients (spouse_id, first_name, last_name, age, phone_number, ";
         $query .= "house_id, ethnicity_id, gender_id, reason_id, explanation, unemployment_date, ";
         $query .= "application_date, receives_stamps, wants_stamps) VALUES ";
-        $query .= "('$firstNameParam', '$lastNameParam', '$ageParam', ";
+        $query .= "(" . $spouseIDParam . ", '$firstNameParam', '$lastNameParam', '$ageParam', ";
         $query .= $phoneNumberParam . ", " . $houseIDParam . ", '$ethnicityIDParam', ";
         $query .= "'$genderIDParam', '$reasonIDParam', " . $explanationParam . ", ";
         $query .= $unempDateParam . ", '$appDateParam', '$receivesStampsParam', " . $wantsStampsParam . ")";
@@ -345,6 +377,13 @@
           $this->clientID = mysql_insert_id();
         }
       }
+			
+			if ($spouseIDParam !== "NULL")
+			{
+				mysql_query("UPDATE bcc_food_client.clients 
+										SET spouse_id={$this->clientID} 
+										WHERE client_id={$this->spouseID}");
+			}
       return $result;
     }
     
@@ -354,6 +393,7 @@
     {
       $client = new Client();
       $client->clientID = $row["client_id"];
+			$client->spouseID = $row["spouse_id"];
       $client->firstName = $row["first_name"];
       $client->lastName = $row["last_name"];
       $client->age = $row["age"];
@@ -379,7 +419,7 @@
       
       $houseID = mysql_real_escape_string($houseID);
       
-      $query = "SELECT client_id, first_name, last_name, age, phone_number, ";
+      $query = "SELECT client_id, spouse_id, first_name, last_name, age, phone_number, ";
       $query .= "house_id, ethnicity_id, gender_id, reason_id, explanation, unemployment_date, ";
       $query .= "application_date, receives_stamps, wants_stamps ";
       $query .= "FROM bcc_food_client.clients ";
@@ -407,7 +447,7 @@
       $streetNumber = mysql_real_escape_string(processString($streetNumber, TRUE));
       $streetName = mysql_real_escape_string(processString($streetName));
       
-      $query = "SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, ";
+      $query = "SELECT c.client_id, c.spouse_id, c.first_name, c.last_name, c.age, c.phone_number, ";
       $query .= "c.house_id, c.ethnicity_id, c.gender_id, c.reason_id, c.explanation, ";
       $query .= "c.unemployment_date, c.application_date, c.receives_stamps, c.wants_stamps ";
       $query .= "FROM bcc_food_client.clients c LEFT JOIN bcc_food_client.houses h ON c.house_id = h.house_id ";
@@ -434,7 +474,7 @@
       
       $id = mysql_real_escape_string($id);
       
-      $query = "SELECT client_id, first_name, last_name, age, phone_number, ";
+      $query = "SELECT client_id, spouse_id, first_name, last_name, age, phone_number, ";
       $query .= "house_id, ethnicity_id, gender_id, reason_id, explanation, unemployment_date, ";
       $query .= "application_date, receives_stamps, wants_stamps ";
       $query .= "FROM bcc_food_client.clients ";
@@ -450,6 +490,11 @@
       
       return $client;
     }
+		
+		public function getSpouseAsClient()
+		{
+			return Client::getClientByID($this->spouseID);
+		}
     
     //Returns an array of Visits
     public function getVisitHistory($since)
@@ -495,14 +540,42 @@
     //Returns an array of all family members associated with this client
     public function getAllFamilyMembers()
     {
-      if ($this->houseID)
+      if ($this->reasonID != HOMELESS_REASON_ID)
       {
         return FamilyMember::getAllFamilyMembersForClient($this->houseID, TRUE);
       }
       else
       {
-        return FamilyMember::getAllFamilyMembersForClient($this->clientID, FALSE);
+        return FamilyMember::getAllFamilyMembersForClient($this->clientID, FALSE, $this->spouseID);
       }
+    }
+		
+		//Returns an array of spouses matching the given first or last nmae.
+    public static function searchSpouses($first = '', $last = '')
+    {
+      SQLDB::connect("bcc_food_client");
+      
+      $first = mysql_real_escape_string(processString($first));
+      $last = mysql_real_escape_string(processString($last));
+      
+      $query = "SELECT client_id, first_name, last_name, age, phone_number ";
+      $query .= "FROM bcc_food_client.clients ";
+      $query .= "WHERE first_name LIKE '{$first}' OR last_name LIKE '{$last}'";
+      
+      $result = mysql_query($query);
+      $spouses = array();      
+      while ($row = mysql_fetch_array($result))
+      {
+        $spouse = array();
+        $spouse['spouseID'] = $row['client_id'];
+        $spouse['spouseFirst'] = $row['first_name'];
+        $spouse['spouseLast'] = $row['last_name'];
+				$spouse['age'] = $row['age'];
+				$spouse['phoneNumber'] = $row['phone_number'];
+        $spouses[] = $spouse;
+      }
+      
+      return $spouses;
     }
     
   }
