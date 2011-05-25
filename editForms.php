@@ -6,6 +6,7 @@
   include('models/gender.php');
   include('models/ethnicity.php');
   include('models/reason.php');
+	include('models/visit.php');
 	
 	if (!hasAccess(TRUE))
 	{
@@ -15,6 +16,8 @@
 		exit();
 	}
 	resetTimeout();
+	$locations = Visit::getAllLocations();
+	$removableLocationIDs = Visit::getRemovableLocationIDs();
 	$genders = Gender::getAllGenders();
 	$removableGenderIDs = Gender::getRemovableGenderIDs();
   $ethnicities = Ethnicity::getAllEthnicities();
@@ -24,18 +27,22 @@
 	$genderID = '';
 	$ethnicityID = '';
 	$reasonID = '';
+	$locationID = '';
 	$newEthnicity = '';
 	$newReason = '';
 	$newGender = '';
+	$newLocation = '';
 	
   if (!empty($_SESSION['errors']))
   {
 		$genderID = $_SESSION['genderID'];
 		$ethnicityID = $_SESSION['ethnicityID'];
 		$reasonID = $_SESSION['reasonID'];
+		$locationID = $_SESSION['locationID'];
 		$newEthnicity = $_SESSION['newEthnicity'];
 		$newReason = $_SESSION['newReason'];
 		$newGender = $_SESSION['newGender'];
+		$newLocation = $_SESSION['newLocation'];
 	}
 
 ?>
@@ -124,6 +131,29 @@
 							?>
 					</select>
 				<input type="submit" value="Remove selected gender" />
+			</form>
+			<h4>Food Distribution Locations</h4>
+			<form id="addLocation" method="post" action="controllers/editForm.php" />
+				<input name="action" type="hidden" value="addLocation" />
+				<input type="text" name="newLocation" value="<?php echo $newLocation; ?>" />
+				<input type="submit" value="Add Location" />
+			</form>
+			<form id="removeLocation" method="post" action="controllers/editForm.php">
+				<input name="action" type="hidden" value="removeLocation" />
+				<select name="locationID">
+				<?php 
+					foreach ($locations as $key => $value)
+					{
+						echo "\t\t\t";
+						echo '<option value="' . $key . '"';
+						if ($locationID == $key) { echo " selected"; }
+						echo '>' . $value;
+						if (in_array($key, $removableLocationIDs)) { echo "*"; }
+						echo "</option>\n";
+					}
+					?>
+				</select>
+				<input type="submit" value="Remove selected location" />
 			</form>
 		</div>
 	</body>

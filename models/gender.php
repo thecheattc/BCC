@@ -205,7 +205,7 @@
 			SQLDB::connect("bcc_food_client");
 			$query = "SELECT gender_id 
 								FROM bcc_food_client.genders
-								WHERE gender_id NOT IN (SELECT gender_id FROM bcc_food_client.clients)";
+								WHERE gender_id NOT IN (SELECT DISTINCT gender_id FROM bcc_food_client.clients)";
 			$result = mysql_query($query);
 			$IDs = array();
 			

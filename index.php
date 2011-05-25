@@ -23,7 +23,6 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <meta name="original-source" content="http://commons.wikimedia.org/wiki/File:CampbellsModif.png">
-<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
 <link rel="stylesheet" href="style/bryant.css" type="text/css"/>
 <script type="text/javascript" 
 			src="scripts/js/jquery-1.4.4.min.js"></script>
@@ -51,7 +50,6 @@ echo <<<LOGGED_IN_AS2
 					<div class="task">
 						<a href="addressEntry.php?clean=1">
 						<h3>Enter New Client Information</h3>
-						<img src="style/images/addClient.jpg" alt="Click this area to add new client information" />
 						<p>Click here to add a new client to the database</p></a>
 					</div>
 					<div class="task">
@@ -92,4 +90,3 @@ LOGIN_FORM;
 			?>
 			</body>
 </html>
-

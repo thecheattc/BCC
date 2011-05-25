@@ -64,6 +64,7 @@
 	}
 	if (!empty($_SESSION['errors']))
 	{
+		$_SESSION['errors'][] = "For text input, only letters, numbers, periods, and commas are allowed.";
 		header("Location: ../editAdmin.php?id={$admin->getAdminID()}");
 		exit();
 	}

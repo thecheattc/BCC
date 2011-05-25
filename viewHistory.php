@@ -51,7 +51,7 @@
 		}
 		elseif($_POST['since'] == 2) // Forever
 		{
-			$since = '';
+			$since = '0000-01-01';
 		}
 	}
 	$firstName = $client->getFirstName();
@@ -59,6 +59,7 @@
 	$visits = $client->getVisitHistory(date_create($since));
 	$pronoun = (Gender::getGenderByID($client->getGenderID())->getGenderDesc() == "Male")? "him" : "her";
 	$distTypes = Visit::getAllDistTypes();
+	$locations = Visit::getAllLocations();
   
 ?>
 
@@ -66,11 +67,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Visit history for <?php echo $firstName . " " . $lastName; ?></title>
+<title>Visit history for <?php echo $firstName . " " . $lastName ; ?></title>
   <link rel="stylesheet" href="style/bryant.css" type="text/css" media="all" />
-  <script src="scripts/js/jquery-1.4.1.min.js"></script>
-  <script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8"></script>
-  <script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
 </head>
 <body>
   <div id="header">
@@ -80,7 +78,7 @@
   <form method="post" action="viewHistory.php?client=<?php echo $_GET['client']; ?>">
     <label for="since">View visit history for:</label>
     <select id="since" name="since">
-      <option value="0" selected>This month</option>
+      <option value="0">This month</option>
       <option value="1">This year</option>
       <option value="2">Forever</option>
     </select>
@@ -93,30 +91,52 @@
     </tr>
 
 <?php
+	if (!empty($visits))
+	{
+		echo "<tr>
+						<th>Date</th>
+						<th>Type</th>
+						<th>Location</th>
+						<th>Note</th>
+					</tr>";
+	}
   foreach($visits as $visit)
   {
 		$visitDate = mySQLDateToNormal($visit->getDate());
     echo "\t<tr>\n";
     echo "\t\t<td>{$visitDate}</td>\n";
     echo "\t\t<td>{$visit->getDistTypeDesc()}</td>\n";
+		echo "\t\t<td>{$visit->getLocationName()}</td>\n";
+		echo "\t\t<td>{$visit->getNote()}</td>\n";
     echo "\t\t<td><a href='editVisit.php?visit={$visit->getVisitID()}'>Edit</a></td>\n";
     echo "\t\t<td><a href='controllers/deleteVisit.php?visit={$visit->getVisitID()}'>Delete</a></td>\n";
     echo "\t<tr>\n";
   }
   ?>
   </table>
-  <p>If <?php echo $firstName;?> tried to receive food today, record the type of distribution, 
+  <p>If <?php echo $firstName;?> tried to receive food today, record the type and location of distribution, 
 or record that you could not give <?php echo $pronoun; ?> food. </p>
   <form method="post" action="controllers/recordVisit.php">
     <select id="distType" name="distType">
     <option value="0" selected>Select a distribution type</option>
-<?php
-  foreach ($distTypes as $key => $value)
-  {
-    echo "<option value='{$key}'>{$value}</option>\n";
-  }
-  ?>
+		<?php
+			foreach ($distTypes as $key => $value)
+			{
+				echo "<option value='{$key}'>{$value}</option>\n";
+			}
+			?>
     </select>
+		<select id="distLocation" name="distLocation">
+			<option value="0" selected>Select a distribution location</option>
+			<?php
+				foreach ($locations as $key => $value)
+				{
+					echo "<option value='{$key}'>{$value}</option>\n";
+				}
+				?>
+		</select>
+		<p>Attach a note to this distribution (optional)</p>
+		<textarea name="note"></textarea>
     <input type="hidden" name="clientID" id="clientID" value="<?php echo $_GET['client']; ?>" />
     <input type="submit" value="Submit" />
   </form>

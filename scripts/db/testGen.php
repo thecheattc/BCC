@@ -85,13 +85,14 @@
   $file = "visits.sql";
   $stream = fopen($file, 'w');
   //Visit bootstrapping
-  $insert = "INSERT INTO bcc_food_client.usage (client_id, type_id, date) VALUES\n";
+  $insert = "INSERT INTO bcc_food_client.usage (client_id, type_id, location_id, date) VALUES\n";
   for($i=0; $i<5000; $i++)
   {
     $client = (int)($i/5) + 1;
+		$location = 1;
     $type = mt_rand(1,3);
     $date = randDate();
-    $query .= "({$client}, {$type}, '{$date}'), \n";
+    $query .= "({$client}, {$type}, {$location}, '{$date}'), \n";
   }
   $lastComma = strrpos($query, ',');
   $query = substr_replace($query, ';', $lastComma);
@@ -99,7 +100,6 @@
   fwrite($stream, $sql);
   fclose($stream);
   
-echo "</PRE>";
 
 
 ?>

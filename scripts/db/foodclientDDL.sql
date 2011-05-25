@@ -134,6 +134,19 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
+-- Table `bcc_food_client`.`locations`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `bcc_food_client`.`locations` ;
+
+CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`locations` (
+  `location_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
+  `location_name` VARCHAR(128) NOT NULL ,
+  PRIMARY KEY (`location_id`) ,
+  UNIQUE INDEX `location_name_UNIQUE` (`location_name` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `bcc_food_client`.`usage`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `bcc_food_client`.`usage` ;
@@ -142,10 +155,13 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`usage` (
   `dist_id` INT UNSIGNED NOT NULL AUTO_INCREMENT ,
   `client_id` INT UNSIGNED NOT NULL ,
   `type_id` INT UNSIGNED NOT NULL ,
+  `location_id` INT UNSIGNED NOT NULL ,
   `date` DATE NOT NULL ,
+  `note` VARCHAR(250) NULL ,
   INDEX `usage_client_id` (`client_id` ASC) ,
   INDEX `usage_dist_type_id` (`type_id` ASC) ,
   PRIMARY KEY (`dist_id`) ,
+  INDEX `usage_location_id` (`location_id` ASC) ,
   CONSTRAINT `usage_client_id`
     FOREIGN KEY (`client_id` )
     REFERENCES `bcc_food_client`.`clients` (`client_id` )
@@ -154,6 +170,11 @@ CREATE  TABLE IF NOT EXISTS `bcc_food_client`.`usage` (
   CONSTRAINT `usage_dist_type_id`
     FOREIGN KEY (`type_id` )
     REFERENCES `bcc_food_client`.`distribution_type` (`dist_type_id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `usage_location_id`
+    FOREIGN KEY (`location_id` )
+    REFERENCES `bcc_food_client`.`locations` (`location_id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

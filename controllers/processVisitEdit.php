@@ -13,17 +13,20 @@
 	}
   
   $badDate = !createNormalDate($_POST['date']);
-  if (empty($_GET['visit']) || $badDate || empty($_POST['type']))
+	$cleanNote = processString($_POST['note']);
+  if (empty($_GET['visit']) || $badDate || empty($_POST['type']) || empty($_POST['location']) || 
+			(!empty($_POST['note']) && empty($cleanNote)))
   {
+		$error = "There was an error editing the visit. If you're attaching a note, ";
+		$error .= "remember that only numbers, letters, spaces, periods, and commas are allowed.";
+		$_SESSION['errors'][] = $error;
     if (!empty($_GET['client']))
     {
-			$_SESSION['errors'][] = "There was an error editing the visit.";
       header("Location: ../viewHistory.php?client={$_GET['client']}");
       exit();
     }
     else
     {
-			$_SESSION['errors'][] = "There was an error editing the visit.";
       header("Location: ../search.php");
       exit();
     }
@@ -48,6 +51,8 @@
   }
   $visit->setDate(createNormalDate($_POST['date']));
   $visit->setTypeID($_POST['type']);
+	$visit->setNote($cleanNote);
+	$visit->setLocationID($_POST['location']);
 
   if ($visit->save() === FALSE)
   {

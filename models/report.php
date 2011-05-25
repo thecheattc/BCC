@@ -12,6 +12,32 @@
 		private $start;
 		private $end;
 		
+		public static function showAllClients()
+		{
+			SQLDB::connect("bcc_food_client");
+			$result = mysql_query("
+									SELECT *
+									FROM bcc_food_client.clients AS c LEFT JOIN (
+										SELECT u.dist_id, u.client_id, u.date
+										FROM bcc_food_client.usage AS u JOIN (
+											SELECT client_id, MAX(date) AS maxdate
+											FROM bcc_food_client.usage
+											GROUP BY client_id
+											) AS most_recent ON most_recent.client_id=u.client_id AND most_recent.maxdate=u.date
+										) AS recent_visit ON c.client_id=recent_visit.client_id
+										LEFT JOIN bcc_food_client.houses AS h ON c.house_id=h.house_id
+										JOIN bcc_food_client.ethnicities AS e ON c.ethnicity_id=e.ethnicity_id
+										JOIN bcc_food_client.genders AS g ON c.gender_id=g.gender_id
+										JOIN bcc_food_client.reasons AS r ON r.reason_id=c.reason_id
+										ORDER BY c.last_name, c.first_name
+									");
+			echo mysql_error();
+			while($row = mysql_fetch_assoc($result))
+			{
+				print_r($row);
+			}
+		}
+		
 		private function getUnduplicatedIndividualsExcludingHomeless()
 		{	
 			$numHomeParents = -1;
@@ -349,6 +375,7 @@
 				return FALSE;
 			}
 			
+			//Distinct list of clients that actually came to get food
 			$visitingClients = 
 			"CREATE TEMPORARY TABLE visiting_clients
 			SELECT DISTINCT c.client_id, c.age, c.house_id, c.ethnicity_id, c.gender_id, c.reason_id,	
@@ -362,6 +389,7 @@
 				return FALSE;
 			}
 			
+			//Distinct list of houses of those who actually came to get food
 			$visitingHouses = 
 			"CREATE TEMPORARY TABLE visiting_houses
 			SELECT DISTINCT h.house_id, h.street_number, h.street_name, h.street_type, h.line2, h.city, h.zip
@@ -372,19 +400,23 @@
 				echo "visitingHouses";
 				return FALSE;
 			}
-			//Since there's only a link between parent and children, and not parent and parent,
-			//This will possibly give us a slightly lower count for queries regarding the homeless
-			//because spouses won't be factored in.
+			
+			//List of homeless people that got food as well as their spouses
 			$homelessParents = 
 			"CREATE TEMPORARY TABLE homeless_parents
-			SELECT * FROM visiting_clients WHERE reason_id = {$this->HOMELESS_REASON_ID}";
+			SELECT DISTINCT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
+											c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
+											c.receives_stamps, c.wants_stamps
+			FROM visiting_clients vc JOIN bcc_food_client.clients c ON vc.spouse_id = c.client_id 
+			WHERE reason_id = {$this->HOMELESS_REASON_ID}";
 			$result = mysql_query($homelessParents);
 			if ($result === FALSE)
 			{
 				echo "homeless_parents";
 				return FALSE;
 			}
-			//Parents that got food and have homes, including their spouses
+
+			//List of people with homes that got food including their spouses
 			$homeParents = 
 			"CREATE TEMPORARY TABLE home_parents
 			SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
@@ -398,9 +430,10 @@
 				return FALSE;
 			}
 			
+			//Children of homeless parents that got food
 			$homelessChildren = 
 			"CREATE TEMPORARY TABLE homeless_children
-			SELECT f.fam_member_id, f.age, f.gender_id, f.ethnicity_id, f.guardian_id
+			SELECT DISTINCT f.fam_member_id, f.age, f.gender_id, f.ethnicity_id, f.guardian_id
 			FROM bcc_food_client.family_members f JOIN homeless_parents hp ON f.guardian_id = hp.client_id";
 			$result = mysql_query($homelessChildren);
 			if ($result === FALSE)
@@ -409,11 +442,11 @@
 				return FALSE;
 			}
 			
+			//Children of parents with homes that got food
 			$homeChildren = 
 			"CREATE TEMPORARY TABLE home_children
-			SELECT  f.fam_member_id, f.age, f.gender_id, f.ethnicity_id, f.member_house_id
-			FROM (SELECT DISTINCT house_id
-						FROM visiting_clients) AS distinct_houses JOIN bcc_food_client.family_members f ON f.member_house_id = distinct_houses.house_id";
+			SELECT f.fam_member_id, f.age, f.gender_id, f.ethnicity_id, f.member_house_id
+			FROM visiting_houses vh JOIN bcc_food_client.family_members f ON f.member_house_id = vh.house_id";
 			$result = mysql_query($homeChildren);
 			if ($result === FALSE)
 			{
@@ -470,7 +503,7 @@
 			echo "Unduplicated households:\n\t" . $unduplicatedHouseholds . "\n";
 			echo "Unduplicated individuals:\n\t" . $unduplicatedIndividuals . "\n";
 			echo "Household locations:\n";
-			printKeyValue($locations);
+			printKeyValue($locations, TRUE);
 			echo "Gender count:\n";
 			printKeyValue($genderCount);
 			echo "Ethnicity count:\n";

@@ -13,39 +13,39 @@
 	{
 		$_SESSION['errors'][] = "This operation requires administrative privileges.";
 		header("Location: ../");
+		exit();
 	}
-  
-  if(empty($_POST['distType']))
+  $cleanNote = processString($_POST['note']);
+  if(empty($_POST['distType']) || empty($_POST['distLocation']) || 
+		 (!empty($_POST['note']) && empty($cleanNote)))
   {
+		$error = "There was an error recording the visit. If you're attaching a note, ";
+		$error .= "remember that only numbers, letters, spaces, periods, and commas are allowed.";
+		$_SESSION['errors'][] = $error;
     if (empty($_POST['clientID']))
     {
-			$_SESSION['errors'][] = "There was an error recording the visit.";
       header('Location: ../viewHistory.php');
       exit();
     }
     else
     {
-			$_SESSION['errors'][] = "There was an error recording the visit.";
-      header("Location: ../viewHistory.php?client={$_POST['clientID']}");
-      exit();
+		 header("Location: ../viewHistory.php?client={$_POST['clientID']}");
+		 exit();
     }
   }
-  else
-  {
-    $visit = Visit::create();
-    $visit->setClientID($_POST['clientID']);
-    $visit->setTypeID($_POST['distType']);
-    $visit->setDate(createNormalDate(date("m-d-Y")));
-    if ($visit->save() === FALSE)
-    {
-			$_SESSION['errors'][] = "There was an error saving the visit to the database.";
-      header("Location: ../viewHistory.php?client={$_POST['clientID']}");
-      exit();
-    }
-    else
-    {
-			$_SESSION['errors'][] = "Visit {$visit->getVisitID()} successfully recorded.";
-      header("Location: ../viewHistory.php?client={$_POST['clientID']}");
-      exit();
-    }
-  }
+	$visit = Visit::create();
+	$visit->setClientID($_POST['clientID']);
+	$visit->setTypeID($_POST['distType']);
+	$visit->setLocationID($_POST['distLocation']);
+	$visit->setDate(createNormalDate(date("m-d-Y")));
+	$visit->setNote($cleanNote);
+	if ($visit->save() === FALSE)
+	{
+		$_SESSION['errors'][] = "There was an error saving the visit to the database.";
+		header("Location: ../viewHistory.php?client={$_POST['clientID']}");
+		exit();
+	}
+	$_SESSION['errors'][] = "Visit {$visit->getVisitID()} successfully recorded.";
+	header("Location: ../viewHistory.php?client={$_POST['clientID']}");
+	exit();
+

@@ -181,7 +181,7 @@
 			SQLDB::connect("bcc_food_client");
 			$query = "SELECT ethnicity_id 
 								FROM bcc_food_client.ethnicities
-								WHERE ethnicity_id NOT IN (SELECT ethnicity_id FROM bcc_food_client.clients)";
+								WHERE ethnicity_id NOT IN (SELECT DISTINCT ethnicity_id FROM bcc_food_client.clients)";
 			$result = mysql_query($query);
 			$IDs = array();
 			

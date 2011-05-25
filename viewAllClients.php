@@ -3,6 +3,7 @@
 	include ('controllers/utility.php');
 	include ('models/sqldb.php');
 	include ('models/administrator.php');
+	include ('models/report.php');
 	$admin = NULL;
 	$loggedIn = FALSE;
 	if (!hasAccess(TRUE))
@@ -25,16 +26,11 @@
 </head>
 	<body>
 		<div id="header">
-		<?php showHeader("Bryant Community Center", "Food Distribution Administration", "", TRUE); ?>
+		<?php showHeader("Bryant Community Center", "List of Clients", "All registered clients including last visit date", TRUE); ?>
 		</div>
 		<?php showErrors(); ?>	
 		<div>
-			<ul>
-				<li><a href="manageAdmins.php">Manage administrators</a></li>
-				<li><a href="report.php">View monthly report</a></li>
-				<li><a href="viewAllClients.php">View all clients</a></li>
-				<li><a href="editForms.php">Edit form options</a></li>
-			</ul>
+			<?php echo "<pre>"; Report::showAllClients(); echo "</pre>"; ?>
 		</div>
 	</body>
 </html>

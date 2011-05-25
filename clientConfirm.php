@@ -141,10 +141,11 @@
       }
       echo "\t\t<li>$error</li>\n";
     }
-    echo "\t</ul></div>\n";
+    echo "\t</ul>
+		<p>For text input, only letters, numbers, periods, and commas are allowed.</p></div>\n";
     if ($addressError)
     {
-      echo "<h5>For addresses, either list all parts of an address or no parts (if the client is homeless)</h5>\n";
+      echo "<p>For addresses, either list all parts of an address or no parts (if the client is homeless)</p>\n";
     }
     $_SESSION['errors'] = array();
   }
@@ -169,8 +170,8 @@
 					</tr>
           <tr>
             <td><label>Current Address: </label></td>
-            <td><?php   echo htmlentities($house['streetNumber']) . " ". htmlentities($house['streetName']) . " " .
-                            htmlentities($house['streetType']) . " " . htmlentities($house['line2']); ?></td>
+            <td><?php   echo htmlentities(stripslashes($house['streetNumber'] . " ". $house['streetName'] . " " .
+                            $house['streetType'] . " " . $house['line2'])); ?></td>
           </tr>
           <tr>
             <td><label>Current City: </label></td>

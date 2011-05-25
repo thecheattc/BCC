@@ -7,6 +7,8 @@
 	//a member of a model.
   function processString ($string, $stripSpaces = FALSE, $lenLimit = TRUE)
   {
+		$pattern = '/[^\w\.\,\s]/';
+		$string = stripslashes(trim($string));
 		if ($lenLimit && strlen($string) > 20)
 		{
 			return NULL;
@@ -15,8 +17,11 @@
     {
       $string = str_replace(' ', '', $string);
     }
-		
-    return htmlentities(stripslashes(trim($string)));
+		if (preg_match($pattern, $string) !== 0)
+		{
+			return NULL;
+		}
+    return trim($string);
   }
 	
 	function processPassword($pass)
@@ -92,7 +97,7 @@
 		}
 	}
 	
-	function showHeader($title, $heading, $subheading, $showAdmin = FALSE)
+	function showHeader($title, $heading="", $subheading="", $showAdmin = FALSE)
 	{
 		echo 
 		"<a href=\"./\"><img src=\"/style/images/orangeCANsmall.jpg\" /></a>
@@ -202,15 +207,21 @@
 		return $result;
 	}
 	
-	function printKeyValue($array)
+	function printKeyValue($array, $showSum = FALSE)
 	{
 		if (!is_array($array))
 		{
 			return FALSE;
 		}
+		$sum = 0;
 		foreach($array as $key => $value)
 		{
+			$sum += $value;
 			echo "\t{$key}: {$value}\n";
+		}
+		if ($showSum)
+		{
+			echo "Total: {$sum}\n";
 		}
 	}
 	

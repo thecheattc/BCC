@@ -24,7 +24,8 @@
     // The singleton method
     public static function connect($dbname) 
     {
-      if (!isset(self::$instance)) {
+      if (!isset(self::$instance))
+			{
         $c = __CLASS__;
         self::$instance = new $c;
       }

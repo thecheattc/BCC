@@ -180,7 +180,7 @@
 			SQLDB::connect("bcc_food_client");
 			$query = "SELECT reason_id 
 								FROM bcc_food_client.reasons
-								WHERE reason_id NOT IN (SELECT reason_id FROM bcc_food_client.clients)";
+								WHERE reason_id NOT IN (SELECT DISTINCT reason_id FROM bcc_food_client.clients)";
 			$result = mysql_query($query);
 			$IDs = array();
 			

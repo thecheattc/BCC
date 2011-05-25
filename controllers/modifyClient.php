@@ -9,6 +9,8 @@
   include_once('../models/familyMember.php');
   include('../models/visit.php');
 	
+	define("EARLIEST_APPDATE", "01-01-2000");
+	
 	$_SESSION['errors'] = array();
 	if (!hasAccess())
 	{
@@ -88,7 +90,7 @@
 	$spouseID = (processString($_SESSION['spouseID']) == "single")? NULL : $_SESSION['spouseID'];
   $oldAddressValid = processString($_SESSION['oldAddressValid']);
   $phone = processString($_SESSION['number']);
-  $age = processString($_SESSION['age']);
+  $age = intval($_SESSION['age']);
   $genderID = processString($_SESSION['gengroup']);
   $ethnicityID = processString($_SESSION['ethgroup']);
   $reasonID = processString($_SESSION['reasongroup']);
@@ -208,6 +210,7 @@
   }
   if (!empty($_SESSION['errors']))
   {
+		$_SESSION['errors'][] = "For text input, only letters, numbers, periods, and commas are allowed.";
     header('Location: ../clientConfirm.php');
     exit();
   }
@@ -241,11 +244,6 @@
     {
       $house = House::getHouseByID($_SESSION['houseID']);
     }
-    /*
-     echo "<pre>";
-     var_dump($house);
-     echo "</pre>";
-     */
     //If the insert failed then presumably the house already exists
     if ($house->save() === FALSE)
     {

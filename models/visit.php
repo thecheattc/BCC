@@ -8,6 +8,9 @@
     private $typeID;
     private $distTypeDesc;
     private $date;
+		private $note;
+		private $locationID;
+		private $locationName;
     
     //If a visit is retrieved from the database, flag it as such
     private $createdFromDB = true;
@@ -76,6 +79,44 @@
       $this->date = $val;
       return $this->date;
     }
+		
+		public function getNote()
+    {
+      return $this->note;
+    }
+    
+    public function setNote($val)
+    {
+      $this->dirty = true;
+      $this->note = $val;
+      return $this->note;
+    }
+		
+		public function getLocationID()
+    {
+      return $this->locationID;
+    }
+    
+    public function setLocationID($val)
+    {
+      $this->dirty = true;
+      $this->locationID = $val;
+      SQLDB::connect("bcc_food_client");
+      $query = "SELECT location_name FROM bcc_food_client.locations ";
+      $query .= "WHERE location_id = {$val}";
+      
+      $result = mysql_query($query);
+      if ($row = mysql_fetch_array($result))
+      {
+        $this->locationName = $row['location_name'];
+      }
+      return $this->locationID;
+    }
+		
+		public function getLocationName()
+		{
+			return $this->locationName;
+		}
     
     public function __destruct()
     {
@@ -123,6 +164,8 @@
       $clientIDParam = mysql_real_escape_string($this->clientID);
       $typeIDParam = mysql_real_escape_string($this->typeID);
       $dateParam = mysql_real_escape_string(normalDateToMySQL($this->date));
+			$noteParam = mysql_real_escape_string($this->note);
+			$locationIDParam = mysql_real_escape_string($this->locationID);
       $query = "";
       
       //If this visit already existed in the database, update it
@@ -131,14 +174,16 @@
         $query = "UPDATE bcc_food_client.usage SET ";
         $query .= "client_id='{$clientIDParam}', ";
         $query .= "type_id='{$typeIDParam}', ";
-        $query .= "date='{$dateParam}' ";
+        $query .= "date='{$dateParam}', ";
+				$query .= "note='{$noteParam}', ";
+				$query .= "location_id='{$locationIDParam}' ";
         $query .= "WHERE dist_id = '{$this->visitID}'";
       }
       //If the visit was freshly created, insert it into the database.
       else
       {
-        $query = "INSERT INTO bcc_food_client.usage (client_id, type_id, date) ";
-        $query .= "VALUES ('{$clientIDParam}', '{$typeIDParam}', '{$dateParam}')";
+        $query = "INSERT INTO bcc_food_client.usage (client_id, type_id, location_id, date, note) ";
+        $query .= "VALUES ('{$clientIDParam}', '{$typeIDParam}', '{$locationIDParam}', '{$dateParam}', '{$noteParam}')";
       }
       
       $result = mysql_query($query);
@@ -166,6 +211,9 @@
       $visit->typeID = $row["type_id"];
       $visit->distTypeDesc = $row["dist_type_desc"];
       $visit->date = createMySQLDate($row["date"]);
+			$visit->note = $row["note"];
+			$visit->locationID = $row["location_id"];
+			$visit->locationName = $row["location_name"];
       $visit->createdFromDB = true;
       $visit->dirty = false;
       return $visit;
@@ -179,15 +227,15 @@
       $clientID = mysql_real_escape_string($clientID);
       $since = mysql_real_escape_string(normalDateToMySQL($since));
       
-      $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
-      $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
-      $query .= "ON type_id = dist_type_id ";
+      $query = "SELECT u.dist_id, u.client_id, u.type_id, u.location_id, u.date, u.note, d.dist_type_desc, l.location_name ";
+      $query .= "FROM bcc_food_client.usage u JOIN bcc_food_client.distribution_type d ";
+      $query .= "ON u.type_id = d.dist_type_id ";
+			$query .= "JOIN bcc_food_client.locations l ON l.location_id=u.location_id ";
       $query .= "WHERE client_id = '{$clientID}' AND date >= '{$since}' ";
       $query .= "ORDER BY date DESC";
 
       $result = mysql_query($query);
-      
-      $visits = array();
+			$visits = array();
       while ($row = mysql_fetch_array($result))
       {
         $visits[] = Visit::createFromSQLRow($row);
@@ -202,9 +250,10 @@
       
       $visitID = mysql_real_escape_string($visitID);
       
-      $query = "SELECT dist_id, client_id, type_id, date, dist_type_desc ";
-      $query .= "FROM bcc_food_client.usage LEFT JOIN bcc_food_client.distribution_type ";
+      $query = "SELECT u.dist_id, u.client_id, u.type_id, u.location_id, u.date, u.note, d.dist_type_desc, l.location_name ";
+      $query .= "FROM bcc_food_client.usage u LEFT JOIN bcc_food_client.distribution_type d ";
       $query .= "ON type_id = dist_type_id ";
+			$query .= "JOIN bcc_food_client.locations l ON l.location_id=u.location_id ";
       $query .= "WHERE dist_id = '{$visitID}'";
       
       $result = mysql_query($query);
@@ -219,17 +268,21 @@
     
     //Changes the date and distribution type of the specified distribution
     //to the given date and distribution type
-    public static function changeHistoryByID($distID, $newDate, $newDistTypeID)
+    public static function changeHistoryByID($distID, $newDate, $newDistTypeID, $newNote, $newLocationID)
     {
       SQLDB::connect("bcc_food_client");
       
       $distID = mysql_real_escape_string($distID);
       $newDate = mysql_real_escape_string(normalDateToMySQL($newDate));
       $newDistTypeID = mysql_real_escape_string($newDistTypeID);
+			$newNote = mysql_real_escape_string($newNote);
+			$newLocationID = mysql_real_escape_string($newLocationID);
       
       $query = "UPDATE bcc_food_client.usage ";
       $query .= "SET type_id = '{$newDistTypeID}', ";
-      $query .= "date = '{$newDate}' ";
+      $query .= "date = '{$newDate}', ";
+			$query .= "note = '{$newNote}' ";
+			$query .= "location_id = '{$newLocationID}' ";
       $query .= "WHERE dist_id = '{$distID}'";
       
       $result = mysql_query($query);
@@ -263,6 +316,54 @@
       }
       return $pairs;
     }
+		
+		public static function getAllLocations()
+    {
+      SQLDB::connect("bcc_food_client");
+      
+      $query = "SELECT location_id, location_name ";
+      $query .= "FROM bcc_food_client.locations ";
+      
+      $result = mysql_query($query);
+      
+      $pairs = array();
+      while ($row = mysql_fetch_array($result))
+      {
+        $pairs[$row['location_id']] = $row['location_name'];
+      }
+      return $pairs;
+    }
+		
+		public static function getRemovableLocationIDs()
+		{
+			SQLDB::connect("bcc_food_client");
+			$query = "SELECT location_id 
+								FROM bcc_food_client.locations
+								WHERE location_id NOT IN (SELECT DISTINCT location_id FROM bcc_food_client.usage)";
+			$result = mysql_query($query);
+			$IDs = array();
+			
+			while ($row = mysql_fetch_array($result))
+			{
+				$IDs[] = $row['location_id'];
+			}
+			
+			return $IDs;
+		}
+		
+		public static function createLocation($locationName)
+		{
+			SQLDB::connect("bcc_food_client");
+			$locationName = mysql_real_escape_string($locationName);
+			return mysql_query("INSERT INTO locations (location_name) VALUES ('{$locationName}')");
+		}
+		
+		public static function removeLocation($locationID)
+		{
+			SQLDB::connect("bcc_food_client");
+			$locationID = mysql_real_escape_string($locationID);
+			return mysql_query("DELETE FROM bcc_food_client.locations WHERE location_id={$locationID}");
+		}
     
   }
   ?>

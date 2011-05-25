@@ -1,5 +1,16 @@
 <?php
   define("HOMELESS_REASON_ID", 6);
+	
+	/*Prototypes for WAY BETTER getters and setters which I just discovered, my apologies
+	to whomever has to maintain the mess using explicit getters and setters that's used all over.
+	public function Variable()
+	{
+		if (func_num_args() != 0)
+		{
+			$this->Variable = func_get_arg(0);
+		}
+		return $this->Variable
+	}*/
   class Client
   {
     private $clientID;

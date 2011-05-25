@@ -6,6 +6,7 @@
 	include ('../models/reason.php');
 	include ('../models/gender.php');
   include ('../models/sqldb.php');
+	include ('../models/visit.php');
 	
 	define("ROOT_ACCESS_ID", 1);
 	$_SESSION['errors'] = array();
@@ -47,6 +48,14 @@
 	{
 		removeGender();
 	}
+	elseif ($_POST['action'] === 'addLocation')
+	{
+		addLocation();
+	}
+	elseif ($_POST['action'] === 'removeLocation')
+	{
+		removeLocation();
+	}
 	
 	function addEthnicity()
 	{
@@ -54,7 +63,7 @@
 		$ethnicityName = processString($_POST['newEthnicity'], FALSE, FALSE);
 		if (empty($ethnicityName))
 		{
-			$_SESSION['errors'][] = "Please enter an ethnicity.";
+			$_SESSION['errors'][] = "Please enter an ethnicity. Only letters, numbers, periods, and commas are allowed.";
 			header('Location: ../editForms.php');
 			exit();
 		}
@@ -123,10 +132,10 @@
 	function addReason()
 	{
 		$_SESSION['newReason'] = isset($_POST['newReason'])? stripslashes($_POST['newReason']) : '';
-		$reasonName = processString($_POST['newReason'], TRUE, FALSE);
+		$reasonName = processString($_POST['newReason'], FALSE, FALSE);
 		if (empty($reasonName))
 		{
-			$_SESSION['errors'][] = "Please enter a reason.";
+			$_SESSION['errors'][] = "Please enter a reason. Only letters, numbers, periods, and commas are allowed.";
 			header('Location: ../editForms.php');
 			exit();
 		}
@@ -198,7 +207,7 @@
 		$genderName = processString($_POST['newGender'], FALSE, FALSE);
 		if (empty($genderName))
 		{
-			$_SESSION['errors'][] = "Please enter a gender.";
+			$_SESSION['errors'][] = "Please enter a gender. Only letters, numbers, periods, and commas are allowed.";
 			header('Location: ../editForms.php');
 			exit();
 		}
@@ -258,6 +267,68 @@
 		else
 		{
 			$_SESSION['errors'][] = "There was an error deleting the selected gender.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+	}
+	
+	function addLocation()
+	{
+		$_SESSION['newLocation'] = isset($_POST['newLocation'])? stripslashes($_POST['newLocation']) : '';
+		$locationName = processString($_POST['newLocation'], FALSE, FALSE);
+		if (empty($locationName))
+		{
+			$_SESSION['errors'][] = "Please enter a location. Only letters, numbers, periods, and commas are allowed.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+		$locations = Visit::getAllLocations();
+		if (in_array($locationName, $locations))
+		{
+			$_SESSION['errors'][] = "The given location already exists.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+		if (Visit::createLocation($locationName))
+		{
+			$_SESSION['errors'][] = "Location successfully added";
+			$_SESSION['newLocation'] = '';
+			header('Location: ../editForms.php');
+			exit();
+		}
+		else
+		{
+			$_SESSION['errors'][] = "There was an error adding the location.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+	}
+	
+	function removeLocation()
+	{
+		$locationID = processString($_POST['locationID']);
+		if (empty($locationID))
+		{
+			$_SESSION['errors'][] = "Please select a location.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+		$removableLocationIDs = Visit::getRemovableLocationIDs();
+		if (!in_array($locationID, $removableLocationIDs))
+		{
+			$_SESSION['errors'][] = "The selected location is in use and cannot be deleted.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+		if (Visit::removeLocation($locationID))
+		{
+			$_SESSION['errors'][] = "The location was successfully deleted.";
+			header('Location: ../editForms.php');
+			exit();
+		}
+		else
+		{
+			$_SESSION['errors'][] = "There was an error deleting the selected location.";
 			header('Location: ../editForms.php');
 			exit();
 		}

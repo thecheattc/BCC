@@ -36,6 +36,7 @@
 		header("Location: search.php?clean=1");
 	}
 	$types = Visit::getAllDistTypes();
+	$locations = Visit::getAllLocations();
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
@@ -54,7 +55,7 @@
 	<?php showErrors();	?>
 <form method="post" action="controllers/processVisitEdit.php?visit=<?php echo $_GET['visit']; ?>&client=<?php echo $visit->getClientID(); ?>">
     <label for="date">Date: </label>
-    <input name="date" id="date" value="<?php echo mySQLDateToNormal($visit->getDate()); ?>" />
+    <input name="date" id="date" value="<?php echo mySQLDateToNormal($visit->getDate()); ?>" /><br />
     <label for="type">Type: </label>
     <select id="type" name="type">
       <?php foreach ($types as $key => $value)
@@ -69,7 +70,24 @@
               echo "\n";
             }
       ?>
-    </select>
+    </select><br />
+		<label for="note">Note for the distribution (optional):</label><br />
+		<textarea name="note"><?php echo $visit->getNote(); ?></textarea><br />
+		<label for="location">Type: </label>
+		<select id="location" name="location">
+		<?php foreach ($locations as $key => $value)
+			{
+				echo "\t\t";
+				echo "<option ";
+				if ($value == $visit->getLocationName())
+				{
+					echo "selected ";
+				}
+				echo "value=\"{$key}\">".$value."</option>";
+				echo "\n";
+			}
+			?>
+		</select><br />
     <input type="submit" value="Edit visit" />
   </form>
 </body>
