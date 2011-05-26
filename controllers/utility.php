@@ -207,7 +207,7 @@
 		return $result;
 	}
 	
-	function printKeyValue($array, $showSum = FALSE)
+	function printKeyValue($array, $showSum = TRUE)
 	{
 		if (!is_array($array))
 		{

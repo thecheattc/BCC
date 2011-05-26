@@ -38,30 +38,6 @@
 			}
 		}
 		
-		private function getUnduplicatedIndividualsExcludingHomeless()
-		{	
-			$numHomeParents = -1;
-			$numHomeChildren = -1;
-			
-			$homeParents = "SELECT COUNT(*) FROM home_parents";
-			$homeChildren = "SELECT COUNT(*) FROM home_children";
-			$result = mysql_query($homeParents);
-			if ($row = mysql_fetch_array($result))
-			{
-				$numHomeParents = $row[0];
-			}
-			$result = mysql_query($homeChildren);
-			if ($row = mysql_fetch_array($result))
-			{
-				$numHomeChildren = $row[0];
-			}
-			if ($numHomeParents === -1 || $numHomeChildren === -1)
-			{
-				return -1;
-			}
-			return $numHomeParents + $numHomeChildren;
-		}
-		
 		//Returns the number of duplicated households that successfully got food this month
 		//(just the number of visits)
 		private function getDuplicatedHouseholds()
@@ -94,16 +70,21 @@
 			return $count;
 		}
 		
-		//Returns the number of households that received food between the start date and the end date, not including homeless visitors or their children.
-		private function getUnduplicatedHouseholdsExcludingHomeless()
+		//Returns the number of households that received food between the start date and the end date
+		private function getUnduplicatedHouseholds()
 		{
-			$query = "SELECT COUNT(1) FROM visiting_houses";
-			$result = mysql_query($query);
+			$result = mysql_query("SELECT COUNT(1) FROM visiting_houses");
 			
 			$count = -1;
 			if ($row = mysql_fetch_array($result))
 			{
 				$count = $row[0];
+			}
+			
+			$result = mysql_query("SELECT COUNT(1) FROM visiting_clients WHERE reason_id = {$this->HOMELESS_REASON_ID}");
+			if ($row = mysql_fetch_array($result))
+			{
+				$count += $row[0];
 			}
 			
 			return $count;
@@ -132,6 +113,30 @@
 				$numHomelessChildren = $row[0];
 			}
 			return $numHomelessChildren;
+		}
+		
+		private function getTotalHomeParents()
+		{
+			$count = -1;
+			$result = mysql_query("SELECT COUNT(1) FROM home_parents");
+			if ($row = mysql_fetch_array($result))
+			{
+				$count = $row[0];
+			}
+			
+			return $count;
+		}
+		
+		private function getTotalHomeChildren()
+		{
+			$count = -1;
+			$result = mysql_query("SELECT COUNT(1) FROM home_children");
+			if ($row = mysql_fetch_array($result))
+			{
+				$count = $row[0];
+			}
+			
+			return $count;
 		}
 		
 		private function getHouseholdLocations()
@@ -209,7 +214,7 @@
 			return runCountQueriesAndUnionResults($queries);
 		}
 		
-		private function getReasonCount()
+		private function getParentReasonCount()
 		{
 			$homeParentReasons = 
 			"SELECT reason_desc, COUNT(reason_desc) 
@@ -223,21 +228,7 @@
 			GROUP BY reason_desc
 			ORDER BY reason_desc";
 			
-			$homeChildrenReasons = 
-			"SELECT reason_desc, COUNT(reason_desc) 
-			FROM home_parents hp JOIN bcc_food_client.reasons e ON hp.reason_id = e.reason_id
-			JOIN home_children hc ON hc.member_house_id = hp.house_id
-			GROUP BY reason_desc
-			ORDER BY reason_desc";
-			
-			$homelessChildrenReasons = 
-			"SELECT reason_desc, COUNT(reason_desc) 
-			FROM homeless_parents hp JOIN bcc_food_client.reasons e ON hp.reason_id = e.reason_id
-			JOIN homeless_children hc ON hc.guardian_id= hp.client_id
-			GROUP BY reason_desc
-			ORDER BY reason_desc";
-			
-			$queries = array($homeParentReasons, $homelessParentReasons, $homeChildrenReasons, $homelessChildrenReasons);
+			$queries = array($homeParentReasons, $homelessParentReasons);
 			return runCountQueriesAndUnionResults($queries);
 		}
 		
@@ -328,7 +319,7 @@
 					WHEN age BETWEEN 66 AND 70 THEN '66-70'
 					WHEN age > 70 THEN 'over 70'
 				END as ageband, COUNT(*)
-			FROM home_children
+			FROM homeless_children
 			GROUP BY ageband";
 			
 			$queries = array($homeParentAges, $homelessParentAges, $homeChildrenAges, $homelessChildrenAges);
@@ -404,11 +395,18 @@
 			//List of homeless people that got food as well as their spouses
 			$homelessParents = 
 			"CREATE TEMPORARY TABLE homeless_parents
-			SELECT DISTINCT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
-											c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
-											c.receives_stamps, c.wants_stamps
-			FROM visiting_clients vc JOIN bcc_food_client.clients c ON vc.spouse_id = c.client_id 
-			WHERE reason_id = {$this->HOMELESS_REASON_ID}";
+			SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
+				c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
+				c.receives_stamps, c.wants_stamps
+			FROM 
+				(SELECT DISTINCT w.client_id 
+				FROM bcc_food_client.clients w JOIN bcc_food_client.usage x ON w.client_id=x.client_id 
+				WHERE x.type_id != {$this->REJECTED_ID} AND w.reason_id = {$this->HOMELESS_REASON_ID} AND x.date >= '{$this->start}' AND x.date < '{$this->end}'
+				UNION
+				SELECT DISTINCT y.spouse_id AS client_id
+				FROM bcc_food_client.clients y JOIN bcc_food_client.usage z ON y.client_id=z.client_id 
+				WHERE z.type_id != {$this->REJECTED_ID} AND y.reason_id = {$this->HOMELESS_REASON_ID} AND z.date >= '{$this->start}' AND z.date < '{$this->end}'
+				) AS homeless_parent_ids JOIN bcc_food_client.clients c ON homeless_parent_ids.client_id = c.client_id";
 			$result = mysql_query($homelessParents);
 			if ($result === FALSE)
 			{
@@ -481,20 +479,33 @@
 			
 			$homelessParents = $this->getTotalHomelessParents();
 			$homelessChildren = $this->getTotalHomelessChildren();
+			$homeParents = $this->getTotalHomeParents();
+			$homeChildren = $this->getTotalHomeChildren();
 			$duplicatedHouseholds = $this->getDuplicatedHouseholds();
 			$rejections = $this->getNumberOfRejections();
 			$receivesStamps = $this->getReceivesFoodstampsCount();
 			$wantsStamps = $this->getWantsFoodstampsCount();
-			$unduplicatedHouseholds = $this->getUnduplicatedHouseholdsExcludingHomeless() + $homelessParents;
-			$unduplicatedIndividuals = $this->getUnduplicatedIndividualsExcludingHomeless() + $homelessParents + $homelessChildren;
+			$unduplicatedHouseholds = $this->getUnduplicatedHouseholds();
+			$unduplicatedIndividuals = $homelessParents + $homeParents + $homelessChildren + $homeChildren;
+			$kidsToParentsRatio = (float)($homelessChildren + $homeChildren)/($homelessParents + $homeParents);
+			var_dump($kidsToParentsRatio);
 			
 			$locations = $this->getHouseholdLocations();
 			$genderCount = $this->getGenderCount();
 			$ageCount = $this->getAgeCount();
 			$ethnicityCount = $this->getEthnicityCount();
-			$reasonCount = $this->getReasonCount();
+			$parentReasonCount = $this->getParentReasonCount();
 			$totalHomeless = $homelessParents + $homelessChildren;
 			$newlyUnemployed = $this->getNewlyUnemployed();
+			
+			//Figuring out reasons for kids is tricky. A simple way to do it is to
+			//multiply the reason count for each reason by the ratio of kids to parents, then
+			//add that back to the reason count.
+			$reasonCount = array();
+			foreach ($parentReasonCount as $key => $value)
+			{
+				$reasonCount[$key] = $parentReasonCount[$key] + $parentReasonCount[$key] * $kidsToParentsRatio;
+			}
 						
 			$this->dropTemporaryTables();
 			
@@ -503,7 +514,7 @@
 			echo "Unduplicated households:\n\t" . $unduplicatedHouseholds . "\n";
 			echo "Unduplicated individuals:\n\t" . $unduplicatedIndividuals . "\n";
 			echo "Household locations:\n";
-			printKeyValue($locations, TRUE);
+			printKeyValue($locations);
 			echo "Gender count:\n";
 			printKeyValue($genderCount);
 			echo "Ethnicity count:\n";
@@ -514,8 +525,6 @@
 			printKeyValue($ageCount);
 			echo "Total homeless:\n\t" . $totalHomeless . "\n";
 			echo "Duplicated rejections: " . $rejections . "\n";
-			echo "Visitors on foodstamps: " . $receivesStamps . "\n";
-			echo "Visitors that want foodstamps: " . $wantsStamps . "\n";
 			echo "Newly unemployed since " . $newlyUnemployedDate . ":" . $newlyUnemployed . "\n";
 			echo "</PRE>";
 		}
