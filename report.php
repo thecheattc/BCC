@@ -7,7 +7,7 @@
   include ('models/gender.php');
   include ('models/ethnicity.php');
   include ('models/reason.php');
-  $start = "0000-00-00";
+  $start = "2011-05-26";
   $end = "2011-06-10";
 	$report = new Report();
   echo "<PRE>";

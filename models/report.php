@@ -1,9 +1,7 @@
 <?php
-	//----------Should duplicated households include homeless?
 	
   //Returns all the unduplicated individuals who successfully got food in a month 
-  //given a valid MySQL date range from the first of a month (YYYY-MM-01)
-  //to the first of the next month
+  //given a valid MySQL date range - including the beginning date, excluding the ending date
 	class Report
 	{
 		private $HOMELESS_REASON_ID = 6;
@@ -70,8 +68,7 @@
 			return $count;
 		}
 		
-		//Returns the number of households that received food between the start date and the end date
-		private function getUnduplicatedHouseholds()
+		private function getUnduplicatedHouseholdsExcludingHomeless()
 		{
 			$result = mysql_query("SELECT COUNT(1) FROM visiting_houses");
 			
@@ -81,16 +78,9 @@
 				$count = $row[0];
 			}
 			
-			$result = mysql_query("SELECT COUNT(1) FROM visiting_clients WHERE reason_id = {$this->HOMELESS_REASON_ID}");
-			if ($row = mysql_fetch_array($result))
-			{
-				$count += $row[0];
-			}
-			
 			return $count;
 		}
 		
-		//Returns the number of homeless parents who successfully received food this month
 		private function getTotalHomelessParents()
 		{
 			$numHomelessParents = -1;
@@ -144,13 +134,7 @@
 			$query = "SELECT zip, COUNT(zip) FROM visiting_houses
 								GROUP BY zip
 								ORDER BY zip";
-			$result = mysql_query($query);
-			$houses = array();
-			while ($row = mysql_fetch_array($result))
-			{
-				$houses["{$row[0]}"] = $row[1];
-			}
-			return $houses;
+			return runCountQueriesAndUnionResults(array($query));
 		}
 		
 		private function getGenderCount()
@@ -214,7 +198,7 @@
 			return runCountQueriesAndUnionResults($queries);
 		}
 		
-		private function getParentReasonCount()
+		private function getReasonCount()
 		{
 			$homeParentReasons = 
 			"SELECT reason_desc, COUNT(reason_desc) 
@@ -325,7 +309,7 @@
 			$queries = array($homeParentAges, $homelessParentAges, $homeChildrenAges, $homelessChildrenAges);
 			return runCountQueriesAndUnionResults($queries);
 		}
-		
+		//Should this include spouses?
 		private function getNewlyUnemployed()
 		{
 			$query = "SELECT COUNT(*) FROM visiting_clients WHERE unemployment_date > '{$this->newlyUnemployedDate}'";
@@ -366,7 +350,7 @@
 				return FALSE;
 			}
 			
-			//Distinct list of clients that actually came to get food
+			//List of clients that actually came to get food and were successful
 			$visitingClients = 
 			"CREATE TEMPORARY TABLE visiting_clients
 			SELECT DISTINCT c.client_id, c.age, c.house_id, c.ethnicity_id, c.gender_id, c.reason_id,	
@@ -380,11 +364,12 @@
 				return FALSE;
 			}
 			
-			//Distinct list of houses of those who actually came to get food
+			//List of houses of those who actually came to get food
 			$visitingHouses = 
 			"CREATE TEMPORARY TABLE visiting_houses
 			SELECT DISTINCT h.house_id, h.street_number, h.street_name, h.street_type, h.line2, h.city, h.zip
-			FROM bcc_food_client.houses h JOIN visiting_clients v ON h.house_id = v.house_id";
+			FROM bcc_food_client.houses h JOIN visiting_clients v ON h.house_id = v.house_id
+			WHERE v.reason_id != {$this->HOMELESS_REASON_ID}";
 			$result = mysql_query($visitingHouses);
 			if ($result === FALSE)
 			{
@@ -481,31 +466,20 @@
 			$homelessChildren = $this->getTotalHomelessChildren();
 			$homeParents = $this->getTotalHomeParents();
 			$homeChildren = $this->getTotalHomeChildren();
+			
 			$duplicatedHouseholds = $this->getDuplicatedHouseholds();
 			$rejections = $this->getNumberOfRejections();
 			$receivesStamps = $this->getReceivesFoodstampsCount();
 			$wantsStamps = $this->getWantsFoodstampsCount();
-			$unduplicatedHouseholds = $this->getUnduplicatedHouseholds();
+			$unduplicatedHouseholds = $this->getUnduplicatedHouseholdsExcludingHomeless() + $homelessParents;
 			$unduplicatedIndividuals = $homelessParents + $homeParents + $homelessChildren + $homeChildren;
-			$kidsToParentsRatio = (float)($homelessChildren + $homeChildren)/($homelessParents + $homeParents);
-			var_dump($kidsToParentsRatio);
-			
 			$locations = $this->getHouseholdLocations();
 			$genderCount = $this->getGenderCount();
 			$ageCount = $this->getAgeCount();
 			$ethnicityCount = $this->getEthnicityCount();
-			$parentReasonCount = $this->getParentReasonCount();
+			$reasonCount = $this->getReasonCount();
 			$totalHomeless = $homelessParents + $homelessChildren;
 			$newlyUnemployed = $this->getNewlyUnemployed();
-			
-			//Figuring out reasons for kids is tricky. A simple way to do it is to
-			//multiply the reason count for each reason by the ratio of kids to parents, then
-			//add that back to the reason count.
-			$reasonCount = array();
-			foreach ($parentReasonCount as $key => $value)
-			{
-				$reasonCount[$key] = $parentReasonCount[$key] + $parentReasonCount[$key] * $kidsToParentsRatio;
-			}
 						
 			$this->dropTemporaryTables();
 			
