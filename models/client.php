@@ -547,19 +547,6 @@
       
       return $result;
     }
-    
-    //Returns an array of all family members associated with this client
-    public function getAllFamilyMembers()
-    {
-      if ($this->reasonID != HOMELESS_REASON_ID)
-      {
-        return FamilyMember::getAllFamilyMembersForClient($this->houseID, TRUE);
-      }
-      else
-      {
-        return FamilyMember::getAllFamilyMembersForClient($this->clientID, FALSE, $this->spouseID);
-      }
-    }
 		
 		//Returns an array of spouses matching the given first or last nmae.
     public static function searchSpouses($first = '', $last = '')

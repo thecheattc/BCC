@@ -30,6 +30,9 @@
 	if (isset($_POST['houseID']))
   {
     $_SESSION['houseID'] = $_POST['houseID'];
+		//Since they've changed information that would affect who their family members are,
+		//ensure we search for them when we come to the client entry page.
+		$_SESSION['modifyFamily'] = FALSE;
   }
 	
 	$adminID = $_SESSION['adminID'];

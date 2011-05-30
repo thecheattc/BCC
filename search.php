@@ -62,9 +62,6 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <title>Client Search</title>
   <link rel="stylesheet" href="style/bryant.css" type="text/css" media="all" />
-  <script src="scripts/js/jquery-1.4.1.min.js"></script>
-  <script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8"></script>
-  <script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
 </head>
 <body>
 	<div id="header">

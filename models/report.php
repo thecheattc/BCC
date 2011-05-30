@@ -68,7 +68,7 @@
 			return $count;
 		}
 		
-		private function getUnduplicatedHouseholdsExcludingHomeless()
+		private function getUnduplicatedHouseholds()
 		{
 			$result = mysql_query("SELECT COUNT(1) FROM visiting_houses");
 			
@@ -76,6 +76,20 @@
 			if ($row = mysql_fetch_array($result))
 			{
 				$count = $row[0];
+			}
+			
+			$result = mysql_query("SELECT COUNT(1)/2 FROM homeless_parents WHERE spouse_id IS NOT NULL");
+			echo mysql_error();
+			if ($row = mysql_fetch_array($result))
+			{
+				$count += $row[0];
+			}
+			
+			$result = mysql_query("SELECT COUNT(1) FROM homeless_parents WHERE spouse_id IS NULL");
+			
+			if ($row = mysql_fetch_array($result))
+			{
+				$count += $row[0];
 			}
 			
 			return $count;
@@ -353,7 +367,7 @@
 			//List of clients that actually came to get food and were successful
 			$visitingClients = 
 			"CREATE TEMPORARY TABLE visiting_clients
-			SELECT DISTINCT c.client_id, c.age, c.house_id, c.ethnicity_id, c.gender_id, c.reason_id,	
+			SELECT DISTINCT c.client_id, c.spouse_id, c.age, c.house_id, c.ethnicity_id, c.gender_id, c.reason_id,	
 			c.unemployment_date, c.application_date, c.receives_stamps, c.wants_stamps
 			FROM bcc_food_client.clients c JOIN bcc_food_client.usage u
 			ON c.client_id = u.client_id WHERE u.date >= '{$this->start}' AND u.date < '{$this->end}' AND u.type_id != '{$this->REJECTED_ID}'";
@@ -380,7 +394,7 @@
 			//List of homeless people that got food as well as their spouses
 			$homelessParents = 
 			"CREATE TEMPORARY TABLE homeless_parents
-			SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
+			SELECT c.client_id, c.spouse_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
 				c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
 				c.receives_stamps, c.wants_stamps
 			FROM 
@@ -454,8 +468,8 @@
 			SQLDB::connect("bcc_food_client");
 			
 			$this->newlyUnemployedDate = createMySQLDate($newlyUnemployedDate);
-			$this->start = mysql_real_escape_string($start);
-			$this->end = mysql_real_escape_string($end);
+			$this->start = normalDateToMySQL($start);
+			$this->end = normalDateToMySQL($end);
 			
 			if ($this->initialize() === FALSE)
 			{
@@ -471,7 +485,7 @@
 			$rejections = $this->getNumberOfRejections();
 			$receivesStamps = $this->getReceivesFoodstampsCount();
 			$wantsStamps = $this->getWantsFoodstampsCount();
-			$unduplicatedHouseholds = $this->getUnduplicatedHouseholdsExcludingHomeless() + $homelessParents;
+			$unduplicatedHouseholds = $this->getUnduplicatedHouseholds();
 			$unduplicatedIndividuals = $homelessParents + $homeParents + $homelessChildren + $homeChildren;
 			$locations = $this->getHouseholdLocations();
 			$genderCount = $this->getGenderCount();

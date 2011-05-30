@@ -35,8 +35,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <link rel="stylesheet" href="style/bryant.css" type="text/css"/>
-<script type="text/javascript" 
-			src="scripts/js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" src="scripts/js/jquery-1.4.4.min.js"></script>
 <head>
 </head>
 	<body>

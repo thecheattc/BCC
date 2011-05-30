@@ -2,9 +2,7 @@
 	session_start();
 	define("ROOT_ACCESS_ID", 1);
 
-  //Trims a string, removes spaces if desired, and makes it safe to display in a browser.
-	//This is not idempotent since it uses htmlentities(). It should be called only when setting
-	//a member of a model.
+  
   function processString ($string, $stripSpaces = FALSE, $lenLimit = TRUE)
   {
 		$pattern = '/[^\w\.\,\s]/';
@@ -21,7 +19,7 @@
 		{
 			return NULL;
 		}
-    return trim($string);
+    return $string;
   }
 	
 	function processPassword($pass)
@@ -35,6 +33,21 @@
       return NULL;
     }
   }
+	
+	function processPhone($phoneNumber)
+	{
+		$pattern = '/[^\d.-]/';
+		$string = stripslashes(trim($phoneNumber));
+		if (empty($phoneNumber))
+		{
+			return TRUE;
+		}
+		if (preg_match($pattern, $string) !== 0)
+		{
+			return NULL;
+		}
+		return $string;
+	}
 	
 	function createNormalDate($dateString)
 	{

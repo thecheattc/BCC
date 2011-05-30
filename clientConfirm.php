@@ -23,10 +23,7 @@
   define("LOST_JOB", 1);
   define("OTHER", 7);
 
-  //Grab everything from POST and put it in session, so long
-  //as we haven't been redirected here. Since we never redirect here
-  //unless there are errors, we can use that to check.
-  if (empty($_SESSION['errors']))
+  if (empty($_SESSION['errors']) && !empty($_POST))
   {
     $_SESSION['appDate'] = stripslashes($_POST['appDate']);
     $_SESSION['firstName'] = stripslashes($_POST['firstName']);
@@ -114,9 +111,8 @@
 		<meta name="original-source" content="http://commons.wikimedia.org/wiki/File:CampbellsModif.png">
 		<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
     <link rel="stylesheet" href="style/bryant.css" type="text/css"/>
-    <link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />	
+    <link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />
 	</head>
-	
 	<body>
 		<div id="header">
 			<?php 

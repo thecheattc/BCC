@@ -28,20 +28,16 @@
   $house = NULL;
   $client = NULL;
   $newFamilyMembers = array();
-  $oldFamilyMembers = array();
+  $oldFamilyMembers = FamilyMember::getAllFamilyMembersForClient($_SESSION['clientID'], $_SESSION['spouseID'], $_SESSION['houseID']);
 
   if ($edit)
   {
     $client = Client::getClientByID($_SESSION['clientID']);
-    if ($client === NULL)
+    if (empty($client))
     {
 			$_SESSION['errors'][] = "The requested client could not be found.";
       header("Location: ../search.php");
       exit();
-    }
-    else
-    {
-      $oldFamilyMembers = $client->getAllFamilyMembers();
     }
   }
   if (!isset($_SESSION['oldAddressValid']))
@@ -89,7 +85,7 @@
   }
 	$spouseID = (processString($_SESSION['spouseID']) == "single")? NULL : $_SESSION['spouseID'];
   $oldAddressValid = processString($_SESSION['oldAddressValid']);
-  $phone = processString($_SESSION['number']);
+  $phone = processPhone($_SESSION['number']);
   $age = intval($_SESSION['age']);
   $genderID = processString($_SESSION['gengroup']);
   $ethnicityID = processString($_SESSION['ethgroup']);
@@ -160,6 +156,10 @@
   {
     $_SESSION['errors'][] = "Last name";
   }
+	if (empty($phone))
+	{
+		$_SESSION['errors'][] = "Phone number";
+	}
   if (empty($age))
   {
     $_SESSION['errors'][] = "Age";
@@ -210,7 +210,6 @@
   }
   if (!empty($_SESSION['errors']))
   {
-		$_SESSION['errors'][] = "For text input, only letters, numbers, periods, and commas are allowed.";
     header('Location: ../clientConfirm.php');
     exit();
   }

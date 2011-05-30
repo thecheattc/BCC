@@ -228,27 +228,16 @@
     //Returns an array of family member objects given an ID - if the $byHouse flag is set,
     //the family members are retrieved if their member_house_id matches the given id, otherwise
     //they're retrieved if their guardian_id matches the given id or spouse id.
-    public static function getAllFamilyMembersForClient($ID, $byHouse, $spouseID = NULL)
+    public static function getAllFamilyMembersForClient($clientID, $spouseID, $houseID)
     {
       SQLDB::connect("bcc_food_client");
-      
-      $ID = mysql_real_escape_string($ID);
-			$spouseID = mysql_real_escape_string($spouseID);
-      
-      $query = "SELECT fam_member_id, member_house_id, guardian_id, ethnicity_id, age, gender_id ";
-      $query .= "FROM bcc_food_client.family_members ";
-      if ($byHouse)
-      {
-        $query .= "WHERE member_house_id='{$ID}'";
-      }
-      else
-      {
-        $query .= "WHERE guardian_id='{$ID}' ";
-				if (isset($spouseID))
-				{
-					$query .= "OR guardian_id='{$spouseID}'";
-				}
-      }
+      $clientID = empty($clientID)? '' : mysql_real_escape_string($clientID);
+			$spouseID = empty($spouseID)? '' : mysql_real_escape_string($spouseID);
+			$houseID = empty($houseID)? '' : mysql_real_escape_string($houseID);
+			
+      $query = "SELECT fam_member_id, member_house_id, guardian_id, ethnicity_id, age, gender_id 
+								FROM bcc_food_client.family_members 
+								WHERE member_house_id='{$houseID}' OR guardian_id='{$clientID}' OR guardian_id='{$spouseID}'";
       $result = mysql_query($query);
       
       $members = array();

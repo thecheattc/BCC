@@ -35,6 +35,9 @@
   
   if (isset($_POST['spouseID']))
   {
+		//Since they've changed information that would affect who their family members are,
+		//ensure we search for them when we come to the client entry page.
+		$_SESSION['modifyFamily'] = FALSE;
     $_SESSION['spouseID'] = $_POST['spouseID'];
 		if ($_POST['spouseID'] != "single")
 		{
@@ -56,6 +59,7 @@
   $reasons = Reason::getAllReasons();
   $changed = "added";
   $changing = "adding";
+	$clientID = NULL;
   
   if (!empty($_SESSION['edit']))
   {
@@ -74,6 +78,7 @@
       header("Location: search.php?clean=1");
 			exit();
     }
+		$clientID = $client->getClientID();
 		$_SESSION['clientID'] = $client->getClientID();
 		$_SESSION['appDate'] = mySQLDateToNormal($client->getApplicationDate());
 		$_SESSION['firstName'] = $client->getFirstName();
@@ -87,25 +92,24 @@
 		$_SESSION['uDate'] = ($client->getUnemploymentDate())? mySQLDateToNormal($client->getUnemploymentDate()) : NULL;
 		$_SESSION['receivesStamps'] = $client->getReceivesStamps();
 		$_SESSION['wantsStamps'] = $client->getWantsStamps();
-		
-		//Populate session with client children so long as they haven't modified the information already
-		if (empty($_SESSION['modifyFamily']))
-		{
-			$familyMembers = $client->getAllFamilyMembers();
-			var_dump($familyMembers);
-			$sessionFamilyMembers = array();
-			foreach($familyMembers as $familyMember)
-			{
-				$sessionFamilyMember = array();
-				$sessionFamilyMember["age"] = $familyMember->getAge();
-				$sessionFamilyMember["gender"] = $familyMember->getGenderID();
-				$sessionFamilyMember["ethnicity"] = $familyMember->getEthnicityID();
-				$sessionFamilyMembers[] = $sessionFamilyMember;
-			}
-			$_SESSION['memberCount'] = count($sessionFamilyMembers);
-			$_SESSION['familyMembers'] = $sessionFamilyMembers;
-		}
   }
+	
+	//Populate session with client children so long as they haven't modified the information already
+	if (empty($_SESSION['modifyFamily']))
+	{
+		$familyMembers = FamilyMember::getAllFamilyMembersForClient($_SESSION['clientID'], $_SESSION['spouseID'], $_SESSION['houseID']);
+		$sessionFamilyMembers = array();
+		foreach($familyMembers as $familyMember)
+		{
+			$sessionFamilyMember = array();
+			$sessionFamilyMember["age"] = $familyMember->getAge();
+			$sessionFamilyMember["gender"] = $familyMember->getGenderID();
+			$sessionFamilyMember["ethnicity"] = $familyMember->getEthnicityID();
+			$sessionFamilyMembers[] = $sessionFamilyMember;
+		}
+		$_SESSION['memberCount'] = count($sessionFamilyMembers);
+		$_SESSION['familyMembers'] = $sessionFamilyMembers;
+	}
   
 ?>
 
@@ -117,8 +121,7 @@
 	<meta name="original-source" content="http://upload.wikimedia.org/wikipedia/commons/a/a4/Old_Woman_in_Suzdal_-_Russia.JPG">
 	<link rel="stylesheet" href="style/bryant.css" type="text/css"/>
 	<link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />	
-	<script type="text/javascript" 
-			src="scripts/js/jquery-1.4.4.min.js"></script>
+	<script type="text/javascript" src="scripts/js/jquery-1.4.4.min.js"></script>
 	<script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8">
 	</script>
 	<script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>

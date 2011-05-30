@@ -29,25 +29,6 @@ padding: 1em;
 margin-right: 1em;
 background-color: #CCCCCC;
 }
-/*===============================Login Page===================================*/
-#adLogin{
-margin: 3em auto 0;
-width: 30em;
-}
-#adLogin label, input{
-margin-top: 2em;
-}
-#adLogin p{
-margin-top: 1em;
-text-align: center;
-}
-#adLogin input{
-}
-/*================================Register page===============================*/
-#regform{
-width: 50em;
-margin: 0 auto;
-}
 /*==================================Link Behavior=============================*/
 a:hover{
 text-decoration: none;
