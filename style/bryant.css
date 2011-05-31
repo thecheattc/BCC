@@ -29,13 +29,6 @@ padding: 1em;
 margin-right: 1em;
 background-color: #CCCCCC;
 }
-/*==================================Link Behavior=============================*/
-a:hover{
-text-decoration: none;
-}
-a:visited{
-color: black;
-}
 /*===============================Task Select Page=============================*/
 #taskWrap{
 width: 65em;

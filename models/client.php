@@ -1,7 +1,7 @@
 <?php
   define("HOMELESS_REASON_ID", 6);
 	
-	/*Prototypes for WAY BETTER getters and setters which I just discovered, my apologies
+	/*Prototype for a WAY BETTER getter/setter which I just discovered, my apologies
 	to whomever has to maintain the mess using explicit getters and setters that's used all over.
 	public function Variable()
 	{
@@ -575,6 +575,12 @@
       
       return $spouses;
     }
+		
+		public function ensureClientNotListedAsSpouse()
+		{
+			SQLDB::connect("bcc_food_client");
+			return mysql_query("UPDATE clients SET spouse_id = NULL WHERE spouse_id = {$this->clientID}");
+		}
     
   }
 

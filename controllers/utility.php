@@ -5,7 +5,7 @@
   
   function processString ($string, $stripSpaces = FALSE, $lenLimit = TRUE)
   {
-		$pattern = '/[^\w\.\,\s]/';
+		$pattern = '/[^\w\.\,\s\/]/';
 		$string = stripslashes(trim($string));
 		if ($lenLimit && strlen($string) > 20)
 		{

@@ -16,7 +16,9 @@
 		exit();
 	}
   $cleanNote = processString($_POST['note']);
-  if(empty($_POST['distType']) || empty($_POST['distLocation']) || 
+	$cleanType = processString($_POST['distType']);
+	$cleanLocation = processString($_POST['distLocation']);
+  if(empty($cleanType) || empty($cleanLocation) || 
 		 (!empty($_POST['note']) && empty($cleanNote)))
   {
 		$error = "There was an error recording the visit. If you're attaching a note, ";
@@ -34,9 +36,9 @@
     }
   }
 	$visit = Visit::create();
-	$visit->setClientID($_POST['clientID']);
-	$visit->setTypeID($_POST['distType']);
-	$visit->setLocationID($_POST['distLocation']);
+	$visit->setClientID(processString($_POST['clientID']));
+	$visit->setTypeID($cleanType);
+	$visit->setLocationID($cleanLocation);
 	$visit->setDate(createNormalDate(date("m-d-Y")));
 	$visit->setNote($cleanNote);
 	if ($visit->save() === FALSE)

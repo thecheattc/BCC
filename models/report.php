@@ -13,11 +13,10 @@
 		public static function showAllClients()
 		{
 			SQLDB::connect("bcc_food_client");
-			$result = mysql_query("
-									SELECT *
+			$query = "SELECT *
 									FROM bcc_food_client.clients AS c LEFT JOIN (
 										SELECT u.dist_id, u.client_id, u.date
-										FROM bcc_food_client.usage AS u JOIN (
+										FROM bcc_food_client.usage u JOIN (
 											SELECT client_id, MAX(date) AS maxdate
 											FROM bcc_food_client.usage
 											GROUP BY client_id
@@ -28,12 +27,49 @@
 										JOIN bcc_food_client.genders AS g ON c.gender_id=g.gender_id
 										JOIN bcc_food_client.reasons AS r ON r.reason_id=c.reason_id
 										ORDER BY c.last_name, c.first_name
-									");
-			echo mysql_error();
+									";
+			$result = mysql_query($query);
+			echo "<table>
+							<tr>
+								<th>Client ID</th>
+								<th>Name</th>
+								<th>Age</th>
+								<th>Phone number</th>
+								<th>Spouse ID</th>
+								<th>Address</th>
+								<th>Gender</th>
+								<th>Ethnicity</th>
+								<th>Reason</th>
+								<th>Explanation</th>
+								<th>Unemployment date</th>
+								<th>Application date</th>
+								<th>Most recent visit ID</th>
+								<th>Most recent visit date</th>
+							</tr>
+			";
 			while($row = mysql_fetch_assoc($result))
 			{
-				print_r($row);
+				echo "
+				<tr>
+					<td> {$row['client_id']} </td>
+					<td> {$row['first_name']} {$row['last_name']} </td>
+					<td> {$row['age']} </td>
+					<td> {$row['phone_number']} </td>
+					<td> {$row['spouse_id']} </td>
+					<td> {$row['street_number']} {$row['street_name']} {$row['street_type']} {$row['line_2']} {$row['city']} {$row['zip']} </td>
+					<td> {$row['gender_desc']} </td>
+					<td> {$row['ethnicity_desc']} </td>
+					<td> {$row['reason_desc']} </td>
+					<td> {$row['explanation']} </td>
+					<td> {$row['unemployment_date']} </td>
+					<td> {$row['application_date']} </td>
+					<td> {$row['dist_id']} </td>
+					<td> {$row['date']} </td>
+					<td> {$row['location']} </td>
+				</tr>
+				";
 			}
+			echo "</table>";
 		}
 		
 		//Returns the number of duplicated households that successfully got food this month
@@ -391,21 +427,33 @@
 				return FALSE;
 			}
 			
+			$parents = "CREATE TEMPORARY TABLE parents
+			SELECT c.client_id, c.spouse_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
+			c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
+			c.receives_stamps, c.wants_stamps
+			FROM 
+			(SELECT DISTINCT w.client_id 
+			FROM bcc_food_client.clients w JOIN bcc_food_client.usage x ON w.client_id=x.client_id 
+			WHERE x.type_id != {$this->REJECTED_ID} AND x.date >= '{$this->start}' AND x.date < '{$this->end}'
+			UNION
+			SELECT DISTINCT y.spouse_id AS client_id
+			FROM bcc_food_client.clients y JOIN bcc_food_client.usage z ON y.client_id=z.client_id 
+			WHERE z.type_id != {$this->REJECTED_ID} AND z.date >= '{$this->start}' AND z.date < '{$this->end}'
+			) AS parent_ids JOIN bcc_food_client.clients c ON parent_ids.client_id = c.client_id";
+			$result = mysql_query($parents);
+			if ($result === FALSE)
+			{
+				echo "parents";
+				return FALSE;
+			}
+			
 			//List of homeless people that got food as well as their spouses
 			$homelessParents = 
 			"CREATE TEMPORARY TABLE homeless_parents
-			SELECT c.client_id, c.spouse_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
-				c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
-				c.receives_stamps, c.wants_stamps
-			FROM 
-				(SELECT DISTINCT w.client_id 
-				FROM bcc_food_client.clients w JOIN bcc_food_client.usage x ON w.client_id=x.client_id 
-				WHERE x.type_id != {$this->REJECTED_ID} AND w.reason_id = {$this->HOMELESS_REASON_ID} AND x.date >= '{$this->start}' AND x.date < '{$this->end}'
-				UNION
-				SELECT DISTINCT y.spouse_id AS client_id
-				FROM bcc_food_client.clients y JOIN bcc_food_client.usage z ON y.client_id=z.client_id 
-				WHERE z.type_id != {$this->REJECTED_ID} AND y.reason_id = {$this->HOMELESS_REASON_ID} AND z.date >= '{$this->start}' AND z.date < '{$this->end}'
-				) AS homeless_parent_ids JOIN bcc_food_client.clients c ON homeless_parent_ids.client_id = c.client_id";
+			SELECT client_id, spouse_id, first_name, last_name, age, phone_number, house_id, ethnicity_id,
+				gender_id, reason_id, explanation, unemployment_date, application_date,
+				receives_stamps, wants_stamps
+			FROM parents WHERE reason_id = {$this->HOMELESS_REASON_ID}";
 			$result = mysql_query($homelessParents);
 			if ($result === FALSE)
 			{
@@ -416,10 +464,10 @@
 			//List of people with homes that got food including their spouses
 			$homeParents = 
 			"CREATE TEMPORARY TABLE home_parents
-			SELECT c.client_id, c.first_name, c.last_name, c.age, c.phone_number, c.house_id, c.ethnicity_id,
-							c.gender_id, c.reason_id, c.explanation, c.unemployment_date, c.application_date,
-							c.receives_stamps, c.wants_stamps
-			FROM	(SELECT house_id FROM visiting_houses) AS visiting_house_ids JOIN bcc_food_client.clients c ON visiting_house_ids.house_id = c.house_id";
+			SELECT client_id, spouse_id, first_name, last_name, age, phone_number, house_id, ethnicity_id,
+							gender_id, reason_id, explanation, unemployment_date, application_date,
+							receives_stamps, wants_stamps
+			FROM parents WHERE reason_id != {$this->HOMELESS_REASON_ID}";
 			$result = mysql_query($homeParents);
 			if ($result === FALSE)
 			{
@@ -463,11 +511,11 @@
 			mysql_query("DROP TEMPORARY TABLE IF EXISTS homeless_children");
 		}
 		
-		public function getReport($start, $end, $newlyUnemployedDate = "00-00-0000")
+		public function getReport($start, $end, $newlyUnemployedDate)
 		{
 			SQLDB::connect("bcc_food_client");
 			
-			$this->newlyUnemployedDate = createMySQLDate($newlyUnemployedDate);
+			$this->newlyUnemployedDate = normalDateToMySQL($newlyUnemployedDate);
 			$this->start = normalDateToMySQL($start);
 			$this->end = normalDateToMySQL($end);
 			
@@ -513,7 +561,7 @@
 			printKeyValue($ageCount);
 			echo "Total homeless:\n\t" . $totalHomeless . "\n";
 			echo "Duplicated rejections: " . $rejections . "\n";
-			echo "Newly unemployed since " . $newlyUnemployedDate . ":" . $newlyUnemployed . "\n";
+			echo "Newly unemployed: " . $newlyUnemployed . "\n";
 			echo "</PRE>";
 		}
 	}

@@ -11,10 +11,11 @@
 		$_SESSION['errors'][] = "This operation requires administrative privileges.";
 		header("Location: ../");
 	}
-  
-  $badDate = !createNormalDate($_POST['date']);
+  $date = createNormalDate($_POST['date']);
 	$cleanNote = processString($_POST['note']);
-  if (empty($_GET['visit']) || $badDate || empty($_POST['type']) || empty($_POST['location']) || 
+	$cleanType = processString($_POST['type']);
+	$cleanLocation = processString($_POST['location']);
+  if (empty($_GET['visit']) || empty($date) || empty($cleanType) || empty($cleanLocation) || 
 			(!empty($_POST['note']) && empty($cleanNote)))
   {
 		$error = "There was an error editing the visit. If you're attaching a note, ";
@@ -49,10 +50,10 @@
 
     }
   }
-  $visit->setDate(createNormalDate($_POST['date']));
-  $visit->setTypeID($_POST['type']);
+  $visit->setDate($date);
+  $visit->setTypeID($cleanType);
 	$visit->setNote($cleanNote);
-	$visit->setLocationID($_POST['location']);
+	$visit->setLocationID($cleanLocation);
 
   if ($visit->save() === FALSE)
   {

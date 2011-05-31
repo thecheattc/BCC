@@ -51,11 +51,17 @@
   if ($_SESSION['houseID'] === "new")
   {
     $streetNumber = processString($_SESSION['streetNumber']);
+		$streetNumberGiven = !empty($_SESSION['streetNumber']);
     $streetName = processString($_SESSION['streetName']);
+		$streetNameGiven = !empty($_SESSION['streetName']);
     $streetType = processString($_SESSION['streetType']);
+		$streetTypeGiven = !empty($_SESSION['streetType']);
     $line2 = processString($_SESSION['line2']);
-    $city = processString($_SESSION['city']);
+		$line2Given = !empty($_SESSION['line2']);
+    $city = processString($_SESSION['city']);		
+		$cityGiven = !empty($_SESSION['city']);
     $zip = processString($_SESSION['zip']);
+		$zipGiven = !empty($_SESSION['zip']);
   }
   else
   {
@@ -70,11 +76,17 @@
     if ($match)
     {
       $streetNumber = processString($match['streetNumber']);
+			$streetNumberGiven = !empty($match['streetNumber']);
       $streetName = processString($match['streetName']);
+			$streetNameGiven = !empty($match['streetName']);
       $streetType = processString($match['streetType']);
+			$streetTypeGiven = !empty($match['streetType']);
       $line2 = processString($match['line2']);
+			$line2Given = !empty($match['line2']);
       $city = processString($match['city']);
+			$cityGiven = !empty($match['city']);
       $zip = processString($match['zip']);
+			$zipGiven = !empty($match['zip']);
     }
     else
     {
@@ -93,16 +105,19 @@
   $explanation = processString($_SESSION['explanation']);
   $receivesStamps = processString($_SESSION['receivesStamps']);
   
+	$sessionFamily = array();
   for ($i=0; $i<$_SESSION['memberCount']; $i++)
   {
-    $_SESSION['familyMembers'][$i]["age"] = processString($_SESSION['familyMembers'][$i]["age"]);
-    $_SESSION['familyMembers'][$i]["gender"] = processString($_SESSION['familyMembers'][$i]["gender"]);
-    $_SESSION['familyMembers'][$i]["ethnicity"] = processString($_SESSION['familyMembers'][$i]["ethnicity"]);
+		$sessionFamily[] = array(
+													"age" => processString($_SESSION['familyMembers'][$i]["age"]),
+													"gender" => processString($_SESSION['familyMembers'][$i]["gender"]),
+													"ethnicity" => processString($_SESSION['familyMembers'][$i]["ethnicity"])
+													);
   }
   
   $wantsStamps = NULL;
   $unempDate = NULL;
-  
+  $addressError = FALSE;
   if ($reasonID == UNEMPLOYED_REASON_ID)
   {
     $unempDate = createNormalDate($_SESSION['uDate']);
@@ -112,38 +127,35 @@
     $wantsStamps = processString($_SESSION['wantsStamps']);
   }
   
-  if ((!empty($reasonID) && $reasonID != HOMELESS_REASON_ID))
-  { 
-    $addressRequired = TRUE;
-  }
-  
+  $addressRequired = ((!empty($reasonID) && $reasonID != HOMELESS_REASON_ID));
   if (empty($_SESSION['houseID']))
   {
     $_SESSION['errors'][] = "House selection from search results";
   }
-  if ($addressRequired)
-  {
-    if (empty($streetNumber))
-    {
-      $_SESSION['errors'][] = "Street number";
-    }
-    if (empty($streetName))
-    {
-      $_SESSION['errors'][] = "Street name";
-    }
-    if (empty($streetType))
-    {
-      $_SESSION['errors'][] = "Street type";
-    }
-    if (empty($city))
-    {
-      $_SESSION['errors'][] = "City";
-    }
-    if (empty($zip))
-    {
-      $_SESSION['errors'][] = "Zip";
-    }
-  }
+	if (($streetNumberGiven || $addressRequired) && empty($streetNumber))
+	{
+		$_SESSION['errors'][] = "Street number";
+	}
+	if (($streetNameGiven || $addressRequired) && empty($streetName))
+	{
+		$_SESSION['errors'][] = "Street name";
+	}
+	if (($streetTypeGiven || $addressRequired) && empty($streetType))
+	{
+		$_SESSION['errors'][] = "Street type";
+	}
+	if ($line2Given && empty($line2))
+	{
+		$_SESSION['errors'][] = "Address line 2";
+	}
+	if (($cityGiven || $addressRequired) && empty($city))
+	{
+		$_SESSION['errors'][] = "City";
+	}
+	if (($zipGiven || $addressRequired) && empty($zip))
+	{
+		$_SESSION['errors'][] = "Zip";
+	}
   if (empty($appDate))
   {
     $_SESSION['errors'][] = "Application date";
@@ -195,15 +207,15 @@
   for ($i=0; $i<$_SESSION['memberCount']; $i++)
   {
     $j = $i+1;
-    if (empty($_SESSION['familyMembers'][$i]["age"]))
+    if (empty($sessionFamily[$i]["age"]))
     {
       $_SESSION['errors'][] = "Child {$j} age";
     }
-    if (empty($_SESSION['familyMembers'][$i]["gender"]))
+    if (empty($sessionFamily[$i]["gender"]))
     {
       $_SESSION['errors'][] = "Child {$j} gender";
     }
-    if (empty($_SESSION['familyMembers'][$i]["ethnicity"]))
+    if (empty($sessionFamily[$i]["ethnicity"]))
     {
       $_SESSION['errors'][] = "Child {$j} ethnicity";
     }
@@ -310,7 +322,10 @@
     header("Location: ../clientConfirm.php");
     exit();
   }
-  
+  if ($client->getSpouseID() === NULL)
+	{
+		$client->ensureClientNotListedAsSpouse();
+	}
   //Now that we can build proper family member objects, convert the session variables to
   //family member objects and stick it in the new family members array
   for ($i=0; $i<$_SESSION['memberCount']; $i++)
@@ -326,9 +341,9 @@
       $familyMember->setHouseID(NULL);
       $familyMember->setGuardianID($client->getClientID());
     }
-    $familyMember->setAge($_SESSION['familyMembers'][$i]["age"]);
-    $familyMember->setGenderID($_SESSION['familyMembers'][$i]["gender"]);
-    $familyMember->setEthnicityID($_SESSION['familyMembers'][$i]["ethnicity"]);
+    $familyMember->setAge($sessionFamily[$i]["age"]);
+    $familyMember->setGenderID($sessionFamily[$i]["gender"]);
+    $familyMember->setEthnicityID($sessionFamily[$i]["ethnicity"]);
     $newFamilyMembers[] = $familyMember;
   }
   Client::deleteHouseIfNotReferenced($oldHouseID);
@@ -345,13 +360,8 @@
   {
     $familyMember->delete();
   }
-  if ($edit)
-  { 
-		$_SESSION['errors'][] = "Client successfully edited.";
-    header("Location: ../search.php");
-  }
-  else
-  {
-		$_SESSION['errors'][] = "Client successfully created.";
-    header("Location: ../search.php");
-  }
+	$action = ($edit)? "edited" : "created";
+	$_SESSION['errors'][] = "Client {$client->getClientID()} successfully {$action}.";
+	header("Location: ../search.php");
+
+

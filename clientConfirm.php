@@ -25,6 +25,7 @@
 
   if (empty($_SESSION['errors']) && !empty($_POST))
   {
+		$_SESSION['modifyFamily'] = TRUE;
     $_SESSION['appDate'] = stripslashes($_POST['appDate']);
     $_SESSION['firstName'] = stripslashes($_POST['firstName']);
     $_SESSION['lastName'] = stripslashes($_POST['lastName']);
@@ -47,7 +48,7 @@
   
   if ($_POST['toDo'] == "addMember")
   {
-    $_SESSION['modifyFamily'] = TRUE;
+		$_SESSION['modifyFamily'] = TRUE;
     $_SESSION['memberCount']++;
     $familyMember = array("age" => '', "gender" => '', "ethnicity" => '');
     $_SESSION['familyMembers'][] = $familyMember;
@@ -56,7 +57,7 @@
   }
   if ($_POST['toDo'] == "deleteMember")
   {
-    $_SESSION['modifyFamily'] = TRUE;
+		$_SESSION['modifyFamily'] = TRUE;
     $_SESSION['memberCount']--;
     $_SESSION['familyMembers'][$_SESSION['memberCount']] = NULL;
     header("Location: clientEntry.php");
@@ -141,7 +142,7 @@
 		<p>For text input, only letters, numbers, periods, and commas are allowed.</p></div>\n";
     if ($addressError)
     {
-      echo "<p>For addresses, either list all parts of an address or no parts (if the client is homeless)</p>\n";
+      echo "<p>For addresses, all parts are required (except Address Line 2) unless the client is homeless.</p>\n";
     }
     $_SESSION['errors'] = array();
   }
@@ -213,7 +214,7 @@
               $childEthnicity = Ethnicity::getEthnicityByID($familyMember["ethnicity"]);
               echo "\n\t<tr>\n\t\t<td><label>Family member {$j} age:</label></td>\n";
               echo "\t<td> ";
-              if (!empty($familyMember['age'])){ echo $familyMember['age']; }
+              if (!empty($familyMember['age'])){ echo htmlentities($familyMember['age']); }
               echo "</td>\n\t</tr>\n";
               echo "\t<tr>\n\t\t<td><label>Family member {$j} gender:</label></td>\n";
               echo "\t<td> ";

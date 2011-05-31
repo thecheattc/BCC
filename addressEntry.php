@@ -146,8 +146,8 @@
 				}
 				else
 				{
-					echo "Create a new entry using what was entered: " . $_SESSION['streetNumber'] . ' ' . $_SESSION['streetName'] . ' ' . $_SESSION['streetType'] . ' '
-					. $_SESSION['line2'] . ' ' . $_SESSION['city'] . ' ' . $_SESSION['zip'] . '</td>' ;
+					echo "Create a new entry using what was entered: " . htmlentities(stripslashes($_SESSION['streetNumber'] . ' ' . $_SESSION['streetName'] . ' ' . $_SESSION['streetType'] . ' '
+					. $_SESSION['line2'] . ' ' . $_SESSION['city'] . ' ' . $_SESSION['zip'])) . '</td>' ;
 				}
         echo '<td><input name="houseID" type="radio" value="new" ';
         if ($_SESSION['houseID'] === "new")

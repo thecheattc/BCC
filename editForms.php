@@ -39,10 +39,10 @@
 		$ethnicityID = $_SESSION['ethnicityID'];
 		$reasonID = $_SESSION['reasonID'];
 		$locationID = $_SESSION['locationID'];
-		$newEthnicity = $_SESSION['newEthnicity'];
-		$newReason = $_SESSION['newReason'];
-		$newGender = $_SESSION['newGender'];
-		$newLocation = $_SESSION['newLocation'];
+		$newEthnicity = htmlentities($_SESSION['newEthnicity']);
+		$newReason = htmlentities($_SESSION['newReason']);
+		$newGender = htmlentities($_SESSION['newGender']);
+		$newLocation = htmlentities($_SESSION['newLocation']);
 	}
 
 ?>

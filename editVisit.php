@@ -42,11 +42,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>Visit history for <?php echo $client->getfirstName() . " " . $client->getlastName(); ?></title>
   <link rel="stylesheet" href="style/bryant.css" type="text/css" media="all" />
-  <script src="scripts/js/jquery-1.4.1.min.js"></script>
-  <script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8"></script>
-  <script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
+	<link type="text/css" href="scripts/js/jquery-ui-1.8.10.custom/css/ui-lightness/jquery-ui-1.8.10.custom.css" rel="Stylesheet" />
+	<script type="text/javascript" src="scripts/js/jquery-1.4.4.min.js"></script>
+	<script src="scripts/js/jquery.simplemodal-1.4.1.js" type="text/javascript" language="javascript" charset="utf-8"></script>
+	<script type="text/javascript" src="scripts/js/jquery-ui-1.8.10.custom/js/jquery-ui-1.8.10.custom.min.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#date').datepicker({ dateFormat: 'mm-dd-yy' });
+		});
+	</script>
 </head>
 <body>
   <div id="header">
