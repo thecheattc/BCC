@@ -136,8 +136,9 @@
         }
 				$tempDate = mySQLDateToNormal($clients[$i]->getApplicationDate());
         echo "<td><span>Registered {$tempDate} </span></td>";
+				echo "<td><a href='clientInfo.php?client={$clients[$i]->getClientID()}'>View client information</a></td>";
+				echo "<td><a href='addressEntry.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
         echo "<td><a href='viewHistory.php?client={$clients[$i]->getClientID()}'>View visit history</a></td>";
-        echo "<td><a href='addressEntry.php?client={$clients[$i]->getClientID()}'>Edit client information</a></td>";
 				echo "<td><a href='controllers/deleteClient.php?client={$clients[$i]->getClientID()}' " ;
 				echo "onClick=" . '"' . "return confirm('Are you sure you want to delete this client? ";
 				echo "Doing so will remove all information related to the client from the database.')" . '">Delete this client</a>';
