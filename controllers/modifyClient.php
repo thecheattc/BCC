@@ -29,7 +29,7 @@
   $client = NULL;
   $newFamilyMembers = array();
   $oldFamilyMembers = FamilyMember::getAllFamilyMembersForClient($_SESSION['clientID'], $_SESSION['spouseID'], $_SESSION['houseID']);
-
+	
   if ($edit)
   {
     $client = Client::getClientByID($_SESSION['clientID']);
@@ -40,6 +40,7 @@
       exit();
     }
   }
+	
   if (!isset($_SESSION['oldAddressValid']))
   {
     $_SESSION['oldAddressValid'] = FALSE;
@@ -126,7 +127,7 @@
   {
     $wantsStamps = processString($_SESSION['wantsStamps']);
   }
-  
+	
   $addressRequired = ((!empty($reasonID) && $reasonID != HOMELESS_REASON_ID));
   if (empty($_SESSION['houseID']))
   {

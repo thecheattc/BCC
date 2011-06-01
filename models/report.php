@@ -1,7 +1,6 @@
 <?php
 	
-  //Returns all the unduplicated individuals who successfully got food in a month 
-  //given a valid MySQL date range - including the beginning date, excluding the ending date
+	date_default_timezone_set('America/NewYork');
 	class Report
 	{
 		private $HOMELESS_REASON_ID = 6;
@@ -9,6 +8,8 @@
 		private $newlyUnemployedDate;
 		private $start;
 		private $end;
+		private $FISCAL_YEAR_BEGIN;
+		private $NEXT_YEAR_BEGIN;
 		
 		public static function showAllClients()
 		{
@@ -359,16 +360,28 @@
 			$queries = array($homeParentAges, $homelessParentAges, $homeChildrenAges, $homelessChildrenAges);
 			return runCountQueriesAndUnionResults($queries);
 		}
-		//Should this include spouses?
+		
 		private function getNewlyUnemployed()
 		{
-			$query = "SELECT COUNT(*) FROM visiting_clients WHERE unemployment_date > '{$this->newlyUnemployedDate}'";
+			$query = "SELECT COUNT(*) 
+								FROM visiting_clients 
+								WHERE unemployment_date >= '{$this->FISCAL_YEAR_BEGIN}' 
+								AND (reported_on = 0 OR reported_on IS NULL)";
+			
 			$result = mysql_query($query);
+			$count = -1;
 			if ($row = mysql_fetch_array($result))
 			{
-				return $row[0];
+				$count = $row[0];
 			}
-			return -1;
+			//Mark those who have been reported on as ineligible for reporting until the next year
+			$query = "UPDATE bcc_food_client.clients 
+								SET reported_on = 1, noreport_until = '{$this->NEXT_YEAR_BEGIN}' 
+								WHERE client_id IN (SELECT client_id FROM visiting_clients) 
+								AND (reported_on = 0 OR reported_on IS NULL)
+								AND unemployment_date >= '{$this->FISCAL_YEAR_BEGIN}'";
+			mysql_query($query);
+			return $count;
 		}
 		
 		private function getReceivesFoodstampsCount()
@@ -399,12 +412,17 @@
 			{
 				return FALSE;
 			}
+			$nextYear = date("Y");
+			$fiscalYearDateTime = createMySQLDate(date("Y")-1 . "-07-01");
+			$nextYearDateTime = createMySQLDate(date("Y") . "-07-01");
+			$this->FISCAL_YEAR_BEGIN = $fiscalYearDateTime->format("Y-m-d");
+			$this->NEXT_YEAR_BEGIN = $nextYearDateTime->format("Y-m-d");
 			
 			//List of clients that actually came to get food and were successful
 			$visitingClients = 
 			"CREATE TEMPORARY TABLE visiting_clients
 			SELECT DISTINCT c.client_id, c.spouse_id, c.age, c.house_id, c.ethnicity_id, c.gender_id, c.reason_id,	
-			c.unemployment_date, c.application_date, c.receives_stamps, c.wants_stamps
+			c.unemployment_date, c.application_date, c.receives_stamps, c.wants_stamps, c.reported_on, c.noreport_until
 			FROM bcc_food_client.clients c JOIN bcc_food_client.usage u
 			ON c.client_id = u.client_id WHERE u.date >= '{$this->start}' AND u.date < '{$this->end}' AND u.type_id != '{$this->REJECTED_ID}'";
 			$result = mysql_query($visitingClients);
@@ -498,6 +516,12 @@
 				echo "home_children";
 				return FALSE;
 			}
+			
+			//Mark those who were reported as unemployed last fiscal year as eligible for reporting again.
+			mysql_query("UPDATE bcc_food_clients.client
+									SET reported_on = 0 AND noreport_until = '{$this->NEXT_YEAR_BEGIN}'
+									WHERE client_id IN (SELECT client_id FROM visiting_clients)
+									AND reported_on = 1 AND noreport_until <= CURDATE()");
 			return TRUE;
 		}
 		
@@ -511,11 +535,10 @@
 			mysql_query("DROP TEMPORARY TABLE IF EXISTS homeless_children");
 		}
 		
-		public function getReport($start, $end, $newlyUnemployedDate)
+		public function getReport($start, $end)
 		{
 			SQLDB::connect("bcc_food_client");
 			
-			$this->newlyUnemployedDate = normalDateToMySQL($newlyUnemployedDate);
 			$this->start = normalDateToMySQL($start);
 			$this->end = normalDateToMySQL($end);
 			
