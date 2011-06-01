@@ -50,23 +50,40 @@
 			";
 			while($row = mysql_fetch_assoc($result))
 			{
+				$clientID = htmlentities($row['client_id']);
+				$name = htmlentities($row['first_name'] . " " . $row['last_name']);
+				$age = htmlentities($row['age']);
+				$phoneNumber = htmlentities($row['phone_number']);
+				$spouseID = htmlentities($row['spouse_id']);
+				$address = htmlentities($row['street_number'] . " " . $row['street_name'] . " " . $row['street_type'] . " " 
+																. $row['line_2'] . " " . $row['city'] . " " .$row['zip']);
+				$gender = htmlentities($row['gender_desc']);
+				$ethnicity = htmlentities($row['ethnicity_desc']);
+				$reason = htmlentities($row['reason_desc']);
+				$explanation = htmlentities($row['explanation']);
+				$unemploymentDate = htmlentities($row['unemployment_date']);
+				$applicationDate = htmlentities($row['application_date']);
+				$distID = htmlentities($row['dist_id']);
+				$date = htmlentities($row['date']);
+				$location = htmlentities($row['location']);
+				
 				echo "
 				<tr>
-					<td> {$row['client_id']} </td>
-					<td> {$row['first_name']} {$row['last_name']} </td>
-					<td> {$row['age']} </td>
-					<td> {$row['phone_number']} </td>
-					<td> {$row['spouse_id']} </td>
-					<td> {$row['street_number']} {$row['street_name']} {$row['street_type']} {$row['line_2']} {$row['city']} {$row['zip']} </td>
-					<td> {$row['gender_desc']} </td>
-					<td> {$row['ethnicity_desc']} </td>
-					<td> {$row['reason_desc']} </td>
-					<td> {$row['explanation']} </td>
-					<td> {$row['unemployment_date']} </td>
-					<td> {$row['application_date']} </td>
-					<td> {$row['dist_id']} </td>
-					<td> {$row['date']} </td>
-					<td> {$row['location']} </td>
+					<td> {$clientID} </td>
+					<td> {$name} </td>
+					<td> {$age} </td>
+					<td> {$phoneNumber} </td>
+					<td> {$spouseID} </td>
+					<td> {$address} </td>
+					<td> {$gender} </td>
+					<td> {$ethnicity} </td>
+					<td> {$reason} </td>
+					<td> {$explanation} </td>
+					<td> {$unemploymentDate} </td>
+					<td> {$applicationDate} </td>
+					<td> {$distID} </td>
+					<td> {$date} </td>
+					<td> {$location} </td>
 				</tr>
 				";
 			}
@@ -567,6 +584,8 @@
 			$newlyUnemployed = $this->getNewlyUnemployed();
 						
 			$this->dropTemporaryTables();
+			
+			echo "<h3>Report for {$start->format('m/d/Y')} to {$end->format('m/d/Y')}:</h3>";
 			
 			echo "<PRE>";
 			echo "Duplicated households:\n\t" . $duplicatedHouseholds . "\n";
